@@ -116,13 +116,90 @@ src/
 └── constants/       # Game configurations
 ```
 
-## API Routes
+## Roadmap 🗺️
 
-The application uses several API endpoints:
+Our vision is to evolve Pickle.me into a comprehensive brain training platform. Here's what's coming:
 
-- `/api/advice`: OpenAI integration for generating advice
-- Firebase Firestore for storing user data and scores
-- Google Authentication for user management
+### Upcoming Game Categories 🎯
+
+1. **Memory Games**
+
+   - ✅ Sequence Memory (Simon Says)
+   - ✅ Visual Memory (Card Matching)
+   - ✅ Speed Memory (Quick Recognition)
+   - 🚧 Pattern Memory
+   - 🚧 Number Memory
+   - 🚧 Word Memory
+
+2. **Logic Games**
+
+   - 🚧 Pattern Completion
+   - 🚧 Sudoku Variants
+   - 🚧 Logic Puzzles
+   - 🚧 Mathematical Sequences
+
+3. **Focus Games**
+
+   - 🚧 Attention Training
+   - 🚧 Concentration Tests
+   - 🚧 Distraction Challenges
+   - 🚧 Multi-tasking Exercises
+
+4. **Problem Solving**
+   - ✅ AI-Assisted Problem Solving
+   - 🚧 Strategy Puzzles
+   - 🚧 Critical Thinking Challenges
+   - 🚧 Decision-Making Scenarios
+
+### User Experience Improvements 🌟
+
+1. **Progress Tracking**
+
+   - 🚧 Detailed Performance Analytics
+   - 🚧 Progress Visualization
+   - 🚧 Skill Category Breakdown
+   - 🚧 Personal Improvement Trends
+
+2. **Training Programs**
+
+   - 🚧 Customized Training Paths
+   - 🚧 Daily Workout Routines
+   - 🚧 Difficulty Progression System
+   - 🚧 Targeted Skill Development
+
+3. **Social Features**
+
+   - 🚧 Friend Challenges
+   - 🚧 Group Competitions
+   - 🚧 Achievement Sharing
+   - 🚧 Community Rankings
+
+4. **Gamification**
+   - 🚧 Achievement System
+   - 🚧 Daily Challenges
+   - 🚧 Skill Badges
+   - 🚧 Experience Points
+
+### Scientific Integration 🧠
+
+1. **Cognitive Assessment**
+
+   - 🚧 Baseline Skill Measurement
+   - 🚧 Progress Assessment
+   - 🚧 Cognitive Domain Mapping
+   - 🚧 Performance Insights
+
+2. **Research-Based Features**
+   - 🚧 Scientific Skill Tracking
+   - 🚧 Evidence-Based Exercises
+   - 🚧 Cognitive Research Integration
+   - 🚧 Expert-Designed Challenges
+
+Legend:
+
+- ✅ Implemented
+- 🚧 Planned
+- 💭 Under Consideration
 
 ## Development
 
@@ -149,14 +226,6 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
 4. Push to the branch (`git push origin feature/AmazingFeature`)
 5. Open a Pull Request
-
-## Deployment
-
-The project is set up to deploy on Vercel. Connect your GitHub repository to Vercel and:
-
-1. Add environment variables in the Vercel project settings
-2. Configure build settings if needed
-3. Deploy!
 
 ## Contact
 
