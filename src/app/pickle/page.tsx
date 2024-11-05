@@ -3,10 +3,10 @@
 import { useState, useEffect } from "react";
 import { getAdvice } from "@/actions/getAdvice";
 import { User, onAuthStateChanged } from "firebase/auth"; // Import User type
-import { auth } from "@/firebaseConfig"; // Import Firebase auth
 import { readStreamableValue } from "ai/rsc"; // Helper for streaming
 import ReactMarkdown from "react-markdown"; // Import react-markdown for rendering markdown
 import { useRouter } from "next/navigation"; // For redirecting
+import { auth } from "@/lib/firebaseConfig";
 
 export default function PicklePage() {
   const [dilemma, setDilemma] = useState("");

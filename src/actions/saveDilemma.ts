@@ -1,4 +1,4 @@
-import { db } from "@/firebaseConfig";
+import { db } from "@/lib/firebaseConfig";
 import { collection, addDoc } from "firebase/firestore";
 
 export const saveDilemma = async (
