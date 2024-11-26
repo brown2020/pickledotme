@@ -1,4 +1,3 @@
-// src/app/games/[gameId]/page.tsx
 "use client";
 
 import { useEffect, useState } from "react";
@@ -15,21 +14,34 @@ const gameComponents = {
   "speed-pickle": SpeedPickle,
 };
 
-export default function GamePage({ params }: { params: { gameId: string } }) {
+export default function GamePage({
+  params,
+}: {
+  params: Promise<{ gameId: string }>;
+}) {
   const [isLoading, setIsLoading] = useState(true);
+  const [gameId, setGameId] = useState<string | null>(null);
   const router = useRouter();
 
   useEffect(() => {
+    // Resolve params in a client-safe manner
+    async function resolveParams() {
+      const resolvedParams = await params;
+      setGameId(resolvedParams.gameId);
+    }
+    resolveParams();
+
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       setIsLoading(false);
       if (!user) {
         router.push("/");
       }
     });
-    return () => unsubscribe();
-  }, [router]);
 
-  if (isLoading) {
+    return () => unsubscribe();
+  }, [params, router]);
+
+  if (isLoading || !gameId) {
     return (
       <div className="flex justify-center items-center min-h-[50vh]">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-500"></div>
@@ -37,8 +49,7 @@ export default function GamePage({ params }: { params: { gameId: string } }) {
     );
   }
 
-  const GameComponent =
-    gameComponents[params.gameId as keyof typeof gameComponents];
+  const GameComponent = gameComponents[gameId as keyof typeof gameComponents];
 
   if (!GameComponent) {
     router.push("/games");
