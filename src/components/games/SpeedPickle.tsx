@@ -1,109 +1,23 @@
 // src/components/games/SpeedPickle.tsx
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useSpeedPickleGame } from "@/hooks/useSpeedPickleGame";
 import { GameControls } from "./common/GameControls";
 import { ScoreDisplay } from "./common/ScoreDisplay";
-import { doc, setDoc } from "firebase/firestore";
-import { auth, db } from "@/lib/firebaseConfig";
-
-interface Pickle {
-  id: number;
-  isTarget: boolean;
-  shade: number;
-}
+import { GameRules } from "./speed-pickle/GameRules";
 
 export function SpeedPickle() {
-  const [pickles, setPickles] = useState<Pickle[]>([]);
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [score, setScore] = useState(0);
-  const [bestScore, setBestScore] = useState(0);
-  const [timeLeft, setTimeLeft] = useState(30);
-  const [level, setLevel] = useState(1);
+  const {
+    pickles,
+    isPlaying,
+    score,
+    bestScore,
+    timeLeft,
+    level,
+    startGame,
+    handlePickleClick,
+  } = useSpeedPickleGame();
 
-  const handleGameOver = useCallback(async () => {
-    setIsPlaying(false);
-    const userId = auth.currentUser?.uid;
-    if (userId) {
-      await setDoc(doc(db, "scores", `speed-${Date.now()}-${userId}`), {
-        userId,
-        gameId: "speed-pickle",
-        score,
-        timestamp: new Date(),
-      });
-    }
-  }, [score]);
-
-  useEffect(() => {
-    let timer: NodeJS.Timeout;
-    if (isPlaying && timeLeft > 0) {
-      timer = setInterval(() => {
-        setTimeLeft((prev) => prev - 1);
-      }, 1000);
-    } else if (timeLeft === 0 && isPlaying) {
-      handleGameOver();
-    }
-    return () => clearInterval(timer);
-  }, [handleGameOver, isPlaying, timeLeft]);
-
-  const generatePickles = () => {
-    const gridSize = Math.min(16 + (level - 1) * 4, 36); // Increases grid size with level, max 36
-    const targetIndex = Math.floor(Math.random() * gridSize);
-    const targetShade = 500 - (level - 1) * 20; // Makes color difference more subtle with each level
-    const regularShade = 400 - (level - 1) * 20;
-
-    return Array.from({ length: gridSize }, (_, index) => ({
-      id: index,
-      isTarget: index === targetIndex,
-      shade: index === targetIndex ? targetShade : regularShade,
-    }));
-  };
-
-  const startGame = () => {
-    setPickles(generatePickles());
-    setScore(0);
-    setTimeLeft(30);
-    setLevel(1);
-    setIsPlaying(true);
-  };
-
-  const handlePickleClick = async (isTarget: boolean) => {
-    if (!isPlaying) return;
-
-    if (isTarget) {
-      const newScore = score + 100 * level;
-      setScore(newScore);
-
-      // Level up every 5 successful clicks
-      if (newScore % 500 === 0) {
-        setLevel((prev) => prev + 1);
-      }
-
-      if (newScore > bestScore) {
-        setBestScore(newScore);
-        // Save new high score
-        const userId = auth.currentUser?.uid;
-        if (userId) {
-          await setDoc(doc(db, "scores", `speed-${userId}`), {
-            userId,
-            gameId: "speed-pickle",
-            score: newScore,
-            timestamp: new Date(),
-          });
-        }
-      }
-      setPickles(generatePickles());
-
-      // Add bonus time for correct picks
-      setTimeLeft((prev) => Math.min(prev + 1, 30));
-    } else {
-      // Penalty for wrong picks
-      setScore((prev) => Math.max(0, prev - 25));
-      setTimeLeft((prev) => Math.max(0, prev - 2));
-    }
-  };
-
-  // Function to get grid columns class based on number of pickles
   const getGridClass = (length: number) => {
     if (length <= 16) return "grid-cols-4";
     if (length <= 25) return "grid-cols-5";
@@ -165,20 +79,7 @@ export function SpeedPickle() {
         )}
       </div>
 
-      {/* Game Rules */}
-      {!isPlaying && score === 0 && (
-        <div className="mt-8 p-4 bg-gray-50 rounded-lg">
-          <h3 className="font-semibold mb-2">How to Play:</h3>
-          <ul className="list-disc list-inside text-gray-600 space-y-1">
-            <li>Find and click the slightly darker pickle</li>
-            <li>Score points for each correct pick</li>
-            <li>Level up every 500 points</li>
-            <li>Higher levels have more pickles and subtle differences</li>
-            <li>Gain 1 second for correct picks</li>
-            <li>Lose 2 seconds for mistakes</li>
-          </ul>
-        </div>
-      )}
+      {!isPlaying && score === 0 && <GameRules />}
     </div>
   );
 }

@@ -1,6 +1,6 @@
 // src/components/shared/LeaderboardTable.tsx
 import { useEffect, useState } from "react";
-import { LoadingSpinner } from "./LoadingSpinner";
+import LoadingSpinner from "./LoadingSpinner";
 import { firebaseHelpers } from "@/lib/firebaseHelpers";
 
 interface LeaderboardTableProps {
@@ -22,7 +22,7 @@ export function LeaderboardTable({ gameId }: LeaderboardTableProps) {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    async function fetchScores() {
+    const fetchScores = async () => {
       try {
         setLoading(true);
         setError(null);
@@ -45,7 +45,7 @@ export function LeaderboardTable({ gameId }: LeaderboardTableProps) {
       } finally {
         setLoading(false);
       }
-    }
+    };
 
     fetchScores();
   }, [gameId]);
