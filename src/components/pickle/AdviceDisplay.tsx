@@ -13,9 +13,8 @@ export default function AdviceDisplay({ advice }: AdviceDisplayProps) {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
-      className="mt-8"
     >
-      <div className="bg-white rounded-lg border-2 border-green-100 shadow-lg overflow-hidden">
+      <div className="mt-8 bg-white rounded-lg border-2 border-green-100 shadow-lg overflow-hidden">
         <div className="bg-green-50 px-6 py-4 border-b border-green-100">
           <h2 className="text-2xl font-semibold text-green-800">
             🤖 AI Advice
