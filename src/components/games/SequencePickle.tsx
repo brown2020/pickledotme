@@ -56,7 +56,7 @@ export function SequencePickle() {
               }
               disabled:cursor-not-allowed
               shadow-lg hover:shadow-xl
-              focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500
+              focus:outline-hidden focus:ring-2 focus:ring-offset-2 focus:ring-blue-500
             `}
           >
             <div

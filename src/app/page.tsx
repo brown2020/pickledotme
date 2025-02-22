@@ -42,7 +42,7 @@ export default function Home() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-100 to-blue-100 py-12 px-4">
+    <div className="min-h-screen bg-linear-to-br from-green-100 to-blue-100 py-12 px-4">
       <div className="max-w-4xl mx-auto">
         <HeroSection user={user} />
 
