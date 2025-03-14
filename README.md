@@ -20,11 +20,11 @@ Pickle.me combines multiple AI language models with brain-training games, offeri
 ### 🤖 Multi-Model AI Advice
 
 - Support for multiple AI providers:
-  - OpenAI GPT-4
-  - Google Gemini Pro
-  - Anthropic Claude
+  - OpenAI GPT-4o
+  - Google Gemini 1.5 Pro
+  - Anthropic Claude 3.5 Sonnet
   - Mistral Large
-  - Fireworks LLaMA
+  - Fireworks LLaMA v3p1 405B
 - Real-time streaming responses
 - Conversation history tracking
 - Markdown-formatted responses
@@ -50,19 +50,17 @@ Pickle.me combines multiple AI language models with brain-training games, offeri
 - **Language**: TypeScript 5
 - **Auth/Database**: Firebase 11.0.1
 - **State Management**: Zustand 5.0.1
-- **Styling**: Tailwind CSS 3.4.1
+- **Styling**: Tailwind CSS 4.0.8
+- **UI Components**: Framer Motion 12.4.7, Lucide React 0.479.0
 
 ### AI Integration
 
-```json
-{
-  "@ai-sdk/anthropic": "^1.0.2",
-  "@ai-sdk/google": "^1.0.4",
-  "@ai-sdk/mistral": "^1.0.3",
-  "@ai-sdk/openai": "^1.0.5",
-  "ai": "^4.0.6"
-}
-```
+- **AI SDK**: Vercel AI SDK 4.0.6
+- **AI Providers**:
+  - @ai-sdk/openai 1.0.5
+  - @ai-sdk/google 1.0.4
+  - @ai-sdk/anthropic 1.0.2
+  - @ai-sdk/mistral 1.0.3
 
 ## 📦 Installation
 
@@ -70,19 +68,20 @@ Pickle.me combines multiple AI language models with brain-training games, offeri
 
 - Node.js 18+
 - Firebase project
-- AI provider API keys (OpenAI, Google, etc.)
+- AI provider API keys (OpenAI, Google, Anthropic, Mistral, Fireworks)
 
 ### Setup
 
 1. Clone and install:
 
 ```bash
-git clone https://github.com/brown2020/pickledotme.git
+git clone https://github.com/yourusername/pickledotme.git
 cd pickledotme
 npm install
 ```
 
 2. Configure environment variables:
+   Copy `.env.example` to `.env` and fill in your API keys:
 
 ```env
 # AI Provider Keys
@@ -96,6 +95,9 @@ FIREWORKS_API_KEY=your_key
 NEXT_PUBLIC_FIREBASE_API_KEY=your_key
 NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=your_domain
 NEXT_PUBLIC_FIREBASE_PROJECT_ID=your_project_id
+NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=your_bucket
+NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=your_sender_id
+NEXT_PUBLIC_FIREBASE_APP_ID=your_app_id
 ```
 
 3. Start development server:
@@ -108,18 +110,32 @@ npm run dev
 
 ```
 src/
-├── actions/          # Server actions (AI integration)
-├── app/
-│   ├── games/       # Game routes & logic
-│   ├── pickle/      # AI advice interface
-│   └── profile/     # User management
-├── components/
-│   ├── games/       # Game components
-│   ├── pickle/      # Advice components
-│   └── layout/      # Common layouts
-├── lib/             # Firebase & utilities
-└── hooks/           # Custom React hooks
+├── actions/          # Server actions for AI integration
+├── app/              # Next.js App Router pages
+│   ├── games/        # Memory games routes
+│   ├── pickle/       # AI advice interface
+│   └── profile/      # User profile and statistics
+├── components/       # React components
+│   ├── games/        # Game-specific components
+│   ├── home/         # Landing page components
+│   ├── pickle/       # AI advice components
+│   ├── profile/      # User profile components
+│   └── shared/       # Shared UI components
+├── constants/        # Application constants
+├── hooks/            # Custom React hooks
+├── lib/              # Firebase configuration and helpers
+├── store/            # Zustand state management
+└── types/            # TypeScript type definitions
 ```
+
+## 🚀 Deployment
+
+The application is deployed on Vercel. To deploy your own instance:
+
+1. Push your code to a GitHub repository
+2. Import the repository in Vercel
+3. Configure the environment variables
+4. Deploy
 
 ## 🤝 Contributing
 
@@ -139,6 +155,7 @@ MIT License - see [LICENSE](LICENSE)
 - [Firebase](https://firebase.google.com/)
 - [Vercel AI SDK](https://sdk.vercel.ai/)
 - [Tailwind CSS](https://tailwindcss.com/)
+- [Framer Motion](https://www.framer.com/motion/)
 
 ---
 
