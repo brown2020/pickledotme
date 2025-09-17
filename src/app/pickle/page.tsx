@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { getAdvice } from "@/actions/getAdvice";
-import { readStreamableValue } from "ai/rsc";
+import { readStreamableValue } from '@ai-sdk/rsc';
 import { useAuth } from "@/hooks/useAuth";
 import AdviceForm from "@/components/pickle/AdviceForm";
 import AdviceDisplay from "@/components/pickle/AdviceDisplay";

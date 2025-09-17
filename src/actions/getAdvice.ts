@@ -1,7 +1,7 @@
 "use server";
 
-import { createStreamableValue } from "ai/rsc";
-import { CoreMessage, streamText } from "ai";
+import { createStreamableValue } from '@ai-sdk/rsc';
+import { ModelMessage, streamText } from "ai";
 import { createOpenAI, openai } from "@ai-sdk/openai";
 import { google } from "@ai-sdk/google";
 import { mistral } from "@ai-sdk/mistral";
@@ -15,8 +15,8 @@ const fireworks = createOpenAI({
 // Configure the models (you can expand this list with additional models)
 async function getModel(modelName: string) {
   switch (modelName) {
-    case "gpt-4o":
-      return openai("gpt-4o");
+    case "gpt-4.1":
+      return openai("gpt-4.1");
     case "gemini-1.5-pro":
       return google("models/gemini-1.5-pro-latest");
     case "mistral-large":
@@ -39,7 +39,7 @@ async function generateResponse(
 ) {
   const model = await getModel(modelName);
 
-  const messages: CoreMessage[] = [
+  const messages: ModelMessage[] = [
     {
       role: "system",
       content: systemPrompt,
@@ -63,7 +63,7 @@ async function generateResponse(
 export async function getAdvice(
   dilemma: string,
   userId: string,
-  modelName: string = "gpt-4o"
+  modelName: string = "gpt-4.1"
 ) {
   console.log("getAdvice: ", dilemma, userId, modelName);
   const systemPrompt =
