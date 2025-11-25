@@ -10,7 +10,7 @@ import {
   Timestamp,
 } from "firebase/firestore";
 import { db } from "@/lib/firebaseConfig";
-import { GameId } from "@/constants/games";
+import { GameId } from "@/config/games";
 
 interface SaveScoreParams {
   userId: string;
@@ -122,4 +122,5 @@ class ScoreService {
 }
 
 export const scoreService = new ScoreService();
+
 

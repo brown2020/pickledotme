@@ -15,4 +15,4 @@ export {
   ProfileSkeleton,
   LeaderboardSkeleton,
 } from "./Skeleton";
-
+export { ThemeToggle } from "./ThemeToggle";

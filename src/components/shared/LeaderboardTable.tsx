@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { LeaderboardSkeleton } from "@/components/ui";
 import { scoreService, DisplayScore } from "@/services/scoreService";
-import { GameId } from "@/constants/games";
+import { GameId } from "@/config/games";
 import { Trophy } from "lucide-react";
 
 interface LeaderboardTableProps {

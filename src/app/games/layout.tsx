@@ -1,13 +1,11 @@
-// src/app/games/layout.tsx
-
-export default function RootLayout({
+/**
+ * Games section layout
+ * Using a simple passthrough since the pages handle their own layout
+ */
+export default function GamesLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  return (
-    <div className="min-h-screen bg-linear-to-br from-green-100 to-blue-100">
-      <div className="container mx-auto px-4 py-8">{children}</div>
-    </div>
-  );
+  return <>{children}</>;
 }

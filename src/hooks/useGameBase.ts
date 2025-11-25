@@ -1,7 +1,7 @@
 import { useState, useCallback } from "react";
 import { useAuth } from "@/providers/AuthProvider";
 import { scoreService } from "@/services/scoreService";
-import { GameId } from "@/constants/games";
+import { GameId } from "@/config/games";
 
 interface GameBaseState {
   isPlaying: boolean;
@@ -109,4 +109,5 @@ export function useGameBase(gameId: GameId): UseGameBaseReturn {
     resetGame,
   };
 }
+
 
