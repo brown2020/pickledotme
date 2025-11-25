@@ -1,136 +1,126 @@
-// src/components/shared/LeaderboardTable.tsx
+"use client";
+
 import { useEffect, useState } from "react";
-import LoadingSpinner from "./LoadingSpinner";
-import { firebaseHelpers } from "@/lib/firebaseHelpers";
+import { LeaderboardSkeleton } from "@/components/ui";
+import { scoreService, DisplayScore } from "@/services/scoreService";
+import { GameId } from "@/constants/games";
+import { Trophy } from "lucide-react";
 
 interface LeaderboardTableProps {
-  gameId: string;
-}
-
-// Define the shape of our processed data
-interface DisplayScore {
-  id: string;
-  userId: string;
-  gameId: string;
-  score: number;
-  timestamp: Date;
+  gameId: GameId;
 }
 
 export function LeaderboardTable({ gameId }: LeaderboardTableProps) {
   const [scores, setScores] = useState<DisplayScore[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchScores = async () => {
       try {
-        setLoading(true);
+        setIsLoading(true);
         setError(null);
-        // Let the helper function handle the typing
-        const firestoreScores = await firebaseHelpers.getHighScores(gameId);
-
-        // Convert Firestore scores to display scores
-        const processedScores = firestoreScores.map((firestoreScore) => ({
-          id: firestoreScore.id,
-          userId: firestoreScore.userId,
-          gameId: firestoreScore.gameId,
-          score: firestoreScore.score,
-          timestamp: firestoreScore.timestamp.toDate(),
-        }));
-
-        setScores(processedScores);
+        const highScores = await scoreService.getHighScores(gameId);
+        setScores(highScores);
       } catch (err) {
         console.error("Error fetching scores:", err);
         setError("Failed to load leaderboard");
       } finally {
-        setLoading(false);
+        setIsLoading(false);
       }
     };
 
     fetchScores();
   }, [gameId]);
 
-  if (loading) {
-    return <LoadingSpinner />;
+  if (isLoading) {
+    return <LeaderboardSkeleton />;
   }
 
   if (error) {
-    return <div className="text-center text-red-500 p-4">{error}</div>;
+    return (
+      <div className="text-center text-rose-500 p-4 bg-rose-50 rounded-xl">
+        {error}
+      </div>
+    );
   }
 
   if (scores.length === 0) {
     return (
-      <div className="text-center text-gray-500 p-4">
-        No scores yet. Be the first to play!
+      <div className="text-center py-8">
+        <div className="w-16 h-16 bg-slate-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
+          <Trophy className="w-8 h-8 text-slate-400" />
+        </div>
+        <p className="text-slate-500">No scores yet. Be the first to play!</p>
       </div>
     );
   }
 
   return (
     <div className="overflow-x-auto">
-      <table className="w-full min-w-[500px] bg-white rounded-lg overflow-hidden">
-        <thead className="bg-green-50">
-          <tr>
-            <th className="py-3 px-4 text-left text-sm font-semibold text-green-800">
+      <table className="w-full min-w-[500px]">
+        <thead>
+          <tr className="border-b border-slate-200">
+            <th className="py-3 px-4 text-left text-sm font-semibold text-slate-600">
               Rank
             </th>
-            <th className="py-3 px-4 text-left text-sm font-semibold text-green-800">
+            <th className="py-3 px-4 text-left text-sm font-semibold text-slate-600">
               Player
             </th>
-            <th className="py-3 px-4 text-left text-sm font-semibold text-green-800">
+            <th className="py-3 px-4 text-left text-sm font-semibold text-slate-600">
               Score
             </th>
-            <th className="py-3 px-4 text-left text-sm font-semibold text-green-800">
+            <th className="py-3 px-4 text-left text-sm font-semibold text-slate-600">
               Date
             </th>
           </tr>
         </thead>
-        <tbody className="divide-y divide-gray-100">
+        <tbody className="divide-y divide-slate-100">
           {scores.map((score, index) => (
             <tr
               key={score.id}
               className={`${
-                index < 3 ? "bg-green-50/50" : ""
-              } hover:bg-gray-50 transition-colors`}
+                index < 3 ? "bg-emerald-50/50" : ""
+              } hover:bg-slate-50 transition-colors`}
             >
               <td className="py-3 px-4">
-                <div className="flex items-center">
-                  {index < 3 ? (
-                    <span
-                      className={`
-                      w-6 h-6 rounded-full flex items-center justify-center text-sm font-bold
+                {index < 3 ? (
+                  <span
+                    className={`
+                      w-7 h-7 rounded-full flex items-center justify-center text-sm font-bold
                       ${
                         index === 0
-                          ? "bg-yellow-400 text-yellow-900"
+                          ? "bg-amber-400 text-amber-900"
                           : index === 1
-                          ? "bg-gray-300 text-gray-700"
+                          ? "bg-slate-300 text-slate-700"
                           : "bg-amber-600 text-amber-100"
                       }
                     `}
-                    >
-                      {index + 1}
-                    </span>
-                  ) : (
-                    <span className="w-6 text-gray-500">{index + 1}</span>
-                  )}
-                </div>
+                  >
+                    {index + 1}
+                  </span>
+                ) : (
+                  <span className="w-7 text-slate-500 font-medium">
+                    {index + 1}
+                  </span>
+                )}
               </td>
               <td className="py-3 px-4">
-                <div className="flex items-center">
-                  <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center text-green-600 font-bold">
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600 font-bold text-sm">
                     {score.userId.slice(0, 2).toUpperCase()}
                   </div>
-                  <span className="ml-2 text-gray-900">
+                  <span className="text-slate-900 font-medium">
                     {score.userId.slice(0, 8)}...
                   </span>
                 </div>
               </td>
               <td className="py-3 px-4">
-                <span className="font-semibold text-gray-900">
+                <span className="font-bold text-slate-900">
                   {score.score.toLocaleString()}
                 </span>
               </td>
-              <td className="py-3 px-4 text-gray-500">
+              <td className="py-3 px-4 text-slate-500">
                 {score.timestamp.toLocaleDateString(undefined, {
                   month: "short",
                   day: "numeric",

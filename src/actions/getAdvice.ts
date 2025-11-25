@@ -1,6 +1,6 @@
 "use server";
 
-import { createStreamableValue } from '@ai-sdk/rsc';
+import { createStreamableValue } from "@ai-sdk/rsc";
 import { ModelMessage, streamText } from "ai";
 import { createOpenAI, openai } from "@ai-sdk/openai";
 import { google } from "@ai-sdk/google";
@@ -12,30 +12,41 @@ const fireworks = createOpenAI({
   baseURL: "https://api.fireworks.ai/inference/v1",
 });
 
-// Configure the models (you can expand this list with additional models)
-async function getModel(modelName: string) {
-  switch (modelName) {
-    case "gpt-4.1":
-      return openai("gpt-4.1");
-    case "gemini-1.5-pro":
-      return google("models/gemini-1.5-pro-latest");
-    case "mistral-large":
-      return mistral("mistral-large-latest");
-    case "claude-3-5-sonnet":
-      return anthropic("claude-3-5-sonnet-20240620");
-    case "llama-v3p1-405b":
-      return fireworks("accounts/fireworks/models/llama-v3p1-405b-instruct");
+type ModelName =
+  | "gpt-4.1"
+  | "gemini-1.5-pro"
+  | "mistral-large"
+  | "claude-3-5-sonnet"
+  | "llama-v3p1-405b";
 
-    default:
-      throw new Error(`Unsupported model name: ${modelName}`);
+/**
+ * Get the AI model based on the model name
+ */
+async function getModel(modelName: ModelName) {
+  const models = {
+    "gpt-4.1": () => openai("gpt-4.1"),
+    "gemini-1.5-pro": () => google("models/gemini-1.5-pro-latest"),
+    "mistral-large": () => mistral("mistral-large-latest"),
+    "claude-3-5-sonnet": () => anthropic("claude-3-5-sonnet-20240620"),
+    "llama-v3p1-405b": () =>
+      fireworks("accounts/fireworks/models/llama-v3p1-405b-instruct"),
+  };
+
+  const modelFactory = models[modelName];
+  if (!modelFactory) {
+    throw new Error(`Unsupported model name: ${modelName}`);
   }
+
+  return modelFactory();
 }
 
-// Function to generate a response from the selected model
+/**
+ * Generate a streaming response from the selected AI model
+ */
 async function generateResponse(
   systemPrompt: string,
   userPrompt: string,
-  modelName: string
+  modelName: ModelName
 ) {
   const model = await getModel(modelName);
 
@@ -59,16 +70,33 @@ async function generateResponse(
   return stream.value;
 }
 
-// Export the server action to generate advice for a user’s pickle
+const SYSTEM_PROMPT = `You are an expert at helping people solve dilemmas. 
+Provide thoughtful, actionable advice to help the user out of their pickle.
+
+Guidelines:
+- Be empathetic and understanding
+- Offer practical, step-by-step suggestions
+- Consider multiple perspectives
+- Keep advice concise but comprehensive
+- End with encouragement`;
+
+/**
+ * Server action to generate AI advice for a user's dilemma
+ */
 export async function getAdvice(
   dilemma: string,
   userId: string,
-  modelName: string = "gpt-4.1"
+  modelName: ModelName = "gpt-4.1"
 ) {
-  console.log("getAdvice: ", dilemma, userId, modelName);
-  const systemPrompt =
-    "You are an expert at helping people solve dilemmas. Provide thoughtful, actionable advice to help the user out of their pickle.";
-  const userPrompt = `The user is facing the following dilemma: ${dilemma}`;
+  if (!dilemma?.trim()) {
+    throw new Error("Dilemma is required");
+  }
 
-  return generateResponse(systemPrompt, userPrompt, modelName);
+  if (!userId) {
+    throw new Error("User ID is required");
+  }
+
+  const userPrompt = `The user is facing the following dilemma:\n\n${dilemma}`;
+
+  return generateResponse(SYSTEM_PROMPT, userPrompt, modelName);
 }

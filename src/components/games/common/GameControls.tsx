@@ -1,4 +1,6 @@
-// src/components/games/common/GameControls.tsx
+import { Button } from "@/components/ui";
+import { Play, RotateCcw, Square } from "lucide-react";
+
 interface GameControlsProps {
   onStart: () => void;
   onPause?: () => void;
@@ -9,31 +11,41 @@ interface GameControlsProps {
 
 export function GameControls({
   onStart,
-  onPause,
   onReset,
   isPlaying,
   canPause = false,
+  onPause,
 }: GameControlsProps) {
   return (
-    <div className="flex gap-4">
-      <button
+    <div className="flex gap-3">
+      <Button
         onClick={isPlaying ? (canPause ? onPause : onReset) : onStart}
-        className={`px-6 py-2 rounded-lg font-semibold transition-colors ${
-          isPlaying
-            ? canPause
-              ? "bg-yellow-500 hover:bg-yellow-600 text-white"
-              : "bg-red-500 hover:bg-red-600 text-white"
-            : "bg-green-500 hover:bg-green-600 text-white"
-        }`}
+        variant={isPlaying ? (canPause ? "secondary" : "destructive") : "primary"}
+        className="gap-2"
       >
-        {isPlaying ? (canPause ? "Pause" : "Stop") : "Start"}
-      </button>
-      <button
-        onClick={onReset}
-        className="px-6 py-2 rounded-lg font-semibold bg-gray-200 hover:bg-gray-300 transition-colors"
-      >
+        {isPlaying ? (
+          canPause ? (
+            <>
+              <Square className="w-4 h-4" />
+              Pause
+            </>
+          ) : (
+            <>
+              <Square className="w-4 h-4" />
+              Stop
+            </>
+          )
+        ) : (
+          <>
+            <Play className="w-4 h-4" />
+            Start
+          </>
+        )}
+      </Button>
+      <Button onClick={onReset} variant="ghost" className="gap-2">
+        <RotateCcw className="w-4 h-4" />
         Reset
-      </button>
+      </Button>
     </div>
   );
 }

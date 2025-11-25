@@ -1,21 +1,18 @@
-import { useState } from "react";
-import { auth, db } from "@/lib/firebaseConfig";
-import { doc, setDoc } from "firebase/firestore";
+import { useState, useCallback } from "react";
+import { useGameBase } from "./useGameBase";
 
+const GAME_ID = "sequence-pickle" as const;
 const SEQUENCE_SHOW_DELAY = 500;
 const SEQUENCE_HIGHLIGHT_DURATION = 600;
 const SEQUENCE_PAUSE_DURATION = 400;
 
 export function useSequenceGame() {
+  const gameBase = useGameBase(GAME_ID);
   const [sequence, setSequence] = useState<number[]>([]);
   const [playerSequence, setPlayerSequence] = useState<number[]>([]);
-  const [isPlaying, setIsPlaying] = useState(false);
   const [isShowingSequence, setIsShowingSequence] = useState(false);
-  const [score, setScore] = useState(0);
-  const [bestScore, setBestScore] = useState(0);
-  const [level, setLevel] = useState(1);
 
-  const showSequence = async (seq: number[]) => {
+  const showSequence = useCallback(async (seq: number[]) => {
     setIsShowingSequence(true);
     setPlayerSequence([]);
 
@@ -32,85 +29,71 @@ export function useSequenceGame() {
       );
     }
     setIsShowingSequence(false);
-  };
+  }, []);
 
-  const handleGameOver = async () => {
-    setIsPlaying(false);
+  const handleGameOver = useCallback(async () => {
     setPlayerSequence([]);
-    const userId = auth.currentUser?.uid;
-    if (userId) {
-      await setDoc(doc(db, "scores", `sequence-${Date.now()}-${userId}`), {
-        userId,
-        gameId: "sequence-pickle",
-        score,
-        timestamp: new Date(),
-      });
-    }
-  };
+    await gameBase.endGame();
+  }, [gameBase]);
 
-  const startGame = async () => {
-    setLevel(1);
+  const startGame = useCallback(async () => {
     const newSequence = [Math.floor(Math.random() * 4)];
     setSequence(newSequence);
-    setScore(0);
-    setIsPlaying(true);
+    gameBase.startGame();
     await showSequence(newSequence);
-  };
+  }, [gameBase, showSequence]);
 
-  const handleColorClick = async (colorIndex: number) => {
-    if (!isPlaying || isShowingSequence) return;
+  const handleColorClick = useCallback(
+    async (colorIndex: number) => {
+      if (!gameBase.isPlaying || isShowingSequence) return;
 
-    const newPlayerSequence = [...playerSequence, colorIndex];
-    setPlayerSequence(newPlayerSequence);
+      const newPlayerSequence = [...playerSequence, colorIndex];
+      setPlayerSequence(newPlayerSequence);
 
-    for (let i = 0; i < newPlayerSequence.length; i++) {
-      if (newPlayerSequence[i] !== sequence[i]) {
-        await handleGameOver();
-        return;
-      }
-    }
-
-    if (newPlayerSequence.length === sequence.length) {
-      const newScore = score + level * 100;
-      setScore(newScore);
-      setLevel(level + 1);
-
-      if (newScore > bestScore) {
-        setBestScore(newScore);
-        const userId = auth.currentUser?.uid;
-        if (userId) {
-          await setDoc(doc(db, "scores", `sequence-${userId}`), {
-            userId,
-            gameId: "sequence-pickle",
-            score: newScore,
-            timestamp: new Date(),
-          });
+      // Check if player made a mistake
+      for (let i = 0; i < newPlayerSequence.length; i++) {
+        if (newPlayerSequence[i] !== sequence[i]) {
+          await handleGameOver();
+          return;
         }
       }
 
-      const newSequence = [...sequence, Math.floor(Math.random() * 4)];
-      setSequence(newSequence);
-      setPlayerSequence([]);
-      await showSequence(newSequence);
-    }
-  };
+      // Check if player completed the sequence
+      if (newPlayerSequence.length === sequence.length) {
+        const newScore = gameBase.score + gameBase.level * 100;
+        gameBase.updateScore(newScore);
+        gameBase.setLevel(gameBase.level + 1);
 
-  const resetGame = () => {
-    setIsPlaying(false);
-    setScore(0);
-    setLevel(1);
+        // Save score if it's a new best
+        if (newScore > gameBase.bestScore) {
+          await gameBase.saveScore(newScore);
+        }
+
+        // Add new color to sequence
+        const newSequence = [...sequence, Math.floor(Math.random() * 4)];
+        setSequence(newSequence);
+        setPlayerSequence([]);
+        await showSequence(newSequence);
+      }
+    },
+    [gameBase, playerSequence, sequence, isShowingSequence, handleGameOver, showSequence]
+  );
+
+  const resetGame = useCallback(() => {
     setSequence([]);
     setPlayerSequence([]);
-  };
+    setIsShowingSequence(false);
+    gameBase.resetGame();
+  }, [gameBase]);
 
   return {
     sequence,
     playerSequence,
-    isPlaying,
+    isPlaying: gameBase.isPlaying,
     isShowingSequence,
-    score,
-    bestScore,
-    level,
+    score: gameBase.score,
+    bestScore: gameBase.bestScore,
+    level: gameBase.level,
     startGame,
     handleColorClick,
     resetGame,

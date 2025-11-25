@@ -1,6 +1,8 @@
 import { useState, useEffect, useCallback } from "react";
-import { auth, db } from "@/lib/firebaseConfig";
-import { doc, setDoc } from "firebase/firestore";
+import { useGameBase } from "./useGameBase";
+
+const GAME_ID = "speed-pickle" as const;
+const INITIAL_TIME = 30;
 
 interface Pickle {
   id: number;
@@ -9,100 +11,88 @@ interface Pickle {
 }
 
 export function useSpeedPickleGame() {
+  const gameBase = useGameBase(GAME_ID);
   const [pickles, setPickles] = useState<Pickle[]>([]);
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [score, setScore] = useState(0);
-  const [bestScore, setBestScore] = useState(0);
-  const [timeLeft, setTimeLeft] = useState(30);
-  const [level, setLevel] = useState(1);
+  const [timeLeft, setTimeLeft] = useState(INITIAL_TIME);
 
   const generatePickles = useCallback(() => {
-    const gridSize = Math.min(16 + (level - 1) * 4, 36);
+    const gridSize = Math.min(16 + (gameBase.level - 1) * 4, 36);
     const targetIndex = Math.floor(Math.random() * gridSize);
-    const targetShade = 500 - (level - 1) * 20;
-    const regularShade = 400 - (level - 1) * 20;
+    const targetShade = 500 - (gameBase.level - 1) * 20;
+    const regularShade = 400 - (gameBase.level - 1) * 20;
 
     return Array.from({ length: gridSize }, (_, index) => ({
       id: index,
       isTarget: index === targetIndex,
       shade: index === targetIndex ? targetShade : regularShade,
     }));
-  }, [level]);
+  }, [gameBase.level]);
 
   const handleGameOver = useCallback(async () => {
-    setIsPlaying(false);
-    const userId = auth.currentUser?.uid;
-    if (userId) {
-      await setDoc(doc(db, "scores", `speed-${Date.now()}-${userId}`), {
-        userId,
-        gameId: "speed-pickle",
-        score,
-        timestamp: new Date(),
-      });
-    }
-  }, [score]);
+    await gameBase.endGame();
+  }, [gameBase]);
 
   const startGame = useCallback(() => {
+    gameBase.startGame();
     setPickles(generatePickles());
-    setScore(0);
-    setTimeLeft(30);
-    setLevel(1);
-    setIsPlaying(true);
-  }, [generatePickles]);
+    setTimeLeft(INITIAL_TIME);
+  }, [gameBase, generatePickles]);
 
   const handlePickleClick = useCallback(
     async (isTarget: boolean) => {
-      if (!isPlaying) return;
+      if (!gameBase.isPlaying) return;
 
       if (isTarget) {
-        const newScore = score + 100 * level;
-        setScore(newScore);
+        const newScore = gameBase.score + 100 * gameBase.level;
+        gameBase.updateScore(newScore);
 
+        // Level up every 500 points
         if (newScore % 500 === 0) {
-          setLevel((prev) => prev + 1);
+          gameBase.setLevel(gameBase.level + 1);
         }
 
-        if (newScore > bestScore) {
-          setBestScore(newScore);
-          const userId = auth.currentUser?.uid;
-          if (userId) {
-            await setDoc(doc(db, "scores", `speed-${userId}`), {
-              userId,
-              gameId: "speed-pickle",
-              score: newScore,
-              timestamp: new Date(),
-            });
-          }
+        // Save if new best
+        if (newScore > gameBase.bestScore) {
+          await gameBase.saveScore(newScore);
         }
+
         setPickles(generatePickles());
-        setTimeLeft((prev) => Math.min(prev + 1, 30));
+        setTimeLeft((prev) => Math.min(prev + 1, INITIAL_TIME));
       } else {
-        setScore((prev) => Math.max(0, prev - 25));
+        gameBase.updateScore(Math.max(0, gameBase.score - 25));
         setTimeLeft((prev) => Math.max(0, prev - 2));
       }
     },
-    [isPlaying, score, level, bestScore, generatePickles]
+    [gameBase, generatePickles]
   );
 
+  // Timer effect
   useEffect(() => {
     let timer: NodeJS.Timeout;
-    if (isPlaying && timeLeft > 0) {
+    if (gameBase.isPlaying && timeLeft > 0) {
       timer = setInterval(() => {
         setTimeLeft((prev) => prev - 1);
       }, 1000);
-    } else if (timeLeft === 0 && isPlaying) {
+    } else if (timeLeft === 0 && gameBase.isPlaying) {
       handleGameOver();
     }
     return () => clearInterval(timer);
-  }, [handleGameOver, isPlaying, timeLeft]);
+  }, [gameBase.isPlaying, timeLeft, handleGameOver]);
+
+  // Regenerate pickles when level changes
+  useEffect(() => {
+    if (gameBase.isPlaying) {
+      setPickles(generatePickles());
+    }
+  }, [gameBase.level, gameBase.isPlaying, generatePickles]);
 
   return {
     pickles,
-    isPlaying,
-    score,
-    bestScore,
+    isPlaying: gameBase.isPlaying,
+    score: gameBase.score,
+    bestScore: gameBase.bestScore,
     timeLeft,
-    level,
+    level: gameBase.level,
     startGame,
     handlePickleClick,
   };

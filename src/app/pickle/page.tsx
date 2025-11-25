@@ -1,28 +1,28 @@
 "use client";
 
 import { useState } from "react";
-import { getAdvice } from "@/actions/getAdvice";
-import { readStreamableValue } from '@ai-sdk/rsc';
-import { useAuth } from "@/hooks/useAuth";
-import AdviceForm from "@/components/pickle/AdviceForm";
-import AdviceDisplay from "@/components/pickle/AdviceDisplay";
-import PickleLayout from "@/components/pickle/PickleLayout";
+import { readStreamableValue } from "@ai-sdk/rsc";
 import Image from "next/image";
 import { User } from "lucide-react";
+import { getAdvice } from "@/actions/getAdvice";
+import { useAuth } from "@/providers/AuthProvider";
+import { AuthGuard } from "@/components/AuthGuard";
+import { AdviceForm } from "@/components/pickle/AdviceForm";
+import { AdviceDisplay } from "@/components/pickle/AdviceDisplay";
+import { PickleLayout } from "@/components/pickle/PickleLayout";
 
-export default function PicklePage() {
+function PickleContent() {
   const { user } = useAuth();
   const [advice, setAdvice] = useState<string>("");
-  const [loading, setLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleSubmit = async (dilemma: string) => {
-    if (!user) {
-      alert("Please sign in to get advice.");
-      return;
-    }
+    if (!user) return;
 
-    setLoading(true);
+    setIsLoading(true);
     setAdvice("");
+    setError(null);
 
     try {
       const adviceStream = await getAdvice(dilemma, user.uid);
@@ -31,46 +31,56 @@ export default function PicklePage() {
           setAdvice(chunk);
         }
       }
-    } catch (error) {
-      console.error("Error fetching advice:", error);
-      setAdvice("There was an error getting advice. Please try again.");
+    } catch (err) {
+      console.error("Error fetching advice:", err);
+      setError("There was an error getting advice. Please try again.");
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
   };
 
   return (
     <PickleLayout>
-      {user ? (
-        <>
-          <div className="flex items-center space-x-2 mb-8 p-4 bg-gray-50 rounded-lg">
-            {user.photoURL ? (
-              <Image
-                src={user.photoURL}
-                alt={user.displayName || "User"}
-                width={40}
-                height={40}
-                className="rounded-full"
-              />
-            ) : (
-              <User className="w-10 h-10 text-gray-500" />
-            )}
-            <div>
-              <p className="text-sm text-gray-500">Logged in as</p>
-              <p className="font-medium text-gray-900">{user.displayName}</p>
+      {/* User Info */}
+      {user && (
+        <div className="flex items-center gap-3 mb-8 p-4 bg-slate-50 rounded-xl">
+          {user.photoURL ? (
+            <Image
+              src={user.photoURL}
+              alt={user.displayName || "User"}
+              width={48}
+              height={48}
+              className="rounded-full ring-2 ring-emerald-500/20"
+            />
+          ) : (
+            <div className="w-12 h-12 bg-emerald-100 rounded-full flex items-center justify-center">
+              <User className="w-6 h-6 text-emerald-600" />
             </div>
+          )}
+          <div>
+            <p className="text-sm text-slate-500">Getting advice as</p>
+            <p className="font-semibold text-slate-900">{user.displayName}</p>
           </div>
-          <AdviceForm onSubmit={handleSubmit} isLoading={loading} />
-          <AdviceDisplay advice={advice} />
-        </>
-      ) : (
-        <div className="text-center py-12">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-500 mx-auto mb-4"></div>
-          <p className="text-xl text-gray-700">
-            Redirecting to the home page...
-          </p>
         </div>
       )}
+
+      <AdviceForm onSubmit={handleSubmit} isLoading={isLoading} />
+      
+      {error && (
+        <div className="mt-6 p-4 bg-rose-50 border border-rose-200 rounded-xl text-rose-700">
+          {error}
+        </div>
+      )}
+      
+      <AdviceDisplay advice={advice} />
     </PickleLayout>
+  );
+}
+
+export default function PicklePage() {
+  return (
+    <AuthGuard>
+      <PickleContent />
+    </AuthGuard>
   );
 }
