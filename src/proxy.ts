@@ -12,12 +12,12 @@ const PROTECTED_ROUTES = ["/games", "/pickle", "/profile"];
 const AUTH_ROUTES = ["/login", "/signup"];
 
 /**
- * Middleware for auth protection and redirects
+ * Proxy middleware for auth protection and security headers
  * Note: Firebase Auth state is client-side, so we use a cookie-based approach
  */
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
-  
+
   // Get auth state from cookie (set by client on auth state change)
   const authCookie = request.cookies.get("auth-state");
   const isAuthenticated = authCookie?.value === "authenticated";
@@ -32,7 +32,7 @@ export function middleware(request: NextRequest) {
 
   // For protected routes, if no auth cookie exists, let the client handle it
   // The AuthGuard component will redirect appropriately
-  // This middleware primarily adds security headers
+  // This proxy primarily adds security headers
 
   const response = NextResponse.next();
 
@@ -68,6 +68,4 @@ export const config = {
     "/((?!_next/static|_next/image|favicon.ico|.*\\..*|api).*)",
   ],
 };
-
-
 
