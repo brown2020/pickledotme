@@ -6,6 +6,9 @@ import { AuthGuard } from "@/components/AuthGuard";
 import { SequencePickle } from "@/components/games/SequencePickle";
 import { MatchingPickles } from "@/components/games/MatchingPickles";
 import { SpeedPickle } from "@/components/games/SpeedPickle";
+import { PicklePop } from "@/components/games/PicklePop";
+import { ReactionPickle } from "@/components/games/ReactionPickle";
+import { WordPickle } from "@/components/games/WordPickle";
 import { Button } from "@/components/ui";
 import { ArrowLeft } from "lucide-react";
 import { GameId } from "@/config/games";
@@ -15,6 +18,9 @@ const gameComponents: Record<GameId, React.ComponentType> = {
   "sequence-pickle": SequencePickle,
   "matching-pickles": MatchingPickles,
   "speed-pickle": SpeedPickle,
+  "pickle-pop": PicklePop,
+  "reaction-pickle": ReactionPickle,
+  "word-pickle": WordPickle,
 };
 
 interface GameContentProps {

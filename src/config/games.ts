@@ -1,4 +1,4 @@
-import { Zap, Grid3X3, Timer, LucideIcon } from "lucide-react";
+import { Zap, Grid3X3, Timer, Target, Gauge, Type, LucideIcon } from "lucide-react";
 
 /**
  * Game difficulty levels
@@ -28,6 +28,9 @@ export const GAME_IDS = [
   "sequence-pickle",
   "matching-pickles",
   "speed-pickle",
+  "pickle-pop",
+  "reaction-pickle",
+  "word-pickle",
 ] as const;
 
 export type GameId = (typeof GAME_IDS)[number];
@@ -39,6 +42,9 @@ export const GAMES: Record<GameId, string> = {
   "sequence-pickle": "Sequence Pickle",
   "matching-pickles": "Matching Pickles",
   "speed-pickle": "Speed Pickle",
+  "pickle-pop": "Pickle Pop",
+  "reaction-pickle": "Reaction Pickle",
+  "word-pickle": "Word Pickle",
 };
 
 /**
@@ -75,6 +81,26 @@ export const GAME_CONFIGS: GameConfig[] = [
     ],
   },
   {
+    id: "reaction-pickle",
+    name: "Reaction Pickle",
+    description: "Test your reflexes! Click when the pickle turns green.",
+    difficulty: "easy",
+    icon: Gauge,
+    gradient: "from-cyan-500 to-blue-500",
+    color: "text-cyan-600",
+    bgColor: "bg-cyan-50",
+    instructions: [
+      "Wait for the pickle to turn green",
+      "Click as fast as you can when it changes",
+      "Don't click too early or you'll get a penalty!",
+      "Complete 5 rounds and see your average time",
+    ],
+    tips: [
+      "Stay focused but relaxed",
+      "Keep your finger hovering over the button",
+    ],
+  },
+  {
     id: "matching-pickles",
     name: "Matching Pickles",
     description: "Find matching pairs of icons before time runs out!",
@@ -92,6 +118,26 @@ export const GAME_CONFIGS: GameConfig[] = [
     tips: [
       "Memorize card positions as you flip them",
       "Start from the corners and work inward",
+    ],
+  },
+  {
+    id: "pickle-pop",
+    name: "Pickle Pop",
+    description: "Pop the pickles as they appear! How many can you catch?",
+    difficulty: "medium",
+    icon: Target,
+    gradient: "from-orange-500 to-red-500",
+    color: "text-orange-600",
+    bgColor: "bg-orange-50",
+    instructions: [
+      "Pickles will pop up randomly on the grid",
+      "Click them before they disappear!",
+      "Golden pickles are worth 3x points",
+      "Don't click the rotten pickles (brown)!",
+    ],
+    tips: [
+      "Keep your eyes moving across the whole grid",
+      "Prioritize golden pickles when you see them",
     ],
   },
   {
@@ -114,6 +160,26 @@ export const GAME_CONFIGS: GameConfig[] = [
       "The difference becomes more subtle at higher levels",
     ],
   },
+  {
+    id: "word-pickle",
+    name: "Word Pickle",
+    description: "Unscramble the pickle-themed words before time runs out!",
+    difficulty: "hard",
+    icon: Type,
+    gradient: "from-pink-500 to-rose-500",
+    color: "text-pink-600",
+    bgColor: "bg-pink-50",
+    instructions: [
+      "Rearrange the scrambled letters to form a word",
+      "Click letters in order to spell the word",
+      "Each correct word earns points based on speed",
+      "Longer words are worth more points!",
+    ],
+    tips: [
+      "Look for common letter patterns first",
+      "All words are related to pickles, food, or games",
+    ],
+  },
 ];
 
 /**
@@ -129,5 +195,3 @@ export function getGameConfig(gameId: GameId): GameConfig | undefined {
 export function isValidGameId(id: string): id is GameId {
   return GAME_IDS.includes(id as GameId);
 }
-
-
