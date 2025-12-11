@@ -37,13 +37,13 @@ Pickle.me is a Next.js 16 application that combines AI-powered advice with engag
 
 Get thoughtful, actionable advice for any dilemma using your choice of AI model:
 
-| Provider | Model |
-|----------|-------|
-| OpenAI | GPT-4.1 |
-| Google | Gemini 1.5 Pro |
+| Provider  | Model             |
+| --------- | ----------------- |
+| OpenAI    | GPT-4.1           |
+| Google    | Gemini 1.5 Pro    |
 | Anthropic | Claude 3.5 Sonnet |
-| Mistral | Mistral Large |
-| Fireworks | LLaMA v3p1 405B |
+| Mistral   | Mistral Large     |
+| Fireworks | LLaMA v3p1 405B   |
 
 - Real-time streaming responses
 - Markdown-formatted output
@@ -53,16 +53,17 @@ Get thoughtful, actionable advice for any dilemma using your choice of AI model:
 
 Six pickle-themed games to challenge your mind:
 
-| Game | Difficulty | Description |
-|------|------------|-------------|
-| **Sequence Pickle** | 🟢 Easy | Simon Says-style pattern memorization |
-| **Reaction Pickle** | 🟢 Easy | Test your reflexes - click when it turns green |
-| **Matching Pickles** | 🟡 Medium | Classic memory card matching game |
-| **Pickle Pop** | 🟡 Medium | Whack-a-mole style - pop pickles as they appear |
-| **Speed Pickle** | 🔴 Hard | Spot the different shade quickly |
-| **Word Pickle** | 🔴 Hard | Unscramble pickle-themed words |
+| Game                 | Difficulty | Description                                     |
+| -------------------- | ---------- | ----------------------------------------------- |
+| **Sequence Pickle**  | 🟢 Easy    | Simon Says-style pattern memorization           |
+| **Reaction Pickle**  | 🟢 Easy    | Test your reflexes - click when it turns green  |
+| **Matching Pickles** | 🟡 Medium  | Classic memory card matching game               |
+| **Pickle Pop**       | 🟡 Medium  | Whack-a-mole style - pop pickles as they appear |
+| **Speed Pickle**     | 🔴 Hard    | Spot the different shade quickly                |
+| **Word Pickle**      | 🔴 Hard    | Unscramble pickle-themed words                  |
 
 Features:
+
 - Score tracking and personal bests
 - Progressive difficulty levels
 - Sound effects (toggleable)
@@ -81,40 +82,40 @@ Features:
 
 ### Core
 
-| Technology | Version | Purpose |
-|------------|---------|---------|
-| [Next.js](https://nextjs.org/) | 16.0.3 | React framework with App Router |
-| [React](https://react.dev/) | 19.0.0 | UI library |
-| [TypeScript](https://typescriptlang.org/) | 5.x | Type safety |
-| [Tailwind CSS](https://tailwindcss.com/) | 4.0.8 | Utility-first styling |
+| Technology                                | Version | Purpose                         |
+| ----------------------------------------- | ------- | ------------------------------- |
+| [Next.js](https://nextjs.org/)            | 16.0.3  | React framework with App Router |
+| [React](https://react.dev/)               | 19.0.0  | UI library                      |
+| [TypeScript](https://typescriptlang.org/) | 5.x     | Type safety                     |
+| [Tailwind CSS](https://tailwindcss.com/)  | 4.0.8   | Utility-first styling           |
 
 ### AI & Backend
 
-| Technology | Version | Purpose |
-|------------|---------|---------|
-| [Vercel AI SDK](https://sdk.vercel.ai/) | 5.0.44 | AI streaming & integration |
-| [@ai-sdk/openai](https://sdk.vercel.ai/providers/ai-sdk-providers/openai) | 2.0.30 | OpenAI provider |
-| [@ai-sdk/google](https://sdk.vercel.ai/providers/ai-sdk-providers/google-generative-ai) | 2.0.14 | Google AI provider |
-| [@ai-sdk/anthropic](https://sdk.vercel.ai/providers/ai-sdk-providers/anthropic) | 2.0.17 | Anthropic provider |
-| [@ai-sdk/mistral](https://sdk.vercel.ai/providers/ai-sdk-providers/mistral) | 2.0.14 | Mistral provider |
-| [Firebase](https://firebase.google.com/) | 12.2.1 | Auth & Firestore database |
+| Technology                                                                              | Version | Purpose                    |
+| --------------------------------------------------------------------------------------- | ------- | -------------------------- |
+| [Vercel AI SDK](https://sdk.vercel.ai/)                                                 | 5.0.44  | AI streaming & integration |
+| [@ai-sdk/openai](https://sdk.vercel.ai/providers/ai-sdk-providers/openai)               | 2.0.30  | OpenAI provider            |
+| [@ai-sdk/google](https://sdk.vercel.ai/providers/ai-sdk-providers/google-generative-ai) | 2.0.14  | Google AI provider         |
+| [@ai-sdk/anthropic](https://sdk.vercel.ai/providers/ai-sdk-providers/anthropic)         | 2.0.17  | Anthropic provider         |
+| [@ai-sdk/mistral](https://sdk.vercel.ai/providers/ai-sdk-providers/mistral)             | 2.0.14  | Mistral provider           |
+| [Firebase](https://firebase.google.com/)                                                | 12.2.1  | Auth & Firestore database  |
 
 ### UI & Animation
 
-| Technology | Version | Purpose |
-|------------|---------|---------|
-| [Framer Motion](https://www.framer.com/motion/) | 12.4.7 | Animations |
-| [Lucide React](https://lucide.dev/) | 0.559.0 | Icons |
-| [SWR](https://swr.vercel.app/) | 2.3.6 | Data fetching & caching |
-| [react-markdown](https://github.com/remarkjs/react-markdown) | 10.0.0 | Markdown rendering |
+| Technology                                                   | Version | Purpose                 |
+| ------------------------------------------------------------ | ------- | ----------------------- |
+| [Framer Motion](https://www.framer.com/motion/)              | 12.4.7  | Animations              |
+| [Lucide React](https://lucide.dev/)                          | 0.559.0 | Icons                   |
+| [SWR](https://swr.vercel.app/)                               | 2.3.6   | Data fetching & caching |
+| [react-markdown](https://github.com/remarkjs/react-markdown) | 10.0.0  | Markdown rendering      |
 
 ### Utilities
 
-| Technology | Version | Purpose |
-|------------|---------|---------|
-| [Zod](https://zod.dev/) | 4.1.13 | Schema validation |
-| [clsx](https://github.com/lukeed/clsx) | 2.1.1 | Class name utilities |
-| [tailwind-merge](https://github.com/dcastil/tailwind-merge) | 3.4.0 | Tailwind class merging |
+| Technology                                                  | Version | Purpose                |
+| ----------------------------------------------------------- | ------- | ---------------------- |
+| [Zod](https://zod.dev/)                                     | 4.1.13  | Schema validation      |
+| [clsx](https://github.com/lukeed/clsx)                      | 2.1.1   | Class name utilities   |
+| [tailwind-merge](https://github.com/dcastil/tailwind-merge) | 3.4.0   | Tailwind class merging |
 
 ---
 
@@ -281,6 +282,7 @@ Auth state is synced via cookies between client (Firebase) and server (proxy).
 #### Game State Management
 
 Games use custom hooks built on `useGameBase`:
+
 - Handles score saving to Firestore
 - Manages play/pause/reset states
 - Tracks best scores
