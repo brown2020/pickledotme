@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useGameBase } from "./useGameBase";
+import { useGameTimer } from "./useGameTimer";
 
 const GAME_ID = "pickle-pop" as const;
 const GAME_DURATION = 30; // seconds
@@ -20,11 +21,25 @@ export interface PopPickle {
 export function usePicklePopGame() {
   const gameBase = useGameBase(GAME_ID);
   const [pickles, setPickles] = useState<PopPickle[]>([]);
-  const [timeLeft, setTimeLeft] = useState(GAME_DURATION);
   const [combo, setCombo] = useState(0);
   const [maxCombo, setMaxCombo] = useState(0);
   const nextIdRef = useRef(0);
   const spawnIntervalRef = useRef<NodeJS.Timeout | null>(null);
+
+  // End the game
+  const endGame = useCallback(async () => {
+    if (spawnIntervalRef.current) {
+      clearInterval(spawnIntervalRef.current);
+    }
+    setPickles([]);
+    await gameBase.endGame();
+  }, [gameBase]);
+
+  // Use shared timer hook - defined early for use in callbacks
+  const timer = useGameTimer({
+    initialTime: GAME_DURATION,
+    onTimeUp: endGame,
+  });
 
   // Calculate difficulty-based durations
   const getPickleDuration = useCallback(() => {
@@ -80,7 +95,7 @@ export function usePicklePopGame() {
         // Clicked rotten pickle - penalty!
         setCombo(0);
         gameBase.updateScore(Math.max(0, gameBase.score - 50));
-        setTimeLeft((prev) => Math.max(0, prev - 2));
+        timer.subtractTime(2);
       } else {
         // Good pickle clicked
         const basePoints = pickle.type === "golden" ? 150 : 50;
@@ -97,7 +112,7 @@ export function usePicklePopGame() {
         }
       }
     },
-    [gameBase, pickles, combo]
+    [gameBase, pickles, combo, timer]
   );
 
   // Handle missed pickle (expired)
@@ -109,21 +124,13 @@ export function usePicklePopGame() {
   // Start the game
   const startGame = useCallback(() => {
     setPickles([]);
-    setTimeLeft(GAME_DURATION);
     setCombo(0);
     setMaxCombo(0);
     nextIdRef.current = 0;
+    timer.reset();
+    timer.start();
     gameBase.startGame();
-  }, [gameBase]);
-
-  // End the game
-  const endGame = useCallback(async () => {
-    if (spawnIntervalRef.current) {
-      clearInterval(spawnIntervalRef.current);
-    }
-    setPickles([]);
-    await gameBase.endGame();
-  }, [gameBase]);
+  }, [gameBase, timer]);
 
   // Spawn pickles periodically
   useEffect(() => {
@@ -145,23 +152,6 @@ export function usePicklePopGame() {
       }
     };
   }, [gameBase.isPlaying, gameBase.level, spawnPickle, getSpawnInterval]);
-
-  // Timer countdown
-  useEffect(() => {
-    if (!gameBase.isPlaying) return;
-
-    const timer = setInterval(() => {
-      setTimeLeft((prev) => {
-        if (prev <= 1) {
-          endGame();
-          return 0;
-        }
-        return prev - 1;
-      });
-    }, 1000);
-
-    return () => clearInterval(timer);
-  }, [gameBase.isPlaying, endGame]);
 
   // Check for expired pickles
   useEffect(() => {
@@ -191,12 +181,10 @@ export function usePicklePopGame() {
     score: gameBase.score,
     bestScore: gameBase.bestScore,
     level: gameBase.level,
-    timeLeft,
+    timeLeft: timer.timeLeft,
     combo,
     maxCombo,
     startGame,
     handlePickleClick,
   };
 }
-
-

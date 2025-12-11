@@ -9,20 +9,20 @@ export function ScoreDisplay({ currentScore, bestScore }: ScoreDisplayProps) {
   return (
     <div className="flex gap-6">
       <div className="text-center">
-        <div className="flex items-center gap-1 text-sm text-slate-500 mb-1">
+        <div className="flex items-center gap-1 text-sm text-slate-500 dark:text-slate-400 mb-1">
           <Star className="w-4 h-4" />
           <span>Score</span>
         </div>
-        <p className="text-2xl font-bold text-emerald-600">
+        <p className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">
           {currentScore.toLocaleString()}
         </p>
       </div>
       <div className="text-center">
-        <div className="flex items-center gap-1 text-sm text-slate-500 mb-1">
+        <div className="flex items-center gap-1 text-sm text-slate-500 dark:text-slate-400 mb-1">
           <Trophy className="w-4 h-4" />
           <span>Best</span>
         </div>
-        <p className="text-2xl font-bold text-blue-600">
+        <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">
           {bestScore.toLocaleString()}
         </p>
       </div>

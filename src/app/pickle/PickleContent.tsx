@@ -7,13 +7,15 @@ import { motion } from "framer-motion";
 import { User } from "lucide-react";
 import { getAdvice } from "@/actions/getAdvice";
 import { useAuth } from "@/providers/AuthProvider";
-import { AuthGuard } from "@/components/AuthGuard";
 import { AdviceForm } from "@/components/pickle/AdviceForm";
 import { AdviceDisplay } from "@/components/pickle/AdviceDisplay";
 import { PickleLayout } from "@/components/pickle/PickleLayout";
 import { fadeIn } from "@/components/PageTransition";
 
-function PicklePageContent() {
+/**
+ * Pickle advice content - AuthGuard handled by layout
+ */
+export function PickleContent() {
   const { user } = useAuth();
   const [advice, setAdvice] = useState<string>("");
   const [isLoading, setIsLoading] = useState(false);
@@ -45,7 +47,10 @@ function PicklePageContent() {
     <PickleLayout>
       {/* User Info */}
       {user && (
-        <motion.div {...fadeIn} className="flex items-center gap-3 mb-8 p-4 bg-slate-50 dark:bg-slate-800/50 rounded-xl">
+        <motion.div
+          {...fadeIn}
+          className="flex items-center gap-3 mb-8 p-4 bg-slate-50 dark:bg-slate-800/50 rounded-xl"
+        >
           {user.photoURL ? (
             <Image
               src={user.photoURL}
@@ -60,8 +65,12 @@ function PicklePageContent() {
             </div>
           )}
           <div>
-            <p className="text-sm text-slate-500 dark:text-slate-400">Getting advice as</p>
-            <p className="font-semibold text-slate-900 dark:text-white">{user.displayName}</p>
+            <p className="text-sm text-slate-500 dark:text-slate-400">
+              Getting advice as
+            </p>
+            <p className="font-semibold text-slate-900 dark:text-white">
+              {user.displayName}
+            </p>
           </div>
         </motion.div>
       )}
@@ -88,14 +97,3 @@ function PicklePageContent() {
     </PickleLayout>
   );
 }
-
-export function PickleContent() {
-  return (
-    <AuthGuard>
-      <PicklePageContent />
-    </AuthGuard>
-  );
-}
-
-
-

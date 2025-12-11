@@ -1,10 +1,10 @@
 import { AuthGuard } from "@/components/AuthGuard";
 
 /**
- * Games section layout with auth loading state
+ * Profile section layout with auth loading state
  * Route protection is handled by proxy.ts
  */
-export default function GamesLayout({
+export default function ProfileLayout({
   children,
 }: {
   children: React.ReactNode;

@@ -23,12 +23,15 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
   ) => {
     const variants = {
       primary:
-        "bg-emerald-600 text-white hover:bg-emerald-700 shadow-lg shadow-emerald-500/20",
-      secondary: "bg-slate-800 text-white hover:bg-slate-700",
-      destructive: "bg-rose-600 text-white hover:bg-rose-700",
-      ghost: "hover:bg-slate-100 text-slate-700",
+        "bg-emerald-600 text-white hover:bg-emerald-700 shadow-lg shadow-emerald-500/20 dark:bg-emerald-500 dark:hover:bg-emerald-600",
+      secondary:
+        "bg-slate-800 text-white hover:bg-slate-700 dark:bg-slate-700 dark:hover:bg-slate-600",
+      destructive:
+        "bg-rose-600 text-white hover:bg-rose-700 dark:bg-rose-500 dark:hover:bg-rose-600",
+      ghost:
+        "hover:bg-slate-100 text-slate-700 dark:text-slate-300 dark:hover:bg-slate-800",
       outline:
-        "border-2 border-emerald-600 text-emerald-600 hover:bg-emerald-50",
+        "border-2 border-emerald-600 text-emerald-600 hover:bg-emerald-50 dark:border-emerald-400 dark:text-emerald-400 dark:hover:bg-emerald-950",
     };
 
     const sizes = {
@@ -61,6 +64,3 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
 Button.displayName = "Button";
 
 export { Button };
-
-
-

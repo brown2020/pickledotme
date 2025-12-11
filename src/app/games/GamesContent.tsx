@@ -2,12 +2,14 @@
 
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { AuthGuard } from "@/components/AuthGuard";
 import { Card, CardContent } from "@/components/ui";
 import { GAME_CONFIGS, DIFFICULTY_STYLES } from "@/config/games";
 import { staggerContainer, staggerItem } from "@/components/PageTransition";
 
-function GamesGrid() {
+/**
+ * Games grid content - AuthGuard handled by layout
+ */
+export function GamesContent() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-teal-50 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 py-12 px-4">
       <div className="max-w-5xl mx-auto">
@@ -21,8 +23,8 @@ function GamesGrid() {
             🎮 Memory Games
           </h1>
           <p className="text-lg text-slate-600 dark:text-slate-400 max-w-2xl mx-auto">
-            Challenge your brain with fun pickle-themed games. Track your progress
-            and compete for high scores!
+            Challenge your brain with fun pickle-themed games. Track your
+            progress and compete for high scores!
           </p>
         </motion.div>
 
@@ -80,14 +82,3 @@ function GamesGrid() {
     </div>
   );
 }
-
-export function GamesContent() {
-  return (
-    <AuthGuard>
-      <GamesGrid />
-    </AuthGuard>
-  );
-}
-
-
-

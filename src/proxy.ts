@@ -2,41 +2,24 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
 /**
+ * Cookie name for auth state synchronization
+ */
+export const AUTH_COOKIE_NAME = "pickle-auth-state";
+
+/**
  * Routes that require authentication
  */
 const PROTECTED_ROUTES = ["/games", "/pickle", "/profile"];
 
 /**
- * Routes that should redirect authenticated users
+ * Routes that should redirect authenticated users away
  */
 const AUTH_ROUTES = ["/login", "/signup"];
 
 /**
- * Proxy middleware for auth protection and security headers
- * Note: Firebase Auth state is client-side, so we use a cookie-based approach
+ * Add security headers to response
  */
-export function proxy(request: NextRequest) {
-  const { pathname } = request.nextUrl;
-
-  // Get auth state from cookie (set by client on auth state change)
-  const authCookie = request.cookies.get("auth-state");
-  const isAuthenticated = authCookie?.value === "authenticated";
-
-  // Check if trying to access protected route without auth
-  const isProtectedRoute = PROTECTED_ROUTES.some((route) =>
-    pathname.startsWith(route)
-  );
-
-  // Check if trying to access auth routes while authenticated
-  const isAuthRoute = AUTH_ROUTES.some((route) => pathname.startsWith(route));
-
-  // For protected routes, if no auth cookie exists, let the client handle it
-  // The AuthGuard component will redirect appropriately
-  // This proxy primarily adds security headers
-
-  const response = NextResponse.next();
-
-  // Add security headers
+function addSecurityHeaders(response: NextResponse) {
   response.headers.set("X-Frame-Options", "DENY");
   response.headers.set("X-Content-Type-Options", "nosniff");
   response.headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
@@ -45,7 +28,6 @@ export function proxy(request: NextRequest) {
     "camera=(), microphone=(), geolocation=()"
   );
 
-  // Add CSP header for production
   if (process.env.NODE_ENV === "production") {
     response.headers.set(
       "Content-Security-Policy",
@@ -56,6 +38,40 @@ export function proxy(request: NextRequest) {
   return response;
 }
 
+/**
+ * Proxy for route protection and security headers
+ * Uses cookie-based auth state synced from client-side Firebase Auth
+ */
+export function proxy(request: NextRequest) {
+  const { pathname } = request.nextUrl;
+
+  // Get auth state from cookie (synced by AuthProvider on auth state change)
+  const authCookie = request.cookies.get(AUTH_COOKIE_NAME);
+  const isAuthenticated = authCookie?.value === "true";
+
+  const isProtectedRoute = PROTECTED_ROUTES.some((route) =>
+    pathname.startsWith(route)
+  );
+  const isAuthRoute = AUTH_ROUTES.some((route) => pathname.startsWith(route));
+
+  // Redirect unauthenticated users from protected routes to home
+  if (isProtectedRoute && !isAuthenticated) {
+    const url = request.nextUrl.clone();
+    url.pathname = "/";
+    url.searchParams.set("redirect", pathname);
+    return addSecurityHeaders(NextResponse.redirect(url));
+  }
+
+  // Redirect authenticated users away from auth routes
+  if (isAuthRoute && isAuthenticated) {
+    const url = request.nextUrl.clone();
+    url.pathname = "/";
+    return addSecurityHeaders(NextResponse.redirect(url));
+  }
+
+  return addSecurityHeaders(NextResponse.next());
+}
+
 export const config = {
   matcher: [
     /*
@@ -64,8 +80,8 @@ export const config = {
      * - _next/image (image optimization files)
      * - favicon.ico (favicon file)
      * - public folder
+     * - api routes
      */
     "/((?!_next/static|_next/image|favicon.ico|.*\\..*|api).*)",
   ],
 };
-

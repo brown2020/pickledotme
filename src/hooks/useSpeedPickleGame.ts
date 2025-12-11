@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { useGameBase } from "./useGameBase";
+import { useGameTimer } from "./useGameTimer";
 
 const GAME_ID = "speed-pickle" as const;
 const INITIAL_TIME = 30;
@@ -13,7 +14,16 @@ interface Pickle {
 export function useSpeedPickleGame() {
   const gameBase = useGameBase(GAME_ID);
   const [pickles, setPickles] = useState<Pickle[]>([]);
-  const [timeLeft, setTimeLeft] = useState(INITIAL_TIME);
+
+  const handleGameOver = useCallback(async () => {
+    await gameBase.endGame();
+  }, [gameBase]);
+
+  // Use shared timer hook
+  const timer = useGameTimer({
+    initialTime: INITIAL_TIME,
+    onTimeUp: handleGameOver,
+  });
 
   const generatePickles = useCallback(() => {
     const gridSize = Math.min(16 + (gameBase.level - 1) * 4, 36);
@@ -28,15 +38,12 @@ export function useSpeedPickleGame() {
     }));
   }, [gameBase.level]);
 
-  const handleGameOver = useCallback(async () => {
-    await gameBase.endGame();
-  }, [gameBase]);
-
   const startGame = useCallback(() => {
     gameBase.startGame();
     setPickles(generatePickles());
-    setTimeLeft(INITIAL_TIME);
-  }, [gameBase, generatePickles]);
+    timer.reset();
+    timer.start();
+  }, [gameBase, generatePickles, timer]);
 
   const handlePickleClick = useCallback(
     async (isTarget: boolean) => {
@@ -57,27 +64,14 @@ export function useSpeedPickleGame() {
         }
 
         setPickles(generatePickles());
-        setTimeLeft((prev) => Math.min(prev + 1, INITIAL_TIME));
+        timer.addTime(1);
       } else {
         gameBase.updateScore(Math.max(0, gameBase.score - 25));
-        setTimeLeft((prev) => Math.max(0, prev - 2));
+        timer.subtractTime(2);
       }
     },
-    [gameBase, generatePickles]
+    [gameBase, generatePickles, timer]
   );
-
-  // Timer effect
-  useEffect(() => {
-    let timer: NodeJS.Timeout;
-    if (gameBase.isPlaying && timeLeft > 0) {
-      timer = setInterval(() => {
-        setTimeLeft((prev) => prev - 1);
-      }, 1000);
-    } else if (timeLeft === 0 && gameBase.isPlaying) {
-      handleGameOver();
-    }
-    return () => clearInterval(timer);
-  }, [gameBase.isPlaying, timeLeft, handleGameOver]);
 
   // Regenerate pickles when level changes
   useEffect(() => {
@@ -91,7 +85,7 @@ export function useSpeedPickleGame() {
     isPlaying: gameBase.isPlaying,
     score: gameBase.score,
     bestScore: gameBase.bestScore,
-    timeLeft,
+    timeLeft: timer.timeLeft,
     level: gameBase.level,
     startGame,
     handlePickleClick,

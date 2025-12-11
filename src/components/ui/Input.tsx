@@ -14,18 +14,17 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
           className={cn(
             "w-full px-4 py-3 rounded-xl border-2 transition-all duration-200",
             "bg-white text-slate-900 placeholder:text-slate-400",
+            "dark:bg-slate-800 dark:text-slate-100 dark:placeholder:text-slate-500",
             "focus:outline-none focus:ring-2 focus:ring-emerald-500/20",
             error
               ? "border-rose-500 focus:border-rose-500"
-              : "border-slate-200 focus:border-emerald-500",
+              : "border-slate-200 focus:border-emerald-500 dark:border-slate-700 dark:focus:border-emerald-400",
             "disabled:opacity-50 disabled:cursor-not-allowed",
             className
           )}
           {...props}
         />
-        {error && (
-          <p className="mt-1.5 text-sm text-rose-600">{error}</p>
-        )}
+        {error && <p className="mt-1.5 text-sm text-rose-600">{error}</p>}
       </div>
     );
   }
@@ -46,18 +45,17 @@ const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
           className={cn(
             "w-full px-4 py-3 rounded-xl border-2 transition-all duration-200 resize-none",
             "bg-white text-slate-900 placeholder:text-slate-400",
+            "dark:bg-slate-800 dark:text-slate-100 dark:placeholder:text-slate-500",
             "focus:outline-none focus:ring-2 focus:ring-emerald-500/20",
             error
               ? "border-rose-500 focus:border-rose-500"
-              : "border-slate-200 focus:border-emerald-500",
+              : "border-slate-200 focus:border-emerald-500 dark:border-slate-700 dark:focus:border-emerald-400",
             "disabled:opacity-50 disabled:cursor-not-allowed",
             className
           )}
           {...props}
         />
-        {error && (
-          <p className="mt-1.5 text-sm text-rose-600">{error}</p>
-        )}
+        {error && <p className="mt-1.5 text-sm text-rose-600">{error}</p>}
       </div>
     );
   }
@@ -65,6 +63,3 @@ const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
 Textarea.displayName = "Textarea";
 
 export { Input, Textarea };
-
-
-

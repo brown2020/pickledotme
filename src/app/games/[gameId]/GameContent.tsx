@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { AuthGuard } from "@/components/AuthGuard";
 import { SequencePickle } from "@/components/games/SequencePickle";
 import { MatchingPickles } from "@/components/games/MatchingPickles";
 import { SpeedPickle } from "@/components/games/SpeedPickle";
@@ -27,7 +26,10 @@ interface GameContentProps {
   gameId: GameId;
 }
 
-function GamePlayer({ gameId }: GameContentProps) {
+/**
+ * Game content - AuthGuard handled by layout
+ */
+export function GameContent({ gameId }: GameContentProps) {
   const GameComponent = gameComponents[gameId];
 
   return (
@@ -47,22 +49,10 @@ function GamePlayer({ gameId }: GameContentProps) {
         </motion.div>
 
         {/* Game Component */}
-        <motion.div
-          variants={scaleIn}
-          initial="initial"
-          animate="animate"
-        >
+        <motion.div variants={scaleIn} initial="initial" animate="animate">
           <GameComponent />
         </motion.div>
       </div>
     </div>
-  );
-}
-
-export function GameContent({ gameId }: GameContentProps) {
-  return (
-    <AuthGuard>
-      <GamePlayer gameId={gameId} />
-    </AuthGuard>
   );
 }

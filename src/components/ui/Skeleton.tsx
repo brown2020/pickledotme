@@ -7,7 +7,7 @@ function Skeleton({ className, ...props }: SkeletonProps) {
   return (
     <div
       className={cn(
-        "animate-pulse rounded-lg bg-slate-200/80",
+        "animate-pulse rounded-lg bg-slate-200/80 dark:bg-slate-700/80",
         className
       )}
       {...props}
@@ -17,7 +17,7 @@ function Skeleton({ className, ...props }: SkeletonProps) {
 
 function GameCardSkeleton() {
   return (
-    <div className="bg-white rounded-2xl p-6 space-y-4 shadow-lg">
+    <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 space-y-4 shadow-lg">
       <Skeleton className="h-7 w-3/4" />
       <Skeleton className="h-4 w-full" />
       <Skeleton className="h-4 w-2/3" />
@@ -28,7 +28,7 @@ function GameCardSkeleton() {
 
 function ProfileSkeleton() {
   return (
-    <div className="bg-white rounded-2xl p-6 space-y-6 shadow-lg">
+    <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 space-y-6 shadow-lg">
       <div className="flex items-center gap-4">
         <Skeleton className="h-16 w-16 rounded-full" />
         <div className="space-y-2 flex-1">
@@ -60,6 +60,3 @@ function LeaderboardSkeleton() {
 }
 
 export { Skeleton, GameCardSkeleton, ProfileSkeleton, LeaderboardSkeleton };
-
-
-

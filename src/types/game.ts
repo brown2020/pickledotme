@@ -1,4 +1,6 @@
 // src/types/game.ts
+// Re-export GameDifficulty from config to avoid duplication
+export type { GameDifficulty } from "@/config/games";
 
 export interface GameScore {
   userId: string;
@@ -14,13 +16,11 @@ export interface GameState {
   level: number;
 }
 
-export type GameDifficulty = "easy" | "medium" | "hard";
-
 export interface Game {
   id: string;
   name: string;
   description: string;
-  difficulty: GameDifficulty;
+  difficulty: import("@/config/games").GameDifficulty;
   instructions: string[];
 }
 

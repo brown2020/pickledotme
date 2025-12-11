@@ -3,7 +3,6 @@
 import Image from "next/image";
 import { motion } from "framer-motion";
 import { User, Calendar, Mail } from "lucide-react";
-import { AuthGuard } from "@/components/AuthGuard";
 import { useAuth } from "@/providers/AuthProvider";
 import { GameStatistics } from "@/components/profile/GameStatistics";
 import { RecentActivity } from "@/components/profile/RecentActivity";
@@ -11,7 +10,10 @@ import { ProfileSkeleton, Card, CardContent } from "@/components/ui";
 import { useUserGameScores } from "@/hooks/useScores";
 import { staggerContainer, staggerItem } from "@/components/PageTransition";
 
-function ProfilePageContent() {
+/**
+ * Profile content - AuthGuard handled by layout
+ */
+export function ProfileContent() {
   const { user } = useAuth();
   const { scores, isLoading } = useUserGameScores();
 
@@ -66,7 +68,9 @@ function ProfilePageContent() {
                       <Calendar className="w-4 h-4" />
                       Member since{" "}
                       {user?.metadata?.creationTime
-                        ? new Date(user.metadata.creationTime).toLocaleDateString()
+                        ? new Date(
+                            user.metadata.creationTime
+                          ).toLocaleDateString()
                         : "Unknown"}
                     </span>
                   </div>
@@ -89,14 +93,3 @@ function ProfilePageContent() {
     </div>
   );
 }
-
-export function ProfileContent() {
-  return (
-    <AuthGuard>
-      <ProfilePageContent />
-    </AuthGuard>
-  );
-}
-
-
-

@@ -16,6 +16,7 @@ import {
   GoogleAuthProvider,
 } from "firebase/auth";
 import { auth } from "@/lib/firebaseConfig";
+import { AUTH_COOKIE_NAME } from "@/proxy";
 
 interface AuthContextType {
   user: User | null;
@@ -29,6 +30,17 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 const googleProvider = new GoogleAuthProvider();
 
+/**
+ * Sync auth state to cookie for proxy route protection
+ */
+function syncAuthCookie(isAuthenticated: boolean) {
+  if (isAuthenticated) {
+    document.cookie = `${AUTH_COOKIE_NAME}=true; path=/; max-age=31536000; SameSite=Lax`;
+  } else {
+    document.cookie = `${AUTH_COOKIE_NAME}=; path=/; max-age=0`;
+  }
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -37,6 +49,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
       setIsLoading(false);
+      syncAuthCookie(!!currentUser);
     });
     return () => unsubscribe();
   }, []);
@@ -81,6 +94,3 @@ export function useAuth() {
   }
   return context;
 }
-
-
-
