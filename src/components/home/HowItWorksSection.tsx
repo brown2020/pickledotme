@@ -1,5 +1,3 @@
-"use client";
-
 import { MessageCircle, Brain, Trophy, Lightbulb } from "lucide-react";
 
 const steps = [

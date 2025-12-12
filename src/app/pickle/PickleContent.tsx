@@ -3,14 +3,12 @@
 import { useState } from "react";
 import { readStreamableValue } from "@ai-sdk/rsc";
 import Image from "next/image";
-import { motion } from "framer-motion";
 import { User } from "lucide-react";
 import { getAdvice } from "@/actions/getAdvice";
 import { useAuth } from "@/providers/AuthProvider";
 import { AdviceForm } from "@/components/pickle/AdviceForm";
 import { AdviceDisplay } from "@/components/pickle/AdviceDisplay";
 import { PickleLayout } from "@/components/pickle/PickleLayout";
-import { fadeIn } from "@/components/PageTransition";
 
 /**
  * Pickle advice content - AuthGuard handled by layout
@@ -47,10 +45,7 @@ export function PickleContent() {
     <PickleLayout>
       {/* User Info */}
       {user && (
-        <motion.div
-          {...fadeIn}
-          className="flex items-center gap-3 mb-8 p-4 bg-slate-50 dark:bg-slate-800/50 rounded-xl"
-        >
+        <div className="flex items-center gap-3 mb-8 p-4 bg-slate-50 dark:bg-slate-800/50 rounded-xl animate-fade-in">
           {user.photoURL ? (
             <Image
               src={user.photoURL}
@@ -72,25 +67,17 @@ export function PickleContent() {
               {user.displayName}
             </p>
           </div>
-        </motion.div>
+        </div>
       )}
 
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.1 }}
-      >
+      <div className="animate-slide-up">
         <AdviceForm onSubmit={handleSubmit} isLoading={isLoading} />
-      </motion.div>
+      </div>
 
       {error && (
-        <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          className="mt-6 p-4 bg-rose-50 dark:bg-rose-900/20 border border-rose-200 dark:border-rose-800 rounded-xl text-rose-700 dark:text-rose-400"
-        >
+        <div className="mt-6 p-4 bg-rose-50 dark:bg-rose-900/20 border border-rose-200 dark:border-rose-800 rounded-xl text-rose-700 dark:text-rose-400 animate-fade-in">
           {error}
-        </motion.div>
+        </div>
       )}
 
       <AdviceDisplay advice={advice} />

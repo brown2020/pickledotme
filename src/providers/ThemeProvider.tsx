@@ -9,6 +9,7 @@ import {
   useCallback,
   useSyncExternalStore,
 } from "react";
+import { THEME_STORAGE_KEY } from "@/lib/theme";
 
 type Theme = "light" | "dark" | "system";
 
@@ -21,11 +22,9 @@ interface ThemeContextType {
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
-const THEME_KEY = "pickle-theme";
-
 function getStoredTheme(): Theme {
   if (typeof window === "undefined") return "system";
-  const stored = localStorage.getItem(THEME_KEY) as Theme | null;
+  const stored = localStorage.getItem(THEME_STORAGE_KEY) as Theme | null;
   return stored || "system";
 }
 
@@ -55,7 +54,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   // Set theme
   const setTheme = useCallback((newTheme: Theme) => {
     setThemeState(newTheme);
-    localStorage.setItem(THEME_KEY, newTheme);
+    localStorage.setItem(THEME_STORAGE_KEY, newTheme);
   }, []);
 
   // Toggle between light and dark

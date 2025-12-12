@@ -1,8 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { LeaderboardSkeleton } from "@/components/ui";
-import { scoreService, DisplayScore } from "@/services/scoreService";
+import { useHighScores } from "@/hooks/useScores";
 import { GameId } from "@/config/games";
 import { Trophy } from "lucide-react";
 
@@ -11,36 +10,16 @@ interface LeaderboardTableProps {
 }
 
 export function LeaderboardTable({ gameId }: LeaderboardTableProps) {
-  const [scores, setScores] = useState<DisplayScore[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    const fetchScores = async () => {
-      try {
-        setIsLoading(true);
-        setError(null);
-        const highScores = await scoreService.getHighScores(gameId);
-        setScores(highScores);
-      } catch (err) {
-        console.error("Error fetching scores:", err);
-        setError("Failed to load leaderboard");
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchScores();
-  }, [gameId]);
+  const { scores, isLoading, isError } = useHighScores(gameId);
 
   if (isLoading) {
     return <LeaderboardSkeleton />;
   }
 
-  if (error) {
+  if (isError) {
     return (
       <div className="text-center text-rose-500 p-4 bg-rose-50 rounded-xl">
-        {error}
+        Failed to load leaderboard
       </div>
     );
   }

@@ -1,7 +1,4 @@
-"use client";
-
 import Link from "next/link";
-import { useAuth } from "@/providers/AuthProvider";
 import { ArrowRight } from "lucide-react";
 
 interface FeatureCardProps {
@@ -19,8 +16,6 @@ export function FeatureCard({
   link,
   gradient,
 }: FeatureCardProps) {
-  const { isAuthenticated } = useAuth();
-
   return (
     <div className="group relative bg-white dark:bg-slate-800 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden">
       {/* Gradient accent */}
@@ -40,15 +35,13 @@ export function FeatureCard({
           {description}
         </p>
 
-        {isAuthenticated && (
-          <Link
-            href={link}
-            className={`inline-flex items-center font-semibold bg-gradient-to-r ${gradient} bg-clip-text text-transparent group-hover:gap-2 transition-all`}
-          >
-            Try it out
-            <ArrowRight className="ml-1 w-4 h-4 text-current opacity-0 group-hover:opacity-100 transition-opacity" />
-          </Link>
-        )}
+        <Link
+          href={link}
+          className={`inline-flex items-center font-semibold bg-linear-to-r ${gradient} bg-clip-text text-transparent group-hover:gap-2 transition-all`}
+        >
+          Try it out
+          <ArrowRight className="ml-1 w-4 h-4 text-current opacity-0 group-hover:opacity-100 transition-opacity" />
+        </Link>
       </div>
     </div>
   );

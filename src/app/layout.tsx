@@ -3,6 +3,7 @@ import { Metadata, Viewport } from "next";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { Providers } from "@/providers";
+import { THEME_STORAGE_KEY } from "@/lib/theme";
 import "./globals.css";
 
 const outfit = Outfit({
@@ -12,9 +13,7 @@ const outfit = Outfit({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL(
-    process.env.NEXT_PUBLIC_APP_URL || "https://pickle.me"
-  ),
+  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || "https://pickle.me"),
   title: {
     default: "Pickle.me - AI Advice & Memory Games",
     template: "%s | Pickle.me",
@@ -101,7 +100,7 @@ export default function RootLayout({
           dangerouslySetInnerHTML={{
             __html: `
               try {
-                const theme = localStorage.getItem('pickle-theme');
+                const theme = localStorage.getItem('${THEME_STORAGE_KEY}');
                 const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
                 if (theme === 'dark' || (theme === 'system' && systemDark) || (!theme && systemDark)) {
                   document.documentElement.classList.add('dark');

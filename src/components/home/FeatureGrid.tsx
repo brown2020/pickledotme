@@ -1,5 +1,3 @@
-"use client";
-
 import { Brain, MessageSquare, Gamepad2 } from "lucide-react";
 import { FeatureCard } from "./FeatureCard";
 

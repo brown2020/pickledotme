@@ -19,7 +19,11 @@ interface SaveScoreParams {
   score: number;
 }
 
-type ScoreKind = "history" | "best";
+const COLLECTIONS = {
+  best: "bestScores",
+  history: "scoreHistory",
+  legacy: "scores",
+} as const;
 
 interface FirestoreScore {
   id: string;
@@ -27,7 +31,7 @@ interface FirestoreScore {
   gameId: string;
   score: number;
   timestamp: Timestamp;
-  kind?: ScoreKind;
+  kind?: "history" | "best";
 }
 
 export interface DisplayScore {
@@ -36,7 +40,7 @@ export interface DisplayScore {
   gameId: string;
   score: number;
   timestamp: Date;
-  kind?: ScoreKind;
+  kind?: "history" | "best";
 }
 
 function toDisplayScore(docSnapshot: {
@@ -60,12 +64,11 @@ export const scoreService = {
    */
   async saveScore({ userId, gameId, score }: SaveScoreParams): Promise<void> {
     const docId = `${gameId}-${Date.now()}-${userId}`;
-    await setDoc(doc(db, "scores", docId), {
+    await setDoc(doc(db, COLLECTIONS.history, docId), {
       userId,
       gameId,
       score,
       timestamp: Timestamp.now(),
-      kind: "history" satisfies ScoreKind,
     });
   },
 
@@ -77,12 +80,11 @@ export const scoreService = {
     gameId,
     score,
   }: SaveScoreParams): Promise<void> {
-    await setDoc(doc(db, "scores", `${gameId}-best-${userId}`), {
+    await setDoc(doc(db, COLLECTIONS.best, `${gameId}-best-${userId}`), {
       userId,
       gameId,
       score,
       timestamp: Timestamp.now(),
-      kind: "best" satisfies ScoreKind,
     });
   },
 
@@ -110,34 +112,61 @@ export const scoreService = {
     gameId: GameId,
     limitCount = 10
   ): Promise<DisplayScore[]> {
-    const q = query(
-      collection(db, "scores"),
+    const bestQuery = query(
+      collection(db, COLLECTIONS.best),
+      where("gameId", "==", gameId),
+      orderBy("score", "desc"),
+      limit(limitCount)
+    );
+    const bestSnapshot = await getDocs(bestQuery);
+    const bestScores = bestSnapshot.docs.map((d) => toDisplayScore(d));
+    if (bestScores.length > 0) return bestScores;
+
+    // Backward-compat fallback: legacy mixed collection.
+    const legacyQuery = query(
+      collection(db, COLLECTIONS.legacy),
       where("gameId", "==", gameId),
       where("kind", "==", "best"),
       orderBy("score", "desc"),
       limit(limitCount)
     );
-    const snapshot = await getDocs(q);
-
-    return snapshot.docs.map((d) => toDisplayScore(d));
+    const legacySnapshot = await getDocs(legacyQuery);
+    return legacySnapshot.docs.map((d) => toDisplayScore(d));
   },
 
   /**
    * Get all scores for a specific user
    */
   async getUserScores(userId: string): Promise<DisplayScore[]> {
-    const q = query(collection(db, "scores"), where("userId", "==", userId));
-    const snapshot = await getDocs(q);
+    const historyQuery = query(
+      collection(db, COLLECTIONS.history),
+      where("userId", "==", userId)
+    );
+    const historySnapshot = await getDocs(historyQuery);
+    const historyScores = historySnapshot.docs.map((d) => toDisplayScore(d));
+    if (historyScores.length > 0) return historyScores;
 
-    return snapshot.docs.map((d) => toDisplayScore(d));
+    // Backward-compat fallback: legacy mixed collection.
+    const legacyQuery = query(
+      collection(db, COLLECTIONS.legacy),
+      where("userId", "==", userId)
+    );
+    const legacySnapshot = await getDocs(legacyQuery);
+    return legacySnapshot.docs.map((d) => toDisplayScore(d));
   },
 
   async getUserBestScore(userId: string, gameId: GameId): Promise<number> {
-    const snapshot = await getDoc(
-      doc(db, "scores", `${gameId}-best-${userId}`)
-    );
-    if (!snapshot.exists()) return 0;
-    const data = snapshot.data() as Partial<FirestoreScore>;
-    return typeof data.score === "number" ? data.score : 0;
+    const bestDocId = `${gameId}-best-${userId}`;
+    const bestSnapshot = await getDoc(doc(db, COLLECTIONS.best, bestDocId));
+    if (bestSnapshot.exists()) {
+      const data = bestSnapshot.data() as Partial<FirestoreScore>;
+      return typeof data.score === "number" ? data.score : 0;
+    }
+
+    // Backward-compat fallback: legacy doc id.
+    const legacySnapshot = await getDoc(doc(db, COLLECTIONS.legacy, bestDocId));
+    if (!legacySnapshot.exists()) return 0;
+    const legacyData = legacySnapshot.data() as Partial<FirestoreScore>;
+    return typeof legacyData.score === "number" ? legacyData.score : 0;
   },
 };
