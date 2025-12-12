@@ -1,9 +1,7 @@
 "use client";
 
-import { motion } from "framer-motion";
 import { Brain, MessageSquare, Gamepad2 } from "lucide-react";
 import { FeatureCard } from "./FeatureCard";
-import { staggerContainer, staggerItem } from "@/components/PageTransition";
 
 const features = [
   {
@@ -33,31 +31,16 @@ const features = [
 export function FeatureGrid() {
   return (
     <section>
-      <motion.h2
-        initial={{ opacity: 0, y: 20 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true }}
-        className="text-2xl font-bold text-slate-900 dark:text-white text-center mb-8"
-      >
+      <h2 className="text-2xl font-bold text-slate-900 dark:text-white text-center mb-8">
         What can you do?
-      </motion.h2>
-      <motion.div
-        variants={staggerContainer}
-        initial="initial"
-        whileInView="animate"
-        viewport={{ once: true }}
-        className="grid md:grid-cols-3 gap-6"
-      >
+      </h2>
+      <div className="grid md:grid-cols-3 gap-6">
         {features.map((feature, index) => (
-          <motion.div key={index} variants={staggerItem}>
+          <div key={index} className="animate-fade-in">
             <FeatureCard {...feature} />
-          </motion.div>
+          </div>
         ))}
-      </motion.div>
+      </div>
     </section>
   );
 }
-
-
-
-

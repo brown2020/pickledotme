@@ -7,6 +7,7 @@ import {
 } from "@/lib/firebaseAdmin";
 import {
   DEV_SESSION_COOKIE_VALUE,
+  isInsecureDevAuthEnabled,
   SESSION_COOKIE_NAME,
 } from "@/lib/authSession";
 
@@ -39,10 +40,14 @@ export async function POST(request: NextRequest) {
         expiresIn: expiresInMs,
       });
     } else {
-      // Dev fallback: allow local development without Firebase Admin creds.
-      // This is NOT secure; proxy.ts will only accept this in non-production.
       if (process.env.NODE_ENV === "production") {
         throw new Error("Firebase Admin is not configured in production.");
+      }
+      // Dev fallback is opt-in only.
+      if (!isInsecureDevAuthEnabled()) {
+        throw new Error(
+          "Firebase Admin is not configured. For local dev, either set FIREBASE_ADMIN_* env vars or set ALLOW_INSECURE_DEV_AUTH=true."
+        );
       }
       sessionCookie = DEV_SESSION_COOKIE_VALUE;
     }

@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { motion } from "framer-motion";
 import { useAuth } from "@/providers/AuthProvider";
 import { Button } from "@/components/ui";
 import { ArrowRight, Sparkles } from "lucide-react";
@@ -10,53 +9,30 @@ export function HeroSection() {
   const { user, isLoading, signInWithGoogle } = useAuth();
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="relative overflow-hidden bg-white dark:bg-slate-800 rounded-3xl shadow-2xl shadow-emerald-500/10 dark:shadow-emerald-500/5"
-    >
+    <div className="relative overflow-hidden bg-white dark:bg-slate-800 rounded-3xl shadow-2xl shadow-emerald-500/10 dark:shadow-emerald-500/5 animate-slide-up">
       {/* Gradient blobs */}
       <div className="absolute -top-24 -right-24 w-96 h-96 bg-gradient-to-br from-emerald-400/30 to-teal-400/30 dark:from-emerald-400/10 dark:to-teal-400/10 rounded-full blur-3xl" />
       <div className="absolute -bottom-24 -left-24 w-96 h-96 bg-gradient-to-tr from-blue-400/20 to-indigo-400/20 dark:from-blue-400/10 dark:to-indigo-400/10 rounded-full blur-3xl" />
 
       <div className="relative p-8 md:p-12">
-        <motion.div
-          initial={{ opacity: 0, x: -20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ delay: 0.1 }}
-          className="flex items-center gap-2 text-emerald-600 dark:text-emerald-400 font-medium text-sm mb-4"
-        >
+        <div className="flex items-center gap-2 text-emerald-600 dark:text-emerald-400 font-medium text-sm mb-4">
           <Sparkles className="w-4 h-4" />
           <span>AI-Powered Problem Solving</span>
-        </motion.div>
+        </div>
 
-        <motion.h1
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-          className="text-4xl md:text-5xl font-bold text-slate-900 dark:text-white mb-4"
-        >
+        <h1 className="text-4xl md:text-5xl font-bold text-slate-900 dark:text-white mb-4">
           Stuck in a{" "}
           <span className="bg-gradient-to-r from-emerald-600 to-teal-500 bg-clip-text text-transparent">
             Pickle?
           </span>
-        </motion.h1>
+        </h1>
 
-        <motion.p
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
-          className="text-xl text-slate-600 dark:text-slate-300 mb-8 max-w-2xl"
-        >
-          Get AI-powered advice when you&apos;re facing tough decisions, and keep
-          your mind sharp with our pickle-themed brain games.
-        </motion.p>
+        <p className="text-xl text-slate-600 dark:text-slate-300 mb-8 max-w-2xl">
+          Get AI-powered advice when you&apos;re facing tough decisions, and
+          keep your mind sharp with our pickle-themed brain games.
+        </p>
 
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4 }}
-        >
+        <div>
           {isLoading ? (
             <div className="h-12 w-48 bg-slate-200 dark:bg-slate-700 rounded-xl animate-pulse" />
           ) : user ? (
@@ -93,8 +69,8 @@ export function HeroSection() {
               </p>
             </div>
           )}
-        </motion.div>
+        </div>
       </div>
-    </motion.div>
+    </div>
   );
 }

@@ -11,8 +11,13 @@ export const SESSION_COOKIE_NAME =
  */
 export const DEV_SESSION_COOKIE_VALUE = "dev";
 
-export function isDevSessionCookie(value: string | undefined) {
+export function isInsecureDevAuthEnabled() {
   return (
-    process.env.NODE_ENV !== "production" && value === DEV_SESSION_COOKIE_VALUE
+    process.env.NODE_ENV !== "production" &&
+    process.env.ALLOW_INSECURE_DEV_AUTH === "true"
   );
+}
+
+export function isDevSessionCookie(value: string | undefined) {
+  return isInsecureDevAuthEnabled() && value === DEV_SESSION_COOKIE_VALUE;
 }

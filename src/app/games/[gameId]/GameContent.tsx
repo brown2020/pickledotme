@@ -7,6 +7,7 @@ import { Button } from "@/components/ui";
 import { ArrowLeft } from "lucide-react";
 import { GameId } from "@/config/games";
 import { scaleIn } from "@/components/PageTransition";
+import { PageBackground } from "@/components/layout/page/PageBackground";
 
 const gameComponents: Record<GameId, React.ComponentType> = {
   "sequence-pickle": dynamic(
@@ -51,7 +52,7 @@ export function GameContent({ gameId }: GameContentProps) {
   const GameComponent = gameComponents[gameId];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-teal-50 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 py-8 px-4">
+    <PageBackground variant="default-with-padding" className="py-8">
       <div className="max-w-4xl mx-auto">
         {/* Back button */}
         <motion.div
@@ -71,6 +72,6 @@ export function GameContent({ gameId }: GameContentProps) {
           <GameComponent />
         </motion.div>
       </div>
-    </div>
+    </PageBackground>
   );
 }

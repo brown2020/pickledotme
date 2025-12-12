@@ -1,7 +1,6 @@
 "use client";
 
 import ReactMarkdown from "react-markdown";
-import { motion } from "framer-motion";
 import { Sparkles } from "lucide-react";
 
 interface AdviceDisplayProps {
@@ -12,12 +11,7 @@ export function AdviceDisplay({ advice }: AdviceDisplayProps) {
   if (!advice) return null;
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.4, ease: "easeOut" }}
-      className="mt-8"
-    >
+    <div className="mt-8 animate-slide-up">
       <div className="bg-white rounded-2xl border-2 border-emerald-100 shadow-lg overflow-hidden">
         {/* Header */}
         <div className="bg-gradient-to-r from-emerald-50 to-teal-50 px-6 py-4 border-b border-emerald-100">
@@ -84,6 +78,6 @@ export function AdviceDisplay({ advice }: AdviceDisplayProps) {
           </div>
         </div>
       </div>
-    </motion.div>
+    </div>
   );
 }

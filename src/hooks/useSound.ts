@@ -1,8 +1,9 @@
 "use client";
 
 import { useCallback, useEffect, useRef } from "react";
+import { useSettingsStore } from "@/stores/settingsStore";
 
-type SoundEffect = 
+type SoundEffect =
   | "click"
   | "success"
   | "error"
@@ -34,19 +35,21 @@ const SUCCESS_CHORD = [523.25, 659.25, 783.99]; // C5, E5, G5
 export function useSound() {
   const audioContextRef = useRef<AudioContext | null>(null);
   const isMutedRef = useRef(false);
+  const isSoundEnabled = useSettingsStore((s) => s.isSoundEnabled);
 
   // Initialize AudioContext on first user interaction
   const initAudio = useCallback(() => {
     if (!audioContextRef.current) {
       audioContextRef.current = new (window.AudioContext ||
-        (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)();
+        (window as unknown as { webkitAudioContext: typeof AudioContext })
+          .webkitAudioContext)();
     }
     return audioContextRef.current;
   }, []);
 
   const playTone = useCallback(
     (config: SoundConfig) => {
-      if (isMutedRef.current) return;
+      if (!isSoundEnabled || isMutedRef.current) return;
 
       try {
         const ctx = initAudio();
@@ -75,7 +78,7 @@ export function useSound() {
         // Audio not available, fail silently
       }
     },
-    [initAudio]
+    [initAudio, isSoundEnabled]
   );
 
   const playSound = useCallback(
@@ -91,7 +94,11 @@ export function useSound() {
         // Play ascending notes for level up
         [523, 659, 784, 1047].forEach((freq, i) => {
           setTimeout(() => {
-            playTone({ ...SOUND_CONFIGS.levelUp, frequency: freq, duration: 100 });
+            playTone({
+              ...SOUND_CONFIGS.levelUp,
+              frequency: freq,
+              duration: 100,
+            });
           }, i * 80);
         });
       } else {
@@ -124,7 +131,3 @@ export function useSound() {
     isMuted: () => isMutedRef.current,
   };
 }
-
-
-
-

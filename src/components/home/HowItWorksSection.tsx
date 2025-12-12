@@ -1,8 +1,6 @@
 "use client";
 
-import { motion } from "framer-motion";
 import { MessageCircle, Brain, Trophy, Lightbulb } from "lucide-react";
-import { staggerContainer, staggerItem } from "@/components/PageTransition";
 
 const steps = [
   {
@@ -33,13 +31,7 @@ const steps = [
 
 export function HowItWorksSection() {
   return (
-    <motion.section
-      initial={{ opacity: 0, y: 40 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true }}
-      transition={{ duration: 0.6 }}
-      className="bg-white dark:bg-slate-800 rounded-3xl shadow-xl p-8 md:p-12"
-    >
+    <section className="bg-white dark:bg-slate-800 rounded-3xl shadow-xl p-8 md:p-12 animate-fade-in">
       <div className="text-center mb-12">
         <h2 className="text-3xl font-bold text-slate-900 dark:text-white mb-4">
           How It Works
@@ -49,19 +41,9 @@ export function HowItWorksSection() {
         </p>
       </div>
 
-      <motion.div
-        variants={staggerContainer}
-        initial="initial"
-        whileInView="animate"
-        viewport={{ once: true }}
-        className="grid md:grid-cols-4 gap-8"
-      >
+      <div className="grid md:grid-cols-4 gap-8">
         {steps.map((step, index) => (
-          <motion.div
-            key={index}
-            variants={staggerItem}
-            className="relative text-center"
-          >
+          <div key={index} className="relative text-center animate-fade-in">
             {/* Connector line */}
             {index < steps.length - 1 && (
               <div className="hidden md:block absolute top-8 left-[60%] w-full h-0.5 bg-slate-200 dark:bg-slate-700" />
@@ -83,9 +65,9 @@ export function HowItWorksSection() {
             <p className="text-sm text-slate-600 dark:text-slate-400">
               {step.description}
             </p>
-          </motion.div>
+          </div>
         ))}
-      </motion.div>
-    </motion.section>
+      </div>
+    </section>
   );
 }
