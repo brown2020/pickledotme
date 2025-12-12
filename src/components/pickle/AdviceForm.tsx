@@ -80,8 +80,8 @@ export function AdviceForm({ onSubmit, isLoading }: AdviceFormProps) {
         ))}
       </div>
 
-      {/* Controls */}
-      <div className="grid gap-3 md:grid-cols-2">
+      {/* Controls (desktop) */}
+      <div className="hidden md:grid gap-3 md:grid-cols-2">
         <label className="space-y-1">
           <span className="text-sm font-semibold text-slate-700 dark:text-slate-200">
             Tone
@@ -118,6 +118,52 @@ export function AdviceForm({ onSubmit, isLoading }: AdviceFormProps) {
           </select>
         </label>
       </div>
+
+      {/* Controls (mobile, collapsible) */}
+      <details className="md:hidden rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/50">
+        <summary className="cursor-pointer select-none px-4 py-3 font-semibold text-slate-800 dark:text-slate-100">
+          Options
+        </summary>
+        <div className="px-4 pb-4 space-y-3">
+          <label className="space-y-1 block">
+            <span className="text-sm font-semibold text-slate-700 dark:text-slate-200">
+              Tone
+            </span>
+            <select
+              value={tone}
+              onChange={(e) => setTone(e.target.value as AdviceTone)}
+              className="w-full px-4 py-3 rounded-xl border-2 transition-all duration-200 bg-white text-slate-900 dark:bg-slate-800 dark:text-slate-100 border-slate-200 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 dark:focus:border-emerald-400"
+            >
+              <option value="balanced">Balanced</option>
+              <option value="gentle">Gentle</option>
+              <option value="blunt">Blunt</option>
+              <option value="coach">Coach</option>
+              <option value="funny">Funny</option>
+            </select>
+          </label>
+
+          <label className="space-y-1 block">
+            <span className="text-sm font-semibold text-slate-700 dark:text-slate-200">
+              Model
+            </span>
+            <select
+              value={modelName}
+              onChange={(e) => setModelName(e.target.value)}
+              disabled={!isAdvancedEnabled}
+              className="w-full px-4 py-3 rounded-xl border-2 transition-all duration-200 bg-white text-slate-900 dark:bg-slate-800 dark:text-slate-100 border-slate-200 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 dark:focus:border-emerald-400 disabled:opacity-60 disabled:cursor-not-allowed"
+            >
+              <option value="gpt-5.2-chat-latest">
+                OpenAI: GPT‑5.2 (chat)
+              </option>
+              <option value="claude-sonnet-4-5">Anthropic: Sonnet 4.5</option>
+              <option value="gemini-2.5-flash">Google: Gemini 2.5 Flash</option>
+              <option value="mistral-large-latest">
+                Mistral: Large (latest)
+              </option>
+            </select>
+          </label>
+        </div>
+      </details>
 
       <div className="bg-emerald-50/50 dark:bg-emerald-900/10 rounded-2xl p-6 border border-emerald-100 dark:border-emerald-800/30">
         <label

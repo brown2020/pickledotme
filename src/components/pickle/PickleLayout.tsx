@@ -7,7 +7,7 @@ interface PickleLayoutProps {
 export function PickleLayout({ children }: PickleLayoutProps) {
   return (
     <PageBackground variant="default-with-padding">
-      <div className="max-w-3xl mx-auto">
+      <div className="max-w-6xl mx-auto">
         <div className="bg-white dark:bg-slate-800 rounded-3xl shadow-2xl shadow-emerald-500/10 overflow-hidden">
           {/* Header */}
           <div className="bg-linear-to-r from-emerald-600 to-teal-500 py-8 px-8">

@@ -5,10 +5,76 @@ import { Sparkles } from "lucide-react";
 
 interface AdviceDisplayProps {
   advice: string;
+  variant?: "card" | "plain";
 }
 
-export function AdviceDisplay({ advice }: AdviceDisplayProps) {
+function AdviceMarkdown({ advice }: { advice: string }) {
+  return (
+    <div className="prose prose-slate dark:prose-invert max-w-none prose-headings:text-slate-900 dark:prose-headings:text-white prose-p:text-slate-700 dark:prose-p:text-slate-200 prose-li:text-slate-700 dark:prose-li:text-slate-200">
+      <ReactMarkdown
+        components={{
+          h1: ({ ...props }) => (
+            <h1
+              className="text-2xl font-bold mb-4 text-slate-900 dark:text-white"
+              {...props}
+            />
+          ),
+          h2: ({ ...props }) => (
+            <h2
+              className="text-xl font-semibold mb-3 text-slate-900 dark:text-white"
+              {...props}
+            />
+          ),
+          h3: ({ ...props }) => (
+            <h3
+              className="text-lg font-semibold mb-2 text-slate-900 dark:text-white"
+              {...props}
+            />
+          ),
+          p: ({ ...props }) => (
+            <p
+              className="mb-4 text-slate-700 dark:text-slate-200 leading-relaxed"
+              {...props}
+            />
+          ),
+          ul: ({ ...props }) => (
+            <ul className="list-disc pl-5 mb-4 space-y-2" {...props} />
+          ),
+          ol: ({ ...props }) => (
+            <ol className="list-decimal pl-5 mb-4 space-y-2" {...props} />
+          ),
+          li: ({ ...props }) => (
+            <li className="text-slate-700 dark:text-slate-200" {...props} />
+          ),
+          strong: ({ ...props }) => (
+            <strong
+              className="font-semibold text-slate-900 dark:text-white"
+              {...props}
+            />
+          ),
+          blockquote: ({ ...props }) => (
+            <blockquote
+              className="border-l-4 border-emerald-500 pl-4 italic text-slate-600 dark:text-slate-300 my-4"
+              {...props}
+            />
+          ),
+        }}
+      >
+        {advice}
+      </ReactMarkdown>
+    </div>
+  );
+}
+
+export function AdviceDisplay({
+  advice,
+  variant = "card",
+}: AdviceDisplayProps) {
   if (!advice) return null;
+
+  if (variant === "plain") {
+    return <AdviceMarkdown advice={advice} />;
+  }
 
   return (
     <div className="mt-8 animate-slide-up">
@@ -28,62 +94,7 @@ export function AdviceDisplay({ advice }: AdviceDisplayProps) {
 
         {/* Content */}
         <div className="p-6">
-          <div className="prose prose-slate dark:prose-invert max-w-none prose-headings:text-slate-900 dark:prose-headings:text-white prose-p:text-slate-700 dark:prose-p:text-slate-200 prose-li:text-slate-700 dark:prose-li:text-slate-200">
-            <ReactMarkdown
-              components={{
-                h1: ({ ...props }) => (
-                  <h1
-                    className="text-2xl font-bold mb-4 text-slate-900 dark:text-white"
-                    {...props}
-                  />
-                ),
-                h2: ({ ...props }) => (
-                  <h2
-                    className="text-xl font-semibold mb-3 text-slate-900 dark:text-white"
-                    {...props}
-                  />
-                ),
-                h3: ({ ...props }) => (
-                  <h3
-                    className="text-lg font-semibold mb-2 text-slate-900 dark:text-white"
-                    {...props}
-                  />
-                ),
-                p: ({ ...props }) => (
-                  <p
-                    className="mb-4 text-slate-700 dark:text-slate-200 leading-relaxed"
-                    {...props}
-                  />
-                ),
-                ul: ({ ...props }) => (
-                  <ul className="list-disc pl-5 mb-4 space-y-2" {...props} />
-                ),
-                ol: ({ ...props }) => (
-                  <ol className="list-decimal pl-5 mb-4 space-y-2" {...props} />
-                ),
-                li: ({ ...props }) => (
-                  <li
-                    className="text-slate-700 dark:text-slate-200"
-                    {...props}
-                  />
-                ),
-                strong: ({ ...props }) => (
-                  <strong
-                    className="font-semibold text-slate-900 dark:text-white"
-                    {...props}
-                  />
-                ),
-                blockquote: ({ ...props }) => (
-                  <blockquote
-                    className="border-l-4 border-emerald-500 pl-4 italic text-slate-600 dark:text-slate-300 my-4"
-                    {...props}
-                  />
-                ),
-              }}
-            >
-              {advice}
-            </ReactMarkdown>
-          </div>
+          <AdviceMarkdown advice={advice} />
         </div>
       </div>
     </div>

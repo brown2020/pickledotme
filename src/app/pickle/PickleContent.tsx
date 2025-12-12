@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import { readStreamableValue } from "@ai-sdk/rsc";
 import Image from "next/image";
-import { Copy, MessageSquarePlus, Trash2, User } from "lucide-react";
+import { Copy, MessageSquarePlus, Plus, Trash2, User } from "lucide-react";
 import { getAdvice } from "@/actions/getAdvice";
 import { useAuth } from "@/providers/AuthProvider";
 import { AdviceForm } from "@/components/pickle/AdviceForm";
@@ -29,6 +29,11 @@ export function PickleContent() {
   const [error, setError] = useState<string | null>(null);
   const [followUp, setFollowUp] = useState("");
   const [draftThreadId, setDraftThreadId] = useState<string | null>(null);
+
+  const selectedThread = useMemo(
+    () => threads.find((t) => t.id === selectedThreadId) ?? null,
+    [threads, selectedThreadId]
+  );
 
   function mergeStreamChunk(current: string, incoming: string): string {
     const next = incoming ?? "";
@@ -108,6 +113,9 @@ export function PickleContent() {
         });
         await refetchThreads();
         await refetchThread();
+        // Clear the draft after the persisted message is fetched.
+        setAdvice("");
+        setDraftThreadId(null);
       }
     } catch (err) {
       console.error("Error fetching advice:", err);
@@ -165,6 +173,8 @@ export function PickleContent() {
         });
         await refetchThreads();
         await refetchThread();
+        setAdvice("");
+        setDraftThreadId(null);
       }
     } catch (err) {
       console.error("Error fetching follow-up:", err);
@@ -227,19 +237,32 @@ export function PickleContent() {
         </div>
       )}
 
-      <div className="grid gap-8 md:grid-cols-[240px_1fr]">
-        {/* History */}
-        <div className="space-y-3">
-          <div className="flex items-center justify-between">
-            <h2 className="text-sm font-bold text-slate-700 dark:text-slate-200">
-              History
-            </h2>
-            <span className="text-xs text-slate-500 dark:text-slate-400">
+      <div className="grid gap-8 lg:grid-cols-[320px_1fr]">
+        {/* History (mobile collapsible) */}
+        <details className="lg:hidden rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/50">
+          <summary className="cursor-pointer select-none px-4 py-3 font-bold text-slate-800 dark:text-slate-100 flex items-center justify-between">
+            <span>History</span>
+            <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">
               {threads.length}
             </span>
-          </div>
+          </summary>
+          <div className="p-3 space-y-2">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="w-full gap-2"
+              onClick={() => {
+                setSelectedThreadId(null);
+                setAdvice("");
+                setError(null);
+                setDraftThreadId(null);
+              }}
+            >
+              <Plus className="w-4 h-4" />
+              New pickle
+            </Button>
 
-          <div className="space-y-2">
             {threads.length === 0 ? (
               <div className="text-sm text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-slate-800/50 rounded-xl p-4">
                 No advice yet. Start a new pickle →.
@@ -253,6 +276,7 @@ export function PickleContent() {
                     setSelectedThreadId(t.id);
                     setAdvice("");
                     setError(null);
+                    setDraftThreadId(null);
                   }}
                   className={`w-full text-left p-3 rounded-xl border transition-colors ${
                     selectedThreadId === t.id
@@ -272,6 +296,71 @@ export function PickleContent() {
               ))
             )}
           </div>
+        </details>
+
+        {/* History (desktop sticky) */}
+        <div className="hidden lg:block">
+          <div className="sticky top-24 space-y-3">
+            <div className="flex items-center justify-between">
+              <h2 className="text-sm font-bold text-slate-700 dark:text-slate-200">
+                History
+              </h2>
+              <span className="text-xs text-slate-500 dark:text-slate-400">
+                {threads.length}
+              </span>
+            </div>
+
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="w-full gap-2"
+              onClick={() => {
+                setSelectedThreadId(null);
+                setAdvice("");
+                setError(null);
+                setDraftThreadId(null);
+              }}
+            >
+              <Plus className="w-4 h-4" />
+              New pickle
+            </Button>
+
+            <div className="space-y-2 max-h-[60vh] overflow-auto pr-1">
+              {threads.length === 0 ? (
+                <div className="text-sm text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-slate-800/50 rounded-xl p-4">
+                  No advice yet. Start a new pickle →.
+                </div>
+              ) : (
+                threads.map((t) => (
+                  <button
+                    key={t.id}
+                    type="button"
+                    onClick={() => {
+                      setSelectedThreadId(t.id);
+                      setAdvice("");
+                      setError(null);
+                      setDraftThreadId(null);
+                    }}
+                    className={`w-full text-left p-3 rounded-xl border transition-colors ${
+                      selectedThreadId === t.id
+                        ? "border-emerald-400 bg-emerald-50/60 dark:bg-emerald-900/10"
+                        : "border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800/50"
+                    }`}
+                  >
+                    <div className="text-sm font-semibold text-slate-900 dark:text-white line-clamp-2">
+                      {t.title}
+                    </div>
+                    {t.lastPreview ? (
+                      <div className="mt-1 text-xs text-slate-500 dark:text-slate-400 line-clamp-2">
+                        {t.lastPreview}
+                      </div>
+                    ) : null}
+                  </button>
+                ))
+              )}
+            </div>
+          </div>
         </div>
 
         {/* Main */}
@@ -288,11 +377,13 @@ export function PickleContent() {
 
           {/* Keep the draft visible until the saved thread message shows up. */}
           {advice && draftThreadId === selectedThreadId ? (
-            <div className="rounded-2xl border border-emerald-200 dark:border-emerald-800/30 bg-white dark:bg-slate-800 p-4">
-              <div className="text-xs font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400 mb-2">
-                {isLoading ? "AI (streaming)" : "AI"}
+            <div className="flex justify-start">
+              <div className="w-full max-w-3xl rounded-2xl border border-emerald-200 dark:border-emerald-800/30 bg-white dark:bg-slate-800 px-4 py-3">
+                <div className="text-[11px] font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400 mb-2">
+                  {isLoading ? "AI (streaming)" : "AI"}
+                </div>
+                <AdviceDisplay advice={advice} variant="plain" />
               </div>
-              <AdviceDisplay advice={advice} />
             </div>
           ) : null}
 
@@ -346,25 +437,40 @@ export function PickleContent() {
           {/* Thread */}
           {threadMessages.length > 0 ? (
             <div className="space-y-4">
+              {selectedThread ? (
+                <div className="text-xs text-slate-500 dark:text-slate-400">
+                  Viewing:{" "}
+                  <span className="font-semibold text-slate-700 dark:text-slate-200">
+                    {selectedThread.title}
+                  </span>
+                </div>
+              ) : null}
+
               {threadMessages.map((m) => (
                 <div
                   key={m.id}
-                  className={`rounded-2xl border p-4 ${
-                    m.role === "user"
-                      ? "border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50"
-                      : "border-emerald-200 dark:border-emerald-800/30 bg-white dark:bg-slate-800"
+                  className={`flex ${
+                    m.role === "user" ? "justify-end" : "justify-start"
                   }`}
                 >
-                  <div className="text-xs font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400 mb-2">
-                    {m.role === "user" ? "You" : "AI"}
+                  <div
+                    className={`w-full max-w-3xl rounded-2xl border px-4 py-3 ${
+                      m.role === "user"
+                        ? "border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50"
+                        : "border-emerald-200 dark:border-emerald-800/30 bg-white dark:bg-slate-800"
+                    }`}
+                  >
+                    <div className="text-[11px] font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400 mb-2">
+                      {m.role === "user" ? "You" : "AI"}
+                    </div>
+                    {m.role === "assistant" ? (
+                      <AdviceDisplay advice={m.content} variant="plain" />
+                    ) : (
+                      <p className="text-slate-800 dark:text-slate-100 whitespace-pre-wrap">
+                        {m.content}
+                      </p>
+                    )}
                   </div>
-                  {m.role === "assistant" ? (
-                    <AdviceDisplay advice={m.content} />
-                  ) : (
-                    <p className="text-slate-800 dark:text-slate-100 whitespace-pre-wrap">
-                      {m.content}
-                    </p>
-                  )}
                 </div>
               ))}
 
