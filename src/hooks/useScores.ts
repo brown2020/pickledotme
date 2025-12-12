@@ -70,15 +70,25 @@ export function useUserGameScores() {
  * Hook for getting best score for a specific game
  */
 export function useBestScore(gameId: GameId) {
-  const { scores, isLoading } = useUserGameScores();
+  const { user, isLoading: isAuthLoading } = useAuth();
 
-  const bestScore = scores
-    .filter((s) => s.gameId === gameId)
-    .reduce((max, s) => Math.max(max, s.score), 0);
+  const { data, error, isLoading, mutate } = useSWR(
+    user?.uid ? `best-score-${gameId}-${user.uid}` : null,
+    () =>
+      user?.uid
+        ? scoreService.getUserBestScore(user.uid, gameId)
+        : Promise.resolve(0),
+    {
+      revalidateOnFocus: false,
+      dedupingInterval: 30000,
+    }
+  );
 
-  return { bestScore, isLoading };
+  return {
+    bestScore: data ?? 0,
+    isLoading: isLoading || isAuthLoading,
+    isError: !!error,
+    error,
+    refetch: mutate,
+  };
 }
-
-
-
-

@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { useGameBase } from "./useGameBase";
 
 const GAME_ID = "reaction-pickle" as const;
@@ -7,7 +7,13 @@ const MIN_WAIT_TIME = 1500; // ms
 const MAX_WAIT_TIME = 5000; // ms
 const TOO_EARLY_PENALTY = 500; // ms added to average
 
-export type GamePhase = "waiting" | "ready" | "go" | "result" | "finished" | "too-early";
+export type GamePhase =
+  | "waiting"
+  | "ready"
+  | "go"
+  | "result"
+  | "finished"
+  | "too-early";
 
 export interface RoundResult {
   round: number;
@@ -20,11 +26,17 @@ export function useReactionGame() {
   const [phase, setPhase] = useState<GamePhase>("waiting");
   const [currentRound, setCurrentRound] = useState(0);
   const [results, setResults] = useState<RoundResult[]>([]);
-  const [currentReactionTime, setCurrentReactionTime] = useState<number | null>(null);
+  const [currentReactionTime, setCurrentReactionTime] = useState<number | null>(
+    null
+  );
   const [averageTime, setAverageTime] = useState<number | null>(null);
-  
+
   const goTimeRef = useRef<number>(0);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const resultsRef = useRef<RoundResult[]>([]);
+  useEffect(() => {
+    resultsRef.current = results;
+  }, [results]);
 
   const clearTimeouts = useCallback(() => {
     if (timeoutRef.current) {
@@ -46,13 +58,34 @@ export function useReactionGame() {
     setCurrentReactionTime(null);
 
     // Random wait time before showing "GO"
-    const waitTime = MIN_WAIT_TIME + Math.random() * (MAX_WAIT_TIME - MIN_WAIT_TIME);
-    
+    const waitTime =
+      MIN_WAIT_TIME + Math.random() * (MAX_WAIT_TIME - MIN_WAIT_TIME);
+
     timeoutRef.current = setTimeout(() => {
       goTimeRef.current = Date.now();
       setPhase("go");
     }, waitTime);
   }, []);
+
+  const finishGame = useCallback(
+    async (finalResults?: RoundResult[]) => {
+      setPhase("finished");
+
+      // Calculate average (including penalties)
+      const allResults = [...(finalResults ?? resultsRef.current)];
+      if (allResults.length > 0) {
+        const avg =
+          allResults.reduce((sum, r) => sum + r.reactionTime, 0) /
+          allResults.length;
+        setAverageTime(Math.round(avg));
+
+        const finalScore = calculateScore(avg);
+        gameBase.updateScore(finalScore);
+        await gameBase.saveScore(finalScore);
+      }
+    },
+    [calculateScore, gameBase]
+  );
 
   const handleClick = useCallback(() => {
     if (phase === "waiting" || phase === "finished") return;
@@ -61,15 +94,23 @@ export function useReactionGame() {
       // Clicked too early!
       clearTimeouts();
       setPhase("too-early");
-      setResults((prev) => [
-        ...prev,
-        { round: currentRound + 1, reactionTime: TOO_EARLY_PENALTY, tooEarly: true },
-      ]);
-      
+      setResults((prev) => {
+        const next = [
+          ...prev,
+          {
+            round: currentRound + 1,
+            reactionTime: TOO_EARLY_PENALTY,
+            tooEarly: true,
+          },
+        ];
+        resultsRef.current = next;
+        return next;
+      });
+
       // Auto-advance after showing penalty
       timeoutRef.current = setTimeout(() => {
         if (currentRound + 1 >= TOTAL_ROUNDS) {
-          finishGame();
+          finishGame(resultsRef.current);
         } else {
           setCurrentRound((prev) => prev + 1);
           startRound();
@@ -82,42 +123,32 @@ export function useReactionGame() {
       const reactionTime = Date.now() - goTimeRef.current;
       setCurrentReactionTime(reactionTime);
       setPhase("result");
-      
-      setResults((prev) => [
-        ...prev,
-        { round: currentRound + 1, reactionTime, tooEarly: false },
-      ]);
+
+      setResults((prev) => {
+        const next = [
+          ...prev,
+          { round: currentRound + 1, reactionTime, tooEarly: false },
+        ];
+        resultsRef.current = next;
+        return next;
+      });
 
       // Auto-advance to next round
       timeoutRef.current = setTimeout(() => {
         if (currentRound + 1 >= TOTAL_ROUNDS) {
-          finishGame();
+          finishGame(resultsRef.current);
         } else {
           setCurrentRound((prev) => prev + 1);
           startRound();
         }
       }, 1500);
     }
-  }, [phase, currentRound, clearTimeouts, startRound]);
-
-  const finishGame = useCallback(async () => {
-    setPhase("finished");
-    
-    // Calculate average (including penalties)
-    const allResults = [...results];
-    if (allResults.length > 0) {
-      const avg = allResults.reduce((sum, r) => sum + r.reactionTime, 0) / allResults.length;
-      setAverageTime(Math.round(avg));
-      
-      const finalScore = calculateScore(avg);
-      gameBase.updateScore(finalScore);
-      await gameBase.saveScore(finalScore);
-    }
-  }, [results, calculateScore, gameBase]);
+  }, [phase, currentRound, clearTimeouts, startRound, finishGame]);
 
   const startGame = useCallback(() => {
     clearTimeouts();
     setResults([]);
+    resultsRef.current = [];
     setCurrentRound(0);
     setCurrentReactionTime(null);
     setAverageTime(null);
@@ -129,6 +160,7 @@ export function useReactionGame() {
     clearTimeouts();
     setPhase("waiting");
     setResults([]);
+    resultsRef.current = [];
     setCurrentRound(0);
     setCurrentReactionTime(null);
     setAverageTime(null);
@@ -150,5 +182,3 @@ export function useReactionGame() {
     handleClick,
   };
 }
-
-

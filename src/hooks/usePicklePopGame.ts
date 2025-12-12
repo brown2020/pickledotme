@@ -54,31 +54,35 @@ export function usePicklePopGame() {
 
   // Spawn a new pickle
   const spawnPickle = useCallback(() => {
-    const occupiedPositions = pickles.map((p) => p.position);
-    const availablePositions = Array.from({ length: 9 }, (_, i) => i).filter(
-      (pos) => !occupiedPositions.includes(pos)
-    );
+    setPickles((prev) => {
+      const occupiedPositions = prev.map((p) => p.position);
+      const availablePositions = Array.from({ length: 9 }, (_, i) => i).filter(
+        (pos) => !occupiedPositions.includes(pos)
+      );
 
-    if (availablePositions.length === 0) return;
+      if (availablePositions.length === 0) return prev;
 
-    const position =
-      availablePositions[Math.floor(Math.random() * availablePositions.length)];
+      const position =
+        availablePositions[
+          Math.floor(Math.random() * availablePositions.length)
+        ];
 
-    // Determine pickle type (10% golden, 15% rotten, 75% normal)
-    const rand = Math.random();
-    let type: PickleType = "normal";
-    if (rand < 0.1) type = "golden";
-    else if (rand < 0.25) type = "rotten";
+      // Determine pickle type (10% golden, 15% rotten, 75% normal)
+      const rand = Math.random();
+      let type: PickleType = "normal";
+      if (rand < 0.1) type = "golden";
+      else if (rand < 0.25) type = "rotten";
 
-    const newPickle: PopPickle = {
-      id: nextIdRef.current++,
-      position,
-      type,
-      expiresAt: Date.now() + getPickleDuration(),
-    };
+      const newPickle: PopPickle = {
+        id: nextIdRef.current++,
+        position,
+        type,
+        expiresAt: Date.now() + getPickleDuration(),
+      };
 
-    setPickles((prev) => [...prev, newPickle]);
-  }, [pickles, getPickleDuration]);
+      return [...prev, newPickle];
+    });
+  }, [getPickleDuration]);
 
   // Handle clicking a pickle
   const handlePickleClick = useCallback(

@@ -16,7 +16,6 @@ import {
   GoogleAuthProvider,
 } from "firebase/auth";
 import { auth } from "@/lib/firebaseConfig";
-import { AUTH_COOKIE_NAME } from "@/proxy";
 
 interface AuthContextType {
   user: User | null;
@@ -31,13 +30,24 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 const googleProvider = new GoogleAuthProvider();
 
 /**
- * Sync auth state to cookie for proxy route protection
+ * Sync Firebase auth state to a server-issued, httpOnly session cookie.
  */
-function syncAuthCookie(isAuthenticated: boolean) {
-  if (isAuthenticated) {
-    document.cookie = `${AUTH_COOKIE_NAME}=true; path=/; max-age=31536000; SameSite=Lax`;
-  } else {
-    document.cookie = `${AUTH_COOKIE_NAME}=; path=/; max-age=0`;
+async function syncSessionCookie(user: User | null) {
+  try {
+    if (!user) {
+      await fetch("/api/auth/session", { method: "DELETE" });
+      return;
+    }
+
+    const idToken = await user.getIdToken();
+    await fetch("/api/auth/session", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ idToken }),
+    });
+  } catch (error) {
+    // Session cookie sync failures should not break the client UI.
+    console.error("Failed to sync session cookie:", error);
   }
 }
 
@@ -49,7 +59,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
       setIsLoading(false);
-      syncAuthCookie(!!currentUser);
+      void syncSessionCookie(currentUser);
     });
     return () => unsubscribe();
   }, []);
@@ -66,6 +76,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const logout = useCallback(async () => {
     try {
       await signOut(auth);
+      // Also clear the server session cookie immediately (auth listener will do it too).
+      await syncSessionCookie(null);
     } catch (error) {
       console.error("Sign out error:", error);
       throw error;

@@ -92,10 +92,17 @@ export function useWordGame() {
   const [hintUsed, setHintUsed] = useState(false);
   const [showCorrect, setShowCorrect] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
+  const wordsCompletedRef = useRef(0);
+
+  useEffect(() => {
+    wordsCompletedRef.current = wordsCompleted;
+  }, [wordsCompleted]);
 
   // Use refs to avoid dependency issues in effects
   const levelRef = useRef(gameBase.level);
-  levelRef.current = gameBase.level;
+  useEffect(() => {
+    levelRef.current = gameBase.level;
+  }, [gameBase.level]);
 
   // Use shared timer hook
   const timer = useGameTimer({
@@ -128,16 +135,90 @@ export function useWordGame() {
     setSelectedLetters([]);
   }, []);
 
+  // Check an attempt and advance game state (called from event handlers)
+  const checkAttempt = useCallback(
+    (attemptLetters: Letter[]) => {
+      if (isProcessing || showCorrect) return;
+      if (
+        attemptLetters.length !== currentWord.length ||
+        currentWord.length === 0
+      )
+        return;
+
+      const attempt = attemptLetters.map((l) => l.char).join("");
+
+      if (attempt === currentWord) {
+        // Correct!
+        setIsProcessing(true);
+        setShowCorrect(true);
+
+        const basePoints = currentWord.length * 20;
+        const timeBonus = Math.floor(timer.timeLeft / 2);
+        const hintPenalty = hintUsed ? HINT_PENALTY : 0;
+        const points = Math.max(10, basePoints + timeBonus - hintPenalty);
+
+        gameBase.updateScore(gameBase.score + points);
+
+        const newWordsCompleted = wordsCompletedRef.current + 1;
+        wordsCompletedRef.current = newWordsCompleted;
+        setWordsCompleted(newWordsCompleted);
+
+        // Level up every 3 words
+        if (newWordsCompleted % 3 === 0) {
+          gameBase.setLevel(gameBase.level + 1);
+        }
+
+        // Generate new word after delay
+        setTimeout(() => {
+          generateNewWord();
+        }, 1000);
+      } else {
+        // Wrong - clear and try again
+        setIsProcessing(true);
+        setTimeout(() => {
+          setScrambledLetters((prev) =>
+            prev.map((l) => ({ ...l, isSelected: false }))
+          );
+          setSelectedLetters([]);
+          setIsProcessing(false);
+        }, 500);
+      }
+    },
+    [
+      currentWord,
+      gameBase,
+      generateNewWord,
+      hintUsed,
+      isProcessing,
+      showCorrect,
+      timer.timeLeft,
+    ]
+  );
+
   const selectLetter = useCallback(
     (letter: Letter) => {
       if (letter.isSelected || showCorrect || isProcessing) return;
 
+      const nextSelected = [...selectedLetters, letter];
       setScrambledLetters((prev) =>
         prev.map((l) => (l.id === letter.id ? { ...l, isSelected: true } : l))
       );
-      setSelectedLetters((prev) => [...prev, letter]);
+      setSelectedLetters(nextSelected);
+
+      if (
+        nextSelected.length === currentWord.length &&
+        currentWord.length > 0
+      ) {
+        checkAttempt(nextSelected);
+      }
     },
-    [showCorrect, isProcessing]
+    [
+      checkAttempt,
+      currentWord.length,
+      isProcessing,
+      selectedLetters,
+      showCorrect,
+    ]
   );
 
   const deselectLetter = useCallback(
@@ -166,8 +247,6 @@ export function useWordGame() {
 
     setHintUsed(true);
     // Find the next correct letter
-    const nextIndex = selectedLetters.length;
-
     setSelectedLetters((prevSelected) => {
       const nextChar = currentWord[prevSelected.length];
 
@@ -188,84 +267,25 @@ export function useWordGame() {
         (l) => !l.isSelected && l.char === nextChar
       );
 
-      return letterToAdd ? [...prevSelected, letterToAdd] : prevSelected;
-    });
-  }, [hintUsed, showCorrect, isProcessing, currentWord, scrambledLetters]);
-
-  // Check if word is complete - using a separate check function
-  const checkWord = useCallback(() => {
-    if (isProcessing || showCorrect) return;
-    if (
-      selectedLetters.length !== currentWord.length ||
-      currentWord.length === 0
-    )
-      return;
-
-    const attempt = selectedLetters.map((l) => l.char).join("");
-
-    if (attempt === currentWord) {
-      // Correct!
-      setIsProcessing(true);
-      setShowCorrect(true);
-
-      const basePoints = currentWord.length * 20;
-      const timeBonus = Math.floor(timer.timeLeft / 2);
-      const hintPenalty = hintUsed ? HINT_PENALTY : 0;
-      const points = Math.max(10, basePoints + timeBonus - hintPenalty);
-
-      gameBase.updateScore(gameBase.score + points);
-
-      const newWordsCompleted = wordsCompleted + 1;
-      setWordsCompleted(newWordsCompleted);
-
-      // Level up every 3 words
-      if (newWordsCompleted % 3 === 0) {
-        gameBase.setLevel(gameBase.level + 1);
+      const nextSelected = letterToAdd
+        ? [...prevSelected, letterToAdd]
+        : prevSelected;
+      if (
+        nextSelected.length === currentWord.length &&
+        currentWord.length > 0 &&
+        nextSelected !== prevSelected
+      ) {
+        queueMicrotask(() => checkAttempt(nextSelected));
       }
-
-      // Generate new word after delay
-      setTimeout(() => {
-        generateNewWord();
-      }, 1000);
-    } else {
-      // Wrong - clear and try again
-      setIsProcessing(true);
-      setTimeout(() => {
-        setScrambledLetters((prev) =>
-          prev.map((l) => ({ ...l, isSelected: false }))
-        );
-        setSelectedLetters([]);
-        setIsProcessing(false);
-      }, 500);
-    }
+      return nextSelected;
+    });
   }, [
-    selectedLetters,
-    currentWord,
-    timer.timeLeft,
+    checkAttempt,
     hintUsed,
-    gameBase,
-    wordsCompleted,
-    generateNewWord,
-    isProcessing,
     showCorrect,
-  ]);
-
-  // Trigger word check when selection changes
-  useEffect(() => {
-    if (
-      selectedLetters.length === currentWord.length &&
-      currentWord.length > 0 &&
-      !isProcessing &&
-      !showCorrect
-    ) {
-      checkWord();
-    }
-  }, [
-    selectedLetters.length,
-    currentWord.length,
-    checkWord,
     isProcessing,
-    showCorrect,
+    currentWord,
+    scrambledLetters,
   ]);
 
   const startGame = useCallback(() => {

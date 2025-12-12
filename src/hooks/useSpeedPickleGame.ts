@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useCallback } from "react";
 import { useGameBase } from "./useGameBase";
 import { useGameTimer } from "./useGameTimer";
 
@@ -72,13 +72,6 @@ export function useSpeedPickleGame() {
     },
     [gameBase, generatePickles, timer]
   );
-
-  // Regenerate pickles when level changes
-  useEffect(() => {
-    if (gameBase.isPlaying) {
-      setPickles(generatePickles());
-    }
-  }, [gameBase.level, gameBase.isPlaying, generatePickles]);
 
   return {
     pickles,

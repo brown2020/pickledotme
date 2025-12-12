@@ -30,7 +30,9 @@ export function useGameTimer({
   const onTimeUpRef = useRef(onTimeUp);
 
   // Keep callback ref updated
-  onTimeUpRef.current = onTimeUp;
+  useEffect(() => {
+    onTimeUpRef.current = onTimeUp;
+  }, [onTimeUp]);
 
   useEffect(() => {
     if (!isRunning || timeLeft <= 0) return;

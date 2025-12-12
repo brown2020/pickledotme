@@ -1,10 +1,7 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-
-/**
- * Cookie name for auth state synchronization
- */
-export const AUTH_COOKIE_NAME = "pickle-auth-state";
+import { getFirebaseAdminAuth } from "@/lib/firebaseAdmin";
+import { isDevSessionCookie, SESSION_COOKIE_NAME } from "@/lib/authSession";
 
 /**
  * Routes that require authentication
@@ -40,26 +37,43 @@ function addSecurityHeaders(response: NextResponse) {
 
 /**
  * Proxy for route protection and security headers
- * Uses cookie-based auth state synced from client-side Firebase Auth
+ * Uses server-issued Firebase session cookies
  */
-export function proxy(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
-
-  // Get auth state from cookie (synced by AuthProvider on auth state change)
-  const authCookie = request.cookies.get(AUTH_COOKIE_NAME);
-  const isAuthenticated = authCookie?.value === "true";
 
   const isProtectedRoute = PROTECTED_ROUTES.some((route) =>
     pathname.startsWith(route)
   );
   const isAuthRoute = AUTH_ROUTES.some((route) => pathname.startsWith(route));
 
+  let isAuthenticated = false;
+  if (isProtectedRoute || isAuthRoute) {
+    const sessionCookie = request.cookies.get(SESSION_COOKIE_NAME)?.value;
+    if (sessionCookie) {
+      try {
+        if (isDevSessionCookie(sessionCookie)) {
+          isAuthenticated = true;
+        } else {
+          const adminAuth = getFirebaseAdminAuth();
+          await adminAuth.verifySessionCookie(sessionCookie, true);
+          isAuthenticated = true;
+        }
+      } catch {
+        isAuthenticated = false;
+      }
+    }
+  }
+
   // Redirect unauthenticated users from protected routes to home
   if (isProtectedRoute && !isAuthenticated) {
     const url = request.nextUrl.clone();
     url.pathname = "/";
     url.searchParams.set("redirect", pathname);
-    return addSecurityHeaders(NextResponse.redirect(url));
+    const response = NextResponse.redirect(url);
+    // Clear any invalid session cookie.
+    response.cookies.set(SESSION_COOKIE_NAME, "", { path: "/", maxAge: 0 });
+    return addSecurityHeaders(response);
   }
 
   // Redirect authenticated users away from auth routes

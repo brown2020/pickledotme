@@ -1,6 +1,7 @@
 import {
   doc,
   setDoc,
+  getDoc,
   collection,
   query,
   where,
@@ -18,12 +19,15 @@ interface SaveScoreParams {
   score: number;
 }
 
+type ScoreKind = "history" | "best";
+
 interface FirestoreScore {
   id: string;
   userId: string;
   gameId: string;
   score: number;
   timestamp: Timestamp;
+  kind?: ScoreKind;
 }
 
 export interface DisplayScore {
@@ -32,9 +36,25 @@ export interface DisplayScore {
   gameId: string;
   score: number;
   timestamp: Date;
+  kind?: ScoreKind;
 }
 
-class ScoreService {
+function toDisplayScore(docSnapshot: {
+  id: string;
+  data: () => unknown;
+}): DisplayScore {
+  const data = docSnapshot.data() as Omit<FirestoreScore, "id">;
+  return {
+    id: docSnapshot.id,
+    userId: data.userId,
+    gameId: data.gameId,
+    score: data.score,
+    timestamp: data.timestamp.toDate(),
+    kind: data.kind,
+  };
+}
+
+export const scoreService = {
   /**
    * Save a game score with timestamp-based ID (for history)
    */
@@ -45,20 +65,26 @@ class ScoreService {
       gameId,
       score,
       timestamp: Timestamp.now(),
+      kind: "history" satisfies ScoreKind,
     });
-  }
+  },
 
   /**
    * Save/update the best score for a user (single record per game)
    */
-  async saveBestScore({ userId, gameId, score }: SaveScoreParams): Promise<void> {
+  async saveBestScore({
+    userId,
+    gameId,
+    score,
+  }: SaveScoreParams): Promise<void> {
     await setDoc(doc(db, "scores", `${gameId}-best-${userId}`), {
       userId,
       gameId,
       score,
       timestamp: Timestamp.now(),
+      kind: "best" satisfies ScoreKind,
     });
-  }
+  },
 
   /**
    * Save score and update best if applicable
@@ -67,39 +93,34 @@ class ScoreService {
     params: SaveScoreParams,
     currentBest: number
   ): Promise<{ isNewBest: boolean }> {
-    await this.saveScore(params);
+    await scoreService.saveScore(params);
 
     const isNewBest = params.score > currentBest;
     if (isNewBest) {
-      await this.saveBestScore(params);
+      await scoreService.saveBestScore(params);
     }
 
     return { isNewBest };
-  }
+  },
 
   /**
    * Get high scores for a specific game
    */
-  async getHighScores(gameId: GameId, limitCount = 10): Promise<DisplayScore[]> {
+  async getHighScores(
+    gameId: GameId,
+    limitCount = 10
+  ): Promise<DisplayScore[]> {
     const q = query(
       collection(db, "scores"),
       where("gameId", "==", gameId),
+      where("kind", "==", "best"),
       orderBy("score", "desc"),
       limit(limitCount)
     );
     const snapshot = await getDocs(q);
 
-    return snapshot.docs.map((doc) => {
-      const data = doc.data() as Omit<FirestoreScore, "id">;
-      return {
-        id: doc.id,
-        userId: data.userId,
-        gameId: data.gameId,
-        score: data.score,
-        timestamp: data.timestamp.toDate(),
-      };
-    });
-  }
+    return snapshot.docs.map((d) => toDisplayScore(d));
+  },
 
   /**
    * Get all scores for a specific user
@@ -108,19 +129,15 @@ class ScoreService {
     const q = query(collection(db, "scores"), where("userId", "==", userId));
     const snapshot = await getDocs(q);
 
-    return snapshot.docs.map((doc) => {
-      const data = doc.data() as Omit<FirestoreScore, "id">;
-      return {
-        id: doc.id,
-        userId: data.userId,
-        gameId: data.gameId,
-        score: data.score,
-        timestamp: data.timestamp.toDate(),
-      };
-    });
-  }
-}
+    return snapshot.docs.map((d) => toDisplayScore(d));
+  },
 
-export const scoreService = new ScoreService();
-
-
+  async getUserBestScore(userId: string, gameId: GameId): Promise<number> {
+    const snapshot = await getDoc(
+      doc(db, "scores", `${gameId}-best-${userId}`)
+    );
+    if (!snapshot.exists()) return 0;
+    const data = snapshot.data() as Partial<FirestoreScore>;
+    return typeof data.score === "number" ? data.score : 0;
+  },
+};

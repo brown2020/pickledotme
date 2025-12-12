@@ -59,7 +59,7 @@ export function useGameBase(gameId: GameId): UseGameBaseReturn {
         return { isNewBest: false };
       }
     },
-    [user?.uid, gameId, state.bestScore]
+    [user, gameId, state.bestScore]
   );
 
   const updateScore = useCallback((score: number) => {
@@ -109,5 +109,3 @@ export function useGameBase(gameId: GameId): UseGameBaseReturn {
     resetGame,
   };
 }
-
-

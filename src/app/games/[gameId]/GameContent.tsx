@@ -1,25 +1,43 @@
 "use client";
 
 import Link from "next/link";
+import dynamic from "next/dynamic";
 import { motion } from "framer-motion";
-import { SequencePickle } from "@/components/games/SequencePickle";
-import { MatchingPickles } from "@/components/games/MatchingPickles";
-import { SpeedPickle } from "@/components/games/SpeedPickle";
-import { PicklePop } from "@/components/games/PicklePop";
-import { ReactionPickle } from "@/components/games/ReactionPickle";
-import { WordPickle } from "@/components/games/WordPickle";
 import { Button } from "@/components/ui";
 import { ArrowLeft } from "lucide-react";
 import { GameId } from "@/config/games";
 import { scaleIn } from "@/components/PageTransition";
 
 const gameComponents: Record<GameId, React.ComponentType> = {
-  "sequence-pickle": SequencePickle,
-  "matching-pickles": MatchingPickles,
-  "speed-pickle": SpeedPickle,
-  "pickle-pop": PicklePop,
-  "reaction-pickle": ReactionPickle,
-  "word-pickle": WordPickle,
+  "sequence-pickle": dynamic(
+    () =>
+      import("@/components/games/SequencePickle").then((m) => m.SequencePickle),
+    { ssr: false }
+  ),
+  "matching-pickles": dynamic(
+    () =>
+      import("@/components/games/MatchingPickles").then(
+        (m) => m.MatchingPickles
+      ),
+    { ssr: false }
+  ),
+  "speed-pickle": dynamic(
+    () => import("@/components/games/SpeedPickle").then((m) => m.SpeedPickle),
+    { ssr: false }
+  ),
+  "pickle-pop": dynamic(
+    () => import("@/components/games/PicklePop").then((m) => m.PicklePop),
+    { ssr: false }
+  ),
+  "reaction-pickle": dynamic(
+    () =>
+      import("@/components/games/ReactionPickle").then((m) => m.ReactionPickle),
+    { ssr: false }
+  ),
+  "word-pickle": dynamic(
+    () => import("@/components/games/WordPickle").then((m) => m.WordPickle),
+    { ssr: false }
+  ),
 };
 
 interface GameContentProps {
