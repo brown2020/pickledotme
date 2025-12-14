@@ -5,7 +5,6 @@ import {
   deleteDoc,
   doc,
   getDocs,
-  limit,
   orderBy,
   query,
   updateDoc,
@@ -137,15 +136,13 @@ export const adviceService = {
   },
 
   async listThreads(userId: string, limitCount = 20): Promise<AdviceThread[]> {
-    const q = query(
-      collection(db, COLLECTIONS.threads),
-      where("userId", "==", userId),
-      orderBy("updatedAt", "desc"),
-      limit(limitCount)
+    // Avoid composite-index requirement (where + orderBy).
+    // We filter server-side and sort client-side.
+    const snapshot = await getDocs(
+      query(collection(db, COLLECTIONS.threads), where("userId", "==", userId))
     );
 
-    const snapshot = await getDocs(q);
-    return snapshot.docs.map((d) => {
+    const threads = snapshot.docs.map((d) => {
       const data = d.data() as {
         userId: string;
         title: string;
@@ -167,6 +164,9 @@ export const adviceService = {
         lastPreview: data.lastPreview ?? "",
       };
     });
+
+    threads.sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime());
+    return threads.slice(0, limitCount);
   },
 
   async getThreadMessages(params: {
@@ -176,15 +176,16 @@ export const adviceService = {
   }): Promise<AdviceMessage[]> {
     const { userId, threadId, limitCount = 50 } = params;
 
+    // Avoid composite-index requirement (where + orderBy).
+    // Security rules ensure only the owner of the thread can read messages.
+    // We intentionally do NOT filter by userId here.
     const q = query(
       collection(db, COLLECTIONS.threads, threadId, COLLECTIONS.messages),
-      where("userId", "==", userId),
-      orderBy("createdAt", "asc"),
-      limit(limitCount)
+      orderBy("createdAt", "asc")
     );
 
     const snapshot = await getDocs(q);
-    return snapshot.docs.map((d) => {
+    const messages = snapshot.docs.map((d) => {
       const data = d.data() as {
         userId: string;
         threadId: string;
@@ -202,6 +203,11 @@ export const adviceService = {
         createdAt: toDate(data.createdAt),
       };
     });
+
+    // Enforce limit client-side since we removed server-side limit.
+    // (Keeps queries index-free.)
+    void userId;
+    return messages.slice(0, limitCount);
   },
 
   async deleteThread(params: {

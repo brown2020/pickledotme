@@ -1,0 +1,101 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return signedIn() && request.auth.uid == userId;
+    }
+
+    function isValidScore() {
+      return request.resource.data.score is int
+        && request.resource.data.score >= 0
+        && request.resource.data.score <= 1000000;
+    }
+
+    function isValidGameId() {
+      return request.resource.data.gameId is string
+        && request.resource.data.gameId.size() > 0;
+    }
+
+    function isValidTimestamp(field) {
+      return field is timestamp;
+    }
+
+    // --- Pickle Advice ---
+    match /adviceThreads/{threadId} {
+      allow create: if isOwner(request.resource.data.userId)
+        && request.resource.data.title is string
+        && request.resource.data.tone is string
+        && request.resource.data.modelName is string
+        && request.resource.data.lastPreview is string
+        && isValidTimestamp(request.resource.data.createdAt)
+        && isValidTimestamp(request.resource.data.updatedAt);
+
+      allow read, update, delete: if signedIn() && resource.data.userId == request.auth.uid;
+
+      match /messages/{messageId} {
+        allow read: if signedIn()
+          && get(/databases/$(database)/documents/adviceThreads/$(threadId)).data.userId == request.auth.uid;
+
+        allow create: if isOwner(request.resource.data.userId)
+          && request.resource.data.threadId == threadId
+          && request.resource.data.role in ['user', 'assistant']
+          && request.resource.data.content is string
+          && request.resource.data.content.size() > 0
+          && request.resource.data.content.size() <= 5000
+          && isValidTimestamp(request.resource.data.createdAt)
+          && get(/databases/$(database)/documents/adviceThreads/$(threadId)).data.userId == request.auth.uid;
+
+        // Keep messages append-only (safer and simpler).
+        allow update, delete: if false;
+      }
+    }
+
+    // --- Game Scores ---
+    // Private per-user history.
+    match /scoreHistory/{docId} {
+      allow read: if signedIn() && resource.data.userId == request.auth.uid;
+
+      // Each write is a new record; enforce ownership.
+      allow create: if isOwner(request.resource.data.userId)
+        && isValidGameId()
+        && isValidScore()
+        && isValidTimestamp(request.resource.data.timestamp);
+
+      allow update, delete: if false;
+    }
+
+    // Best scores are readable by signed-in users for leaderboards.
+    match /bestScores/{docId} {
+      allow read: if signedIn();
+
+      allow create, update: if isOwner(request.resource.data.userId)
+        && isValidGameId()
+        && isValidScore()
+        && isValidTimestamp(request.resource.data.timestamp);
+
+      allow delete: if false;
+    }
+
+    // Legacy mixed collection (backwards compatibility).
+    match /scores/{docId} {
+      allow read: if signedIn();
+
+      allow create, update: if isOwner(request.resource.data.userId)
+        && isValidGameId()
+        && isValidScore()
+        && isValidTimestamp(request.resource.data.timestamp);
+
+      allow delete: if false;
+    }
+
+    // Deny everything else by default.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
