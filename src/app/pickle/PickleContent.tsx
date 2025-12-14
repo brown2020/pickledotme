@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { readStreamableValue } from "@ai-sdk/rsc";
 import Image from "next/image";
 import { Copy, MessageSquarePlus, Plus, Trash2, User } from "lucide-react";
@@ -34,6 +34,24 @@ export function PickleContent() {
     () => threads.find((t) => t.id === selectedThreadId) ?? null,
     [threads, selectedThreadId]
   );
+
+  const hasPersistedDraft = useMemo(() => {
+    if (!advice) return false;
+    if (!draftThreadId) return false;
+    if (draftThreadId !== selectedThreadId) return false;
+    const draft = advice.trim();
+    return threadMessages.some(
+      (m) => m.role === "assistant" && m.content.trim() === draft
+    );
+  }, [advice, draftThreadId, selectedThreadId, threadMessages]);
+
+  // Once the final assistant message is persisted and visible, hide the draft bubble
+  // to avoid “it disappears” (too early) *and* to avoid duplicates.
+  useEffect(() => {
+    if (!hasPersistedDraft) return;
+    setAdvice("");
+    setDraftThreadId(null);
+  }, [hasPersistedDraft]);
 
   function mergeStreamChunk(current: string, incoming: string): string {
     const next = incoming ?? "";
@@ -113,9 +131,6 @@ export function PickleContent() {
         });
         await refetchThreads();
         await refetchThread();
-        // Clear the draft after the persisted message is fetched.
-        setAdvice("");
-        setDraftThreadId(null);
       }
     } catch (err) {
       console.error("Error fetching advice:", err);
@@ -173,8 +188,6 @@ export function PickleContent() {
         });
         await refetchThreads();
         await refetchThread();
-        setAdvice("");
-        setDraftThreadId(null);
       }
     } catch (err) {
       console.error("Error fetching follow-up:", err);
@@ -376,7 +389,9 @@ export function PickleContent() {
           )}
 
           {/* Keep the draft visible until the saved thread message shows up. */}
-          {advice && draftThreadId === selectedThreadId ? (
+          {advice &&
+          draftThreadId === selectedThreadId &&
+          !hasPersistedDraft ? (
             <div className="flex justify-start">
               <div className="w-full max-w-3xl rounded-2xl border border-emerald-200 dark:border-emerald-800/30 bg-white dark:bg-slate-800 px-4 py-3">
                 <div className="text-[11px] font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400 mb-2">
