@@ -204,10 +204,18 @@ export const adviceService = {
       };
     });
 
+    // Ensure strict chronological order, even when timestamps tie.
+    messages.sort((a, b) => {
+      const t = a.createdAt.getTime() - b.createdAt.getTime();
+      if (t !== 0) return t;
+      return a.id.localeCompare(b.id);
+    });
+
     // Enforce limit client-side since we removed server-side limit.
-    // (Keeps queries index-free.)
+    // Keep the most recent N messages while preserving chronological order.
     void userId;
-    return messages.slice(0, limitCount);
+    if (messages.length <= limitCount) return messages;
+    return messages.slice(-limitCount);
   },
 
   async deleteThread(params: {

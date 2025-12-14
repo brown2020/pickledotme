@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { readStreamableValue } from "@ai-sdk/rsc";
 import Image from "next/image";
 import { Copy, MessageSquarePlus, Plus, Trash2, User } from "lucide-react";
@@ -29,6 +29,7 @@ export function PickleContent() {
   const [error, setError] = useState<string | null>(null);
   const [followUp, setFollowUp] = useState("");
   const [draftThreadId, setDraftThreadId] = useState<string | null>(null);
+  const messagesEndRef = useRef<HTMLDivElement | null>(null);
 
   const selectedThread = useMemo(
     () => threads.find((t) => t.id === selectedThreadId) ?? null,
@@ -45,6 +46,16 @@ export function PickleContent() {
     );
   }, [advice, draftThreadId, selectedThreadId, threadMessages]);
 
+  const sortedThreadMessages = useMemo(() => {
+    const copy = [...threadMessages];
+    copy.sort((a, b) => {
+      const t = a.createdAt.getTime() - b.createdAt.getTime();
+      if (t !== 0) return t;
+      return a.id.localeCompare(b.id);
+    });
+    return copy;
+  }, [threadMessages]);
+
   // Once the final assistant message is persisted and visible, hide the draft bubble
   // to avoid “it disappears” (too early) *and* to avoid duplicates.
   useEffect(() => {
@@ -52,6 +63,14 @@ export function PickleContent() {
     setAdvice("");
     setDraftThreadId(null);
   }, [hasPersistedDraft]);
+
+  // Keep the view pinned to the latest message / streaming chunk.
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({
+      behavior: "smooth",
+      block: "end",
+    });
+  }, [selectedThreadId, sortedThreadMessages.length, advice]);
 
   function mergeStreamChunk(current: string, incoming: string): string {
     const next = incoming ?? "";
@@ -70,7 +89,7 @@ export function PickleContent() {
   }
 
   const chatMessagesForModel = useMemo(() => {
-    const base = threadMessages.map((m) => ({
+    const base = sortedThreadMessages.map((m) => ({
       role: m.role,
       content: m.content,
     }));
@@ -84,7 +103,7 @@ export function PickleContent() {
     }
 
     return base;
-  }, [threadMessages, advice]);
+  }, [sortedThreadMessages, advice]);
 
   const handleSubmit = async (params: {
     dilemma: string;
@@ -157,6 +176,8 @@ export function PickleContent() {
         threadId: selectedThreadId,
         content: trimmed,
       });
+      // Ensure the user message appears before the assistant starts streaming.
+      await refetchThread();
 
       // Use up to the last 10 messages for context.
       const context = [
@@ -388,20 +409,6 @@ export function PickleContent() {
             </div>
           )}
 
-          {/* Keep the draft visible until the saved thread message shows up. */}
-          {advice &&
-          draftThreadId === selectedThreadId &&
-          !hasPersistedDraft ? (
-            <div className="flex justify-start">
-              <div className="w-full max-w-3xl rounded-2xl border border-emerald-200 dark:border-emerald-800/30 bg-white dark:bg-slate-800 px-4 py-3">
-                <div className="text-[11px] font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400 mb-2">
-                  {isLoading ? "AI (streaming)" : "AI"}
-                </div>
-                <AdviceDisplay advice={advice} variant="plain" />
-              </div>
-            </div>
-          ) : null}
-
           {/* Controls */}
           {selectedThreadId ? (
             <div className="flex flex-wrap gap-2 items-center">
@@ -414,7 +421,7 @@ export function PickleContent() {
                   if (!selectedThreadId) return;
                   try {
                     await navigator.clipboard.writeText(
-                      threadMessages
+                      sortedThreadMessages
                         .map((m) => `${m.role.toUpperCase()}: ${m.content}`)
                         .join("\n\n")
                     );
@@ -449,19 +456,27 @@ export function PickleContent() {
             </div>
           ) : null}
 
-          {/* Thread */}
-          {threadMessages.length > 0 ? (
-            <div className="space-y-4">
-              {selectedThread ? (
-                <div className="text-xs text-slate-500 dark:text-slate-400">
-                  Viewing:{" "}
-                  <span className="font-semibold text-slate-700 dark:text-slate-200">
-                    {selectedThread.title}
-                  </span>
+          {/* Conversation (chronological + auto-scroll) */}
+          <div className="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/40">
+            {selectedThread ? (
+              <div className="px-4 py-3 border-b border-slate-100 dark:border-slate-700 text-xs text-slate-500 dark:text-slate-400">
+                Viewing:{" "}
+                <span className="font-semibold text-slate-700 dark:text-slate-200">
+                  {selectedThread.title}
+                </span>
+              </div>
+            ) : null}
+
+            <div className="p-4 space-y-4 max-h-[60vh] overflow-y-auto">
+              {sortedThreadMessages.length === 0 &&
+              !(advice && draftThreadId === selectedThreadId) ? (
+                <div className="text-sm text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-slate-800/50 rounded-2xl p-6">
+                  Submit a pickle above to start a thread. Your history will
+                  show up on the left.
                 </div>
               ) : null}
 
-              {threadMessages.map((m) => (
+              {sortedThreadMessages.map((m) => (
                 <div
                   key={m.id}
                   className={`flex ${
@@ -489,46 +504,61 @@ export function PickleContent() {
                 </div>
               ))}
 
-              {/* Quick follow-ups */}
-              <div className="flex flex-wrap gap-2">
-                {quickFollowUps.map((q) => (
-                  <Button
-                    key={q.label}
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    className="gap-2"
-                    onClick={() => void handleFollowUp(q.prompt)}
-                    disabled={isLoading}
-                  >
-                    <MessageSquarePlus className="w-4 h-4" />
-                    {q.label}
-                  </Button>
-                ))}
-              </div>
+              {/* Streaming draft belongs at the end of the conversation */}
+              {advice &&
+              draftThreadId === selectedThreadId &&
+              !hasPersistedDraft ? (
+                <div className="flex justify-start">
+                  <div className="w-full max-w-3xl rounded-2xl border border-emerald-200 dark:border-emerald-800/30 bg-white dark:bg-slate-800 px-4 py-3">
+                    <div className="text-[11px] font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400 mb-2">
+                      {isLoading ? "AI (streaming)" : "AI"}
+                    </div>
+                    <AdviceDisplay advice={advice} variant="plain" />
+                  </div>
+                </div>
+              ) : null}
 
-              {/* Follow-up input */}
-              <div className="flex gap-2">
-                <Input
-                  value={followUp}
-                  onChange={(e) => setFollowUp(e.target.value)}
-                  placeholder="Ask a follow-up…"
-                />
-                <Button
-                  type="button"
-                  onClick={() => void handleFollowUp(followUp)}
-                  disabled={isLoading || !followUp.trim()}
-                >
-                  Send
-                </Button>
+              <div ref={messagesEndRef} />
+            </div>
+
+            {/* Quick follow-ups */}
+            {selectedThreadId ? (
+              <div className="px-4 py-3 border-t border-slate-100 dark:border-slate-700 space-y-3">
+                <div className="flex flex-wrap gap-2">
+                  {quickFollowUps.map((q) => (
+                    <Button
+                      key={q.label}
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="gap-2"
+                      onClick={() => void handleFollowUp(q.prompt)}
+                      disabled={isLoading}
+                    >
+                      <MessageSquarePlus className="w-4 h-4" />
+                      {q.label}
+                    </Button>
+                  ))}
+                </div>
+
+                {/* Follow-up input */}
+                <div className="flex gap-2">
+                  <Input
+                    value={followUp}
+                    onChange={(e) => setFollowUp(e.target.value)}
+                    placeholder="Ask a follow-up…"
+                  />
+                  <Button
+                    type="button"
+                    onClick={() => void handleFollowUp(followUp)}
+                    disabled={isLoading || !followUp.trim()}
+                  >
+                    Send
+                  </Button>
+                </div>
               </div>
-            </div>
-          ) : (
-            <div className="text-sm text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-slate-800/50 rounded-2xl p-6">
-              Submit a pickle above to start a thread. Your history will show up
-              on the left.
-            </div>
-          )}
+            ) : null}
+          </div>
         </div>
       </div>
     </PickleLayout>
