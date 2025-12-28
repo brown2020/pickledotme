@@ -3,7 +3,7 @@
 <div align="center">
 
 [![Live Demo](https://img.shields.io/badge/demo-live-green.svg)](https://pickledotme.vercel.app/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![License: AGPL-3.0](https://img.shields.io/badge/License-AGPL--3.0-blue.svg)](LICENSE.md)
 [![Next.js](https://img.shields.io/badge/Next.js-16-black)](https://nextjs.org/)
 [![React](https://img.shields.io/badge/React-19-blue)](https://react.dev/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5-blue)](https://www.typescriptlang.org/)
@@ -84,36 +84,36 @@ Features:
 
 | Technology                                | Version | Purpose                         |
 | ----------------------------------------- | ------- | ------------------------------- |
-| [Next.js](https://nextjs.org/)            | 16.0.3  | React framework with App Router |
-| [React](https://react.dev/)               | 19.0.0  | UI library                      |
-| [TypeScript](https://typescriptlang.org/) | 5.x     | Type safety                     |
-| [Tailwind CSS](https://tailwindcss.com/)  | 4.0.8   | Utility-first styling           |
+| [Next.js](https://nextjs.org/)            | 16.1.1  | React framework with App Router |
+| [React](https://react.dev/)               | 19.2.3  | UI library                      |
+| [TypeScript](https://typescriptlang.org/) | 5.9.3   | Type safety                     |
+| [Tailwind CSS](https://tailwindcss.com/)  | 4.1.18  | Utility-first styling           |
 
 ### AI & Backend
 
 | Technology                                                                              | Version | Purpose                    |
 | --------------------------------------------------------------------------------------- | ------- | -------------------------- |
-| [Vercel AI SDK](https://sdk.vercel.ai/)                                                 | 5.0.44  | AI streaming & integration |
-| [@ai-sdk/openai](https://sdk.vercel.ai/providers/ai-sdk-providers/openai)               | 2.0.30  | OpenAI provider            |
-| [@ai-sdk/google](https://sdk.vercel.ai/providers/ai-sdk-providers/google-generative-ai) | 2.0.14  | Google AI provider         |
-| [@ai-sdk/anthropic](https://sdk.vercel.ai/providers/ai-sdk-providers/anthropic)         | 2.0.17  | Anthropic provider         |
-| [@ai-sdk/mistral](https://sdk.vercel.ai/providers/ai-sdk-providers/mistral)             | 2.0.14  | Mistral provider           |
-| [Firebase](https://firebase.google.com/)                                                | 12.2.1  | Auth & Firestore database  |
+| [Vercel AI SDK](https://sdk.vercel.ai/)                                                 | 6.0.3   | AI streaming & integration |
+| [@ai-sdk/openai](https://sdk.vercel.ai/providers/ai-sdk-providers/openai)               | 3.0.1   | OpenAI provider            |
+| [@ai-sdk/google](https://sdk.vercel.ai/providers/ai-sdk-providers/google-generative-ai) | 3.0.1   | Google AI provider         |
+| [@ai-sdk/anthropic](https://sdk.vercel.ai/providers/ai-sdk-providers/anthropic)         | 3.0.1   | Anthropic provider         |
+| [@ai-sdk/mistral](https://sdk.vercel.ai/providers/ai-sdk-providers/mistral)             | 3.0.1   | Mistral provider           |
+| [Firebase](https://firebase.google.com/)                                                | 12.7.0  | Auth & Firestore database  |
 
 ### UI & Animation
 
 | Technology                                                   | Version | Purpose                 |
 | ------------------------------------------------------------ | ------- | ----------------------- |
-| [Framer Motion](https://www.framer.com/motion/)              | 12.4.7  | Animations              |
-| [Lucide React](https://lucide.dev/)                          | 0.559.0 | Icons                   |
-| [SWR](https://swr.vercel.app/)                               | 2.3.6   | Data fetching & caching |
-| [react-markdown](https://github.com/remarkjs/react-markdown) | 10.0.0  | Markdown rendering      |
+| [Framer Motion](https://www.framer.com/motion/)              | 12.23.26 | Animations             |
+| [Lucide React](https://lucide.dev/)                          | 0.562.0 | Icons                   |
+| [SWR](https://swr.vercel.app/)                               | 2.3.8   | Data fetching & caching |
+| [react-markdown](https://github.com/remarkjs/react-markdown) | 10.1.0  | Markdown rendering      |
 
 ### Utilities
 
 | Technology                                                  | Version | Purpose                |
 | ----------------------------------------------------------- | ------- | ---------------------- |
-| [Zod](https://zod.dev/)                                     | 4.1.13  | Schema validation      |
+| [Zod](https://zod.dev/)                                     | 4.2.1   | Schema validation      |
 | [clsx](https://github.com/lukeed/clsx)                      | 2.1.1   | Class name utilities   |
 | [tailwind-merge](https://github.com/dcastil/tailwind-merge) | 3.4.0   | Tailwind class merging |
 
@@ -366,7 +366,7 @@ We follow [Conventional Commits](https://www.conventionalcommits.org/):
 
 ## 📄 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the GNU Affero General Public License v3.0 (AGPL-3.0) - see the [LICENSE](LICENSE.md) file for details.
 
 ---
 
