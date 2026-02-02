@@ -62,8 +62,11 @@ export function useMatchingGame() {
         return;
       }
 
+      // Capture the first flipped card ID before any state changes
+      const firstFlippedId = flippedCards[0];
+
       setMoveCount((prev) => prev + 1);
-      const firstCard = cards.find((card) => card.id === flippedCards[0]);
+      const firstCard = cards.find((card) => card.id === firstFlippedId);
 
       if (firstCard && firstCard.icon === clickedCard.icon) {
         // Match found
@@ -71,7 +74,7 @@ export function useMatchingGame() {
         gameBase.updateScore(newScore);
 
         const matchedCards = newCards.map((card) =>
-          card.id === cardId || card.id === flippedCards[0]
+          card.id === cardId || card.id === firstFlippedId
             ? { ...card, isMatched: true }
             : card
         );
@@ -85,13 +88,14 @@ export function useMatchingGame() {
         }
       } else {
         // No match - flip cards back
-        setFlippedCards([flippedCards[0], cardId]);
+        setFlippedCards([firstFlippedId, cardId]);
         setIsChecking(true);
 
+        // Use captured IDs in setTimeout to avoid stale closure
         setTimeout(() => {
           setCards((prevCards) =>
             prevCards.map((card) =>
-              !card.isMatched && (card.id === cardId || card.id === flippedCards[0])
+              !card.isMatched && (card.id === cardId || card.id === firstFlippedId)
                 ? { ...card, isFlipped: false }
                 : card
             )

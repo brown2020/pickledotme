@@ -17,8 +17,14 @@ service cloud.firestore {
     }
 
     function isValidGameId() {
-      return request.resource.data.gameId is string
-        && request.resource.data.gameId.size() > 0;
+      return request.resource.data.gameId in [
+        'sequence-pickle',
+        'matching-pickles',
+        'speed-pickle',
+        'pickle-pop',
+        'reaction-pickle',
+        'word-pickle'
+      ];
     }
 
     function isValidTimestamp(field) {
@@ -41,9 +47,10 @@ service cloud.firestore {
         allow read: if signedIn()
           && get(/databases/$(database)/documents/adviceThreads/$(threadId)).data.userId == request.auth.uid;
 
+        // Users can only create 'user' role messages (assistant messages come from server)
         allow create: if isOwner(request.resource.data.userId)
           && request.resource.data.threadId == threadId
-          && request.resource.data.role in ['user', 'assistant']
+          && request.resource.data.role == 'user'
           && request.resource.data.content is string
           && request.resource.data.content.size() > 0
           && request.resource.data.content.size() <= 5000

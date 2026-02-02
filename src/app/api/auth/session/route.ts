@@ -20,10 +20,12 @@ const createSessionSchema = z.object({
 });
 
 function isSecureRequest(request: NextRequest) {
-  return (
-    request.nextUrl.protocol === "https:" ||
-    process.env.NODE_ENV === "production"
-  );
+  // In production, always use secure cookies
+  // In development, only use secure if actually on HTTPS
+  if (process.env.NODE_ENV === "production") {
+    return true;
+  }
+  return request.nextUrl.protocol === "https:";
 }
 
 export async function POST(request: NextRequest) {
@@ -56,7 +58,7 @@ export async function POST(request: NextRequest) {
     response.cookies.set(SESSION_COOKIE_NAME, sessionCookie, {
       httpOnly: true,
       secure: isSecureRequest(request),
-      sameSite: "lax",
+      sameSite: "strict",
       path: "/",
       maxAge: SESSION_MAX_AGE_SECONDS,
     });
@@ -75,7 +77,7 @@ export async function DELETE(request: NextRequest) {
   response.cookies.set(SESSION_COOKIE_NAME, "", {
     httpOnly: true,
     secure: isSecureRequest(request),
-    sameSite: "lax",
+    sameSite: "strict",
     path: "/",
     maxAge: 0,
   });

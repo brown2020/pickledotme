@@ -23,25 +23,25 @@ export function SequencePickle() {
 
   return (
     <Card variant="elevated" className="max-w-2xl mx-auto">
-      <CardHeader className="bg-gradient-to-r from-emerald-50 to-teal-50">
+      <CardHeader className="bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-900/20 dark:to-teal-900/20">
         <div className="flex justify-between items-center">
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-emerald-100 rounded-xl">
-              <Zap className="w-6 h-6 text-emerald-600" />
+            <div className="p-2 bg-emerald-100 dark:bg-emerald-900/50 rounded-xl">
+              <Zap className="w-6 h-6 text-emerald-600 dark:text-emerald-400" />
             </div>
             <div>
-              <h2 className="text-2xl font-bold text-slate-900">
+              <h2 className="text-2xl font-bold text-slate-900 dark:text-white">
                 Sequence Pickle
               </h2>
-              <p className="text-sm text-slate-600">Level {level}</p>
+              <p className="text-sm text-slate-600 dark:text-slate-400">Level {level}</p>
             </div>
           </div>
           <div className="flex items-center gap-6">
             <ScoreDisplay currentScore={score} bestScore={bestScore} />
             {isPlaying && (
-              <div className="text-center px-4 py-2 bg-white rounded-xl shadow-sm">
-                <p className="text-xs text-slate-500">Sequence</p>
-                <p className="text-lg font-bold text-slate-900">{sequence.length}</p>
+              <div className="text-center px-4 py-2 bg-white dark:bg-slate-800 rounded-xl shadow-sm">
+                <p className="text-xs text-slate-500 dark:text-slate-400">Sequence</p>
+                <p className="text-lg font-bold text-slate-900 dark:text-white">{sequence.length}</p>
               </div>
             )}
           </div>
@@ -91,23 +91,23 @@ export function SequencePickle() {
 
         {/* Instructions */}
         {!isPlaying && score === 0 && (
-          <div className="mt-8 p-6 bg-slate-50 rounded-2xl">
-            <h3 className="font-bold text-slate-900 mb-3">How to Play:</h3>
-            <ul className="space-y-2 text-slate-600">
+          <div className="mt-8 p-6 bg-slate-50 dark:bg-slate-700/50 rounded-2xl">
+            <h3 className="font-bold text-slate-900 dark:text-white mb-3">How to Play:</h3>
+            <ul className="space-y-2 text-slate-600 dark:text-slate-300">
               <li className="flex items-center gap-2">
-                <span className="w-6 h-6 bg-emerald-100 rounded-full flex items-center justify-center text-emerald-600 text-sm font-bold">1</span>
+                <span className="w-6 h-6 bg-emerald-100 dark:bg-emerald-900/50 rounded-full flex items-center justify-center text-emerald-600 dark:text-emerald-400 text-sm font-bold">1</span>
                 Watch the sequence of colors flash
               </li>
               <li className="flex items-center gap-2">
-                <span className="w-6 h-6 bg-emerald-100 rounded-full flex items-center justify-center text-emerald-600 text-sm font-bold">2</span>
+                <span className="w-6 h-6 bg-emerald-100 dark:bg-emerald-900/50 rounded-full flex items-center justify-center text-emerald-600 dark:text-emerald-400 text-sm font-bold">2</span>
                 Repeat the sequence by clicking the colors
               </li>
               <li className="flex items-center gap-2">
-                <span className="w-6 h-6 bg-emerald-100 rounded-full flex items-center justify-center text-emerald-600 text-sm font-bold">3</span>
+                <span className="w-6 h-6 bg-emerald-100 dark:bg-emerald-900/50 rounded-full flex items-center justify-center text-emerald-600 dark:text-emerald-400 text-sm font-bold">3</span>
                 Each round adds one more color
               </li>
               <li className="flex items-center gap-2">
-                <span className="w-6 h-6 bg-emerald-100 rounded-full flex items-center justify-center text-emerald-600 text-sm font-bold">4</span>
+                <span className="w-6 h-6 bg-emerald-100 dark:bg-emerald-900/50 rounded-full flex items-center justify-center text-emerald-600 dark:text-emerald-400 text-sm font-bold">4</span>
                 Score more points in higher levels!
               </li>
             </ul>

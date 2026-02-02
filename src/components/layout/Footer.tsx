@@ -70,22 +70,22 @@ export function Footer() {
             <h4 className="text-white font-semibold mb-4">Legal</h4>
             <nav className="flex flex-col gap-2">
               <Link
-                href="#"
+                href="/privacy"
                 className="text-sm hover:text-emerald-400 transition-colors"
               >
                 Privacy Policy
               </Link>
               <Link
-                href="#"
+                href="/terms"
                 className="text-sm hover:text-emerald-400 transition-colors"
               >
                 Terms of Service
               </Link>
               <Link
-                href="#"
+                href="/about"
                 className="text-sm hover:text-emerald-400 transition-colors"
               >
-                Cookie Policy
+                About Us
               </Link>
             </nav>
           </div>

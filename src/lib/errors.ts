@@ -60,14 +60,3 @@ export function handleError(error: unknown): string {
   return ErrorMessages[ErrorCodes.UNKNOWN];
 }
 
-/**
- * Create an AppError from a code
- */
-export function createError(code: keyof typeof ErrorCodes, details?: string): AppError {
-  const message = details || ErrorMessages[code];
-  return new AppError(message, code, ErrorMessages[code]);
-}
-
-
-
-

@@ -94,11 +94,15 @@ export function useReactionGame() {
       // Clicked too early!
       clearTimeouts();
       setPhase("too-early");
+
+      // Capture current round for use in timeout
+      const roundAtClick = currentRound;
+
       setResults((prev) => {
         const next = [
           ...prev,
           {
-            round: currentRound + 1,
+            round: roundAtClick + 1,
             reactionTime: TOO_EARLY_PENALTY,
             tooEarly: true,
           },
@@ -109,10 +113,10 @@ export function useReactionGame() {
 
       // Auto-advance after showing penalty
       timeoutRef.current = setTimeout(() => {
-        if (currentRound + 1 >= TOTAL_ROUNDS) {
+        if (roundAtClick + 1 >= TOTAL_ROUNDS) {
           finishGame(resultsRef.current);
         } else {
-          setCurrentRound((prev) => prev + 1);
+          setCurrentRound(roundAtClick + 1);
           startRound();
         }
       }, 1500);
@@ -120,14 +124,20 @@ export function useReactionGame() {
     }
 
     if (phase === "go") {
+      // Clear any pending timeouts first
+      clearTimeouts();
+
       const reactionTime = Date.now() - goTimeRef.current;
       setCurrentReactionTime(reactionTime);
       setPhase("result");
 
+      // Capture current round for use in timeout
+      const roundAtClick = currentRound;
+
       setResults((prev) => {
         const next = [
           ...prev,
-          { round: currentRound + 1, reactionTime, tooEarly: false },
+          { round: roundAtClick + 1, reactionTime, tooEarly: false },
         ];
         resultsRef.current = next;
         return next;
@@ -135,10 +145,10 @@ export function useReactionGame() {
 
       // Auto-advance to next round
       timeoutRef.current = setTimeout(() => {
-        if (currentRound + 1 >= TOTAL_ROUNDS) {
+        if (roundAtClick + 1 >= TOTAL_ROUNDS) {
           finishGame(resultsRef.current);
         } else {
-          setCurrentRound((prev) => prev + 1);
+          setCurrentRound(roundAtClick + 1);
           startRound();
         }
       }, 1500);

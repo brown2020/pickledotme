@@ -35,6 +35,7 @@ const SUCCESS_CHORD = [523.25, 659.25, 783.99]; // C5, E5, G5
 export function useSound() {
   const audioContextRef = useRef<AudioContext | null>(null);
   const isMutedRef = useRef(false);
+  const pendingTimeoutsRef = useRef<NodeJS.Timeout[]>([]);
   const isSoundEnabled = useSettingsStore((s) => s.isSoundEnabled);
 
   // Initialize AudioContext on first user interaction
@@ -86,20 +87,22 @@ export function useSound() {
       if (sound === "success") {
         // Play a chord for success
         SUCCESS_CHORD.forEach((freq, i) => {
-          setTimeout(() => {
+          const timeoutId = setTimeout(() => {
             playTone({ ...SOUND_CONFIGS.success, frequency: freq });
           }, i * 50);
+          pendingTimeoutsRef.current.push(timeoutId);
         });
       } else if (sound === "levelUp") {
         // Play ascending notes for level up
         [523, 659, 784, 1047].forEach((freq, i) => {
-          setTimeout(() => {
+          const timeoutId = setTimeout(() => {
             playTone({
               ...SOUND_CONFIGS.levelUp,
               frequency: freq,
               duration: 100,
             });
           }, i * 80);
+          pendingTimeoutsRef.current.push(timeoutId);
         });
       } else {
         playTone(SOUND_CONFIGS[sound]);
@@ -120,6 +123,9 @@ export function useSound() {
   // Cleanup
   useEffect(() => {
     return () => {
+      // Clear all pending timeouts before closing audio context
+      pendingTimeoutsRef.current.forEach(clearTimeout);
+      pendingTimeoutsRef.current = [];
       audioContextRef.current?.close();
     };
   }, []);

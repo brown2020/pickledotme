@@ -25,15 +25,26 @@ export function usePicklePopGame() {
   const [maxCombo, setMaxCombo] = useState(0);
   const nextIdRef = useRef(0);
   const spawnIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const expiredIntervalRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Centralized cleanup function
+  const clearAllIntervals = useCallback(() => {
+    if (spawnIntervalRef.current) {
+      clearInterval(spawnIntervalRef.current);
+      spawnIntervalRef.current = null;
+    }
+    if (expiredIntervalRef.current) {
+      clearInterval(expiredIntervalRef.current);
+      expiredIntervalRef.current = null;
+    }
+  }, []);
 
   // End the game
   const endGame = useCallback(async () => {
-    if (spawnIntervalRef.current) {
-      clearInterval(spawnIntervalRef.current);
-    }
+    clearAllIntervals();
     setPickles([]);
     await gameBase.endGame();
-  }, [gameBase]);
+  }, [gameBase, clearAllIntervals]);
 
   // Use shared timer hook - defined early for use in callbacks
   const timer = useGameTimer({
@@ -119,12 +130,6 @@ export function usePicklePopGame() {
     [gameBase, pickles, combo, timer]
   );
 
-  // Handle missed pickle (expired)
-  const handlePickleMissed = useCallback((pickleId: number) => {
-    setPickles((prev) => prev.filter((p) => p.id !== pickleId));
-    setCombo(0); // Break combo on miss
-  }, []);
-
   // Start the game
   const startGame = useCallback(() => {
     setPickles([]);
@@ -136,48 +141,43 @@ export function usePicklePopGame() {
     gameBase.startGame();
   }, [gameBase, timer]);
 
-  // Spawn pickles periodically
+  // Spawn pickles periodically and check for expired - combined into single effect
   useEffect(() => {
-    if (!gameBase.isPlaying) return;
-
-    const spawn = () => {
-      spawnPickle();
-    };
+    if (!gameBase.isPlaying) {
+      clearAllIntervals();
+      return;
+    }
 
     // Initial spawn
-    spawn();
+    spawnPickle();
 
-    // Set up interval
-    spawnIntervalRef.current = setInterval(spawn, getSpawnInterval());
+    // Set up spawn interval
+    spawnIntervalRef.current = setInterval(spawnPickle, getSpawnInterval());
+
+    // Set up expired check interval - uses functional update to avoid stale closure
+    expiredIntervalRef.current = setInterval(() => {
+      const now = Date.now();
+      setPickles((prevPickles) => {
+        const expired = prevPickles.filter((p) => p.expiresAt <= now);
+
+        // Handle expired pickles
+        expired.forEach((p) => {
+          if (p.type !== "rotten") {
+            // Break combo on miss (non-rotten pickle)
+            setCombo(0);
+          }
+          // Rotten pickles expiring is fine - no penalty
+        });
+
+        // Return filtered list
+        return prevPickles.filter((p) => p.expiresAt > now);
+      });
+    }, 100);
 
     return () => {
-      if (spawnIntervalRef.current) {
-        clearInterval(spawnIntervalRef.current);
-      }
+      clearAllIntervals();
     };
-  }, [gameBase.isPlaying, gameBase.level, spawnPickle, getSpawnInterval]);
-
-  // Check for expired pickles
-  useEffect(() => {
-    if (!gameBase.isPlaying || pickles.length === 0) return;
-
-    const checkExpired = () => {
-      const now = Date.now();
-      const expired = pickles.filter((p) => p.expiresAt <= now);
-      expired.forEach((p) => {
-        if (p.type !== "rotten") {
-          // Only count as miss if it wasn't a rotten pickle
-          handlePickleMissed(p.id);
-        } else {
-          // Rotten pickle expired - that's good!
-          setPickles((prev) => prev.filter((pickle) => pickle.id !== p.id));
-        }
-      });
-    };
-
-    const interval = setInterval(checkExpired, 100);
-    return () => clearInterval(interval);
-  }, [gameBase.isPlaying, pickles, handlePickleMissed]);
+  }, [gameBase.isPlaying, gameBase.level, spawnPickle, getSpawnInterval, clearAllIntervals]);
 
   return {
     pickles,
