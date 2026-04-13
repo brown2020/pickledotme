@@ -15,7 +15,7 @@ export class AppError extends Error {
 /**
  * Firebase-specific error codes
  */
-export const ErrorCodes = {
+const ErrorCodes = {
   AUTH_REQUIRED: "AUTH_REQUIRED",
   SAVE_FAILED: "SAVE_FAILED",
   FETCH_FAILED: "FETCH_FAILED",
@@ -26,7 +26,7 @@ export const ErrorCodes = {
 /**
  * User-friendly error messages
  */
-export const ErrorMessages: Record<string, string> = {
+const ErrorMessages: Record<string, string> = {
   [ErrorCodes.AUTH_REQUIRED]: "Please sign in to continue.",
   [ErrorCodes.SAVE_FAILED]: "Failed to save. Please try again.",
   [ErrorCodes.FETCH_FAILED]: "Failed to load data. Please refresh.",

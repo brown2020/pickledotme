@@ -160,14 +160,10 @@ export function usePicklePopGame() {
       setPickles((prevPickles) => {
         const expired = prevPickles.filter((p) => p.expiresAt <= now);
 
-        // Handle expired pickles
-        expired.forEach((p) => {
-          if (p.type !== "rotten") {
-            // Break combo on miss (non-rotten pickle)
-            setCombo(0);
-          }
-          // Rotten pickles expiring is fine - no penalty
-        });
+        // Break combo if any non-rotten pickle expired (missed)
+        if (expired.some((p) => p.type !== "rotten")) {
+          setCombo(0);
+        }
 
         // Return filtered list
         return prevPickles.filter((p) => p.expiresAt > now);
