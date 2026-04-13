@@ -10,16 +10,16 @@
   },
   "dependencies": {
     "@ai-sdk/anthropic": "^3.0.69",
-    "@ai-sdk/google": "^3.0.62",
+    "@ai-sdk/google": "^3.0.63",
     "@ai-sdk/mistral": "^3.0.30",
     "@ai-sdk/openai": "^3.0.52",
-    "@ai-sdk/rsc": "^2.0.158",
-    "ai": "^6.0.158",
+    "@ai-sdk/rsc": "^2.0.159",
+    "ai": "^6.0.159",
     "clsx": "^2.1.1",
     "firebase": "^12.12.0",
     "firebase-admin": "^13.8.0",
     "framer-motion": "^12.38.0",
-    "lucide-react": "^0.577.0",
+    "lucide-react": "0.468.0",
     "next": "^16.2.3",
     "react": "^19.2.5",
     "react-dom": "^19.2.5",
@@ -34,9 +34,9 @@
     "@types/node": "^25.6.0",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
-    "eslint": "^9.39.4",
+    "eslint": "^10.2.0",
     "postcss": "^8",
     "tailwindcss": "^4.2.2",
-    "typescript": "^5"
+    "typescript": "^6"
   }
 }
