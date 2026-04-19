@@ -70,7 +70,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       // Handle post-login redirect
       if (currentUser && wasLoggedOut) {
-        const redirectPath = searchParams.get("redirect");
+        const redirectPath = searchParams?.get("redirect");
         if (redirectPath && redirectPath.startsWith("/")) {
           // Validate redirect path to prevent open redirect
           router.push(redirectPath);
