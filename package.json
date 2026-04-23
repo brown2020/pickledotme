@@ -15,7 +15,7 @@
     "@ai-sdk/rsc": "^2.0.168",
     "ai": "^6.0.168",
     "clsx": "^2.1.1",
-    "firebase": "^12.12.0",
+    "firebase": "^12.12.1",
     "firebase-admin": "^13.8.0",
     "framer-motion": "^12.38.0",
     "lucide-react": "^0.468.0",
@@ -29,13 +29,13 @@
     "zustand": "^5.0.12"
   },
   "devDependencies": {
-    "@tailwindcss/postcss": "^4.2.2",
+    "@tailwindcss/postcss": "^4.2.4",
     "@types/node": "^25.6.0",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
     "eslint": "^10.2.1",
     "postcss": "^8",
-    "tailwindcss": "^4.2.2",
+    "tailwindcss": "^4.2.4",
     "typescript": "^6"
   }
 }
