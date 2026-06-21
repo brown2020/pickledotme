@@ -11,15 +11,15 @@
 
 ## Current State
 
-- Phase: Continuation Baseline
-- Task: T-011
-- Status: Ready for continuation baseline checkpoint
-- Last command: npm audit --omit=dev
-- Last result: Fresh install, lint, typecheck, and build passed; audit still has documented 2 moderate forced-fix vulnerabilities
-- Last pushed commit: c80531292c39d21c450a1ff5533956cd79584846
-- Branch sync: local dev matches origin/dev at c805312
-- Working tree: dirty only with continuation baseline reports
-- Next action: Commit and push continuation baseline report, then inspect deferred findings
+- Phase: Continuation Stabilization
+- Task: T-012
+- Status: Matching timer cleanup verified; push checkpoint pending
+- Last command: npm run build
+- Last result: Matching hook timer cleanup passes lint, TypeScript, and production build
+- Last pushed commit: b41c9158caa0a660a7dfd28ab1f7cf3fbff14cea
+- Branch sync: local dev has in-scope continuation changes on top of origin/dev at b41c915
+- Working tree: dirty with matching hook and continuation reports
+- Next action: Commit, dry-run push, push, and recheck sync
 
 ## Dirty File Classification
 
@@ -27,7 +27,9 @@
 | --- | --- | --- |
 | agent-runs/2026-06-20-codebase-pass/run-state.md | In-scope source | Continuation ledger |
 | agent-runs/2026-06-20-codebase-pass/task-queue.md | In-scope source | Continuation queue |
-| agent-runs/2026-06-20-codebase-pass/02-baseline-validation.md | In-scope source | Continuation baseline report |
+| agent-runs/2026-06-20-codebase-pass/03-findings-backlog.md | In-scope source | Continuation finding update |
+| agent-runs/2026-06-20-codebase-pass/07-stabilization-loop.md | In-scope source | Continuation stabilization report |
+| src/hooks/useMatchingGame.ts | In-scope source | Matching mismatch timer cleanup |
 
 ## Blockers
 
@@ -35,5 +37,5 @@
 
 ## Deferred Items
 
-- Continuation pass is evaluating the remaining deferred items from the prior final report.
+- Sequence game async display-loop cancellation remains deferred because it needs a broader interaction design pass than the matching timer cleanup.
 - Remaining audit issue after package cleanup is deferred because npm requires `--force` and a breaking Next downgrade.

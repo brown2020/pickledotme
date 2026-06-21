@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { Card, ALL_ICONS } from "@/types/matching-game";
 import { useGameBase } from "./useGameBase";
 
@@ -10,6 +10,18 @@ export function useMatchingGame() {
   const [flippedCards, setFlippedCards] = useState<number[]>([]);
   const [moveCount, setMoveCount] = useState(0);
   const [isChecking, setIsChecking] = useState(false);
+  const mismatchTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const clearMismatchTimeout = useCallback(() => {
+    if (mismatchTimeoutRef.current) {
+      clearTimeout(mismatchTimeoutRef.current);
+      mismatchTimeoutRef.current = null;
+    }
+  }, []);
+
+  useEffect(() => {
+    return () => clearMismatchTimeout();
+  }, [clearMismatchTimeout]);
 
   const getRandomIcons = useCallback((count: number) => {
     const shuffled = [...ALL_ICONS].sort(() => Math.random() - 0.5);
@@ -30,12 +42,13 @@ export function useMatchingGame() {
   }, [getRandomIcons]);
 
   const startGame = useCallback(() => {
+    clearMismatchTimeout();
     setCards(generateCards());
     setFlippedCards([]);
     setMoveCount(0);
     setIsChecking(false);
     gameBase.startGame();
-  }, [generateCards, gameBase]);
+  }, [clearMismatchTimeout, generateCards, gameBase]);
 
   const handleGameComplete = useCallback(
     async (finalScore: number) => {
@@ -92,7 +105,8 @@ export function useMatchingGame() {
         setIsChecking(true);
 
         // Use captured IDs in setTimeout to avoid stale closure
-        setTimeout(() => {
+        clearMismatchTimeout();
+        mismatchTimeoutRef.current = setTimeout(() => {
           setCards((prevCards) =>
             prevCards.map((card) =>
               !card.isMatched && (card.id === cardId || card.id === firstFlippedId)
@@ -102,10 +116,11 @@ export function useMatchingGame() {
           );
           setFlippedCards([]);
           setIsChecking(false);
+          mismatchTimeoutRef.current = null;
         }, 1000);
       }
     },
-    [gameBase, cards, flippedCards, isChecking, handleGameComplete]
+    [gameBase, cards, flippedCards, isChecking, handleGameComplete, clearMismatchTimeout]
   );
 
   return {

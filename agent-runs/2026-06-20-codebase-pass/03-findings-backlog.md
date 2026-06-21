@@ -126,3 +126,10 @@ rg -n "useBestScore|bestScore: 0|saveBestScore|saveGameResult|getUserBestScore|n
 ## Recommended Next Step
 
 Commit and push the findings backlog, then fix F-001/F-004 and F-002 in small, separately verified batches before package cleanup.
+
+## Continuation Finding Update - 2026-06-21
+
+- F-005 is now split by confidence and scope. `src/hooks/useMatchingGame.ts` had a confirmed stale-timer path: a mismatch timeout could remain active after `startGame` or unmount, then mutate the next board with captured card IDs.
+- Matching timer cleanup is fixed in this continuation pass by storing the timeout in a ref and clearing it on restart/unmount.
+- `src/hooks/useSequenceGame.ts` still has an async sequence-display loop without cancellation. It remains deferred because a correct fix should model cancellation across multi-step playback and user reset, which is broader than the matching mismatch timeout patch.
+- Verification: `npm run lint` passed; `./node_modules/.bin/tsc --noEmit` passed; `npm run build` passed.
