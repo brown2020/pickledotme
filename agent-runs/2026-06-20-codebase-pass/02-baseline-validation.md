@@ -115,3 +115,20 @@ npm audit --omit=dev
 ## Recommended Next Step
 
 Commit and push the baseline report, then create a prioritized findings backlog for dependency vulnerabilities, score persistence, docs drift, and maintainability hotspots.
+
+## Continuation Baseline - 2026-06-21
+
+The second `$sb-cbi` invocation resumed from pushed commit `c80531292c39d21c450a1ff5533956cd79584846` with local `dev` clean and matching `origin/dev`.
+
+| Command | Result | Notes |
+| --- | --- | --- |
+| `git ls-remote --exit-code origin HEAD` | Passed | Remote read works |
+| `git pull --ff-only origin dev` | Passed | Already up to date |
+| `git push --dry-run origin dev` | Passed | Everything up to date |
+| `npm ci` | Passed | Fresh install from lockfile |
+| `npm run lint` | Passed | ESLint clean |
+| `./node_modules/.bin/tsc --noEmit` | Passed | TypeScript clean |
+| `npm run build` | Passed | Next.js 16.2.9 build clean |
+| `npm audit --omit=dev` | Deferred | Same 2 moderate Next/PostCSS forced-fix vulnerabilities |
+
+Continuation classification: no new baseline failures. The remaining safe work should come from the deferred backlog items rather than broad dependency changes.
