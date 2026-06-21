@@ -12,14 +12,14 @@
 ## Current State
 
 - Phase: Continuation Stabilization
-- Task: T-012
-- Status: Matching timer cleanup verified; push checkpoint pending
-- Last command: npm run build
-- Last result: Matching hook timer cleanup passes lint, TypeScript, and production build
-- Last pushed commit: b41c9158caa0a660a7dfd28ab1f7cf3fbff14cea
-- Branch sync: local dev has in-scope continuation changes on top of origin/dev at b41c915
-- Working tree: dirty with matching hook and continuation reports
-- Next action: Commit, dry-run push, push, and recheck sync
+- Task: T-013
+- Status: Final continuation gates passed; final report checkpoint pending
+- Last command: git push --dry-run origin dev
+- Last result: Remote read passed, dry-run push is up to date, install/lint/typecheck/build passed, audit deferral unchanged
+- Last pushed commit: 6b75736cc4a0d12961df61fde6887b10439bf114
+- Branch sync: local dev matches origin/dev at 6b75736
+- Working tree: dirty with final continuation reports
+- Next action: Commit final continuation report, dry-run push, push, and recheck sync
 
 ## Dirty File Classification
 
@@ -27,9 +27,9 @@
 | --- | --- | --- |
 | agent-runs/2026-06-20-codebase-pass/run-state.md | In-scope source | Continuation ledger |
 | agent-runs/2026-06-20-codebase-pass/task-queue.md | In-scope source | Continuation queue |
-| agent-runs/2026-06-20-codebase-pass/03-findings-backlog.md | In-scope source | Continuation finding update |
-| agent-runs/2026-06-20-codebase-pass/07-stabilization-loop.md | In-scope source | Continuation stabilization report |
-| src/hooks/useMatchingGame.ts | In-scope source | Matching mismatch timer cleanup |
+| agent-runs/2026-06-20-codebase-pass/08-integrator.md | In-scope source | Continuation final gate |
+| agent-runs/2026-06-20-codebase-pass/final-report.md | In-scope source | Continuation final report |
+| agent-runs/2026-06-20-codebase-pass/skill-improvement-log.md | In-scope source | Workflow improvement note |
 
 ## Blockers
 
