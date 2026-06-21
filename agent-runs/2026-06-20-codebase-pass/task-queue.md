@@ -1,0 +1,9 @@
+# Task Queue
+
+| ID | Phase | Priority | Type | Status | Owned Files | Evidence | Done-Check | Attempts | Stop Condition | Verification | Next Action |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| T-001 | Preflight | P1 | Setup | Done | 00-orchestration-plan.md, run-state.md, task-queue.md | Git state, package metadata, run scaffold validation | Plan, state, and queue have verifiable gates | 1/1 | First executable task is clear or blocked | Workflow scaffold validation passed | Commit preflight docs |
+| T-002 | Preflight | P1 | Documentation | Done | AGENTS.md, SPEC.md, 01-preflight-and-repo-docs.md | package.json, README.md, CLAUDE.md, src tree, config files | Guidance/spec reflect current implementation and validation surface | 1/2 | Docs match evidence or blocked by unknowns | `npm run build` passed | Commit and push |
+| T-003 | Baseline | P1 | Validation | Open | 02-baseline-validation.md | package.json scripts and build output | Baseline checks pass or failures are classified | 0/2 | Baseline clean or failures reproduced | `npm run build` | Run baseline validation |
+| T-004 | Findings | P1 | Architecture | Open | 03-findings-backlog.md, task-queue.md | Architecture map and source search | Scorecard has evidence or deferrals | 0/2 | Scorecard complete or blocked by non-local decision | Architecture Fitness Loop | Build architecture scorecard |
+| T-005 | Execute | P2 | Bug | Candidate | src/hooks/useGameBase.ts, src/hooks/useScores.ts, src/services/scoreService.ts, relevant game hooks | `useGameBase` initializes `bestScore` to 0 while persisted best score is fetched separately | Best-score display/save behavior preserves persisted highs | 0/3 | Fix verified or behavior requires product input | Targeted hook/service inspection plus build | Confirm in findings backlog |
