@@ -20,7 +20,7 @@
     "firebase-admin": "^13.8.0",
     "framer-motion": "^12.38.0",
     "lucide-react": "^0.468.0",
-    "next": "^16.2.4",
+    "next": "^16.2.9",
     "react": "^19.2.5",
     "react-dom": "^19.2.5",
     "react-markdown": "^10.1.0",
@@ -36,13 +36,16 @@
     "@types/react-dom": "^19.2.3",
     "eslint": "^9.39.4",
     "eslint-config-next": "^16.2.4",
-    "postcss": "^8",
+    "postcss": "^8.5.15",
     "tailwindcss": "^4.2.4",
     "typescript": "^6"
   },
   "overrides": {
-    "protobufjs": ">=7.5.5",
+    "@grpc/grpc-js": "1.14.4",
+    "protobufjs": "8.6.4",
     "fast-xml-parser": ">=5.7.0",
+    "fast-xml-builder": "1.2.0",
+    "form-data": "2.5.6",
     "@tootallnate/once": "3.0.1",
     "http-proxy-agent": "^7.0.0",
     "uuid": ">=14.0.0"
