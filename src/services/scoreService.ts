@@ -34,6 +34,21 @@ interface FirestoreScore {
   kind?: "history" | "best";
 }
 
+async function readBestScore(userId: string, gameId: GameId): Promise<number> {
+  const bestDocId = `${gameId}-best-${userId}`;
+  const bestSnapshot = await getDoc(doc(db, COLLECTIONS.best, bestDocId));
+  if (bestSnapshot.exists()) {
+    const data = bestSnapshot.data() as Partial<FirestoreScore>;
+    return typeof data.score === "number" ? data.score : 0;
+  }
+
+  // Backward-compat fallback: legacy doc id.
+  const legacySnapshot = await getDoc(doc(db, COLLECTIONS.legacy, bestDocId));
+  if (!legacySnapshot.exists()) return 0;
+  const legacyData = legacySnapshot.data() as Partial<FirestoreScore>;
+  return typeof legacyData.score === "number" ? legacyData.score : 0;
+}
+
 export interface DisplayScore {
   id: string;
   userId: string;
@@ -102,10 +117,19 @@ export const scoreService = {
    * Save score and update best if applicable
    */
   async saveGameResult(
-    params: SaveScoreParams,
-    currentBest: number
+    params: SaveScoreParams
   ): Promise<{ isNewBest: boolean }> {
+    let currentBest: number | null = null;
+    try {
+      currentBest = await readBestScore(params.userId, params.gameId);
+    } catch (error) {
+      console.error("Failed to read current best score:", error);
+    }
+
     await scoreService.saveScore(params);
+    if (currentBest === null) {
+      return { isNewBest: false };
+    }
 
     const isNewBest = params.score > currentBest;
     if (isNewBest) {
@@ -177,18 +201,7 @@ export const scoreService = {
 
   async getUserBestScore(userId: string, gameId: GameId): Promise<number> {
     try {
-      const bestDocId = `${gameId}-best-${userId}`;
-      const bestSnapshot = await getDoc(doc(db, COLLECTIONS.best, bestDocId));
-      if (bestSnapshot.exists()) {
-        const data = bestSnapshot.data() as Partial<FirestoreScore>;
-        return typeof data.score === "number" ? data.score : 0;
-      }
-
-      // Backward-compat fallback: legacy doc id.
-      const legacySnapshot = await getDoc(doc(db, COLLECTIONS.legacy, bestDocId));
-      if (!legacySnapshot.exists()) return 0;
-      const legacyData = legacySnapshot.data() as Partial<FirestoreScore>;
-      return typeof legacyData.score === "number" ? legacyData.score : 0;
+      return await readBestScore(userId, gameId);
     } catch (error) {
       console.error("Failed to get user best score:", error);
       return 0; // Return 0 on error to allow game to continue

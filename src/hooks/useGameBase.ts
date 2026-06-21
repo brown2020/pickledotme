@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useAuth } from "@/providers/AuthProvider";
 import { scoreService } from "@/services/scoreService";
 import { GameId } from "@/config/games";
@@ -26,6 +26,7 @@ interface UseGameBaseReturn extends GameBaseState {
  */
 export function useGameBase(gameId: GameId): UseGameBaseReturn {
   const { user, isAuthenticated } = useAuth();
+  const userId = user?.uid;
   const [state, setState] = useState<GameBaseState>({
     isPlaying: false,
     score: 0,
@@ -33,24 +34,55 @@ export function useGameBase(gameId: GameId): UseGameBaseReturn {
     level: 1,
   });
 
+  useEffect(() => {
+    let isCurrent = true;
+
+    if (!userId) {
+      queueMicrotask(() => {
+        if (!isCurrent) return;
+        setState((prev) => ({ ...prev, bestScore: 0 }));
+      });
+      return () => {
+        isCurrent = false;
+      };
+    }
+
+    scoreService
+      .getUserBestScore(userId, gameId)
+      .then((bestScore) => {
+        if (!isCurrent) return;
+        setState((prev) => ({
+          ...prev,
+          bestScore: Math.max(prev.score, bestScore),
+        }));
+      })
+      .catch((error) => {
+        console.error("Failed to load best score:", error);
+      });
+
+    return () => {
+      isCurrent = false;
+    };
+  }, [userId, gameId]);
+
   const saveScore = useCallback(
     async (score: number): Promise<{ isNewBest: boolean }> => {
-      if (!user?.uid) {
+      if (!userId) {
         return { isNewBest: false };
       }
 
       try {
-        const result = await scoreService.saveGameResult(
-          {
-            userId: user.uid,
-            gameId,
-            score,
-          },
-          state.bestScore
-        );
+        const result = await scoreService.saveGameResult({
+          userId,
+          gameId,
+          score,
+        });
 
         if (result.isNewBest) {
-          setState((prev) => ({ ...prev, bestScore: score }));
+          setState((prev) => ({
+            ...prev,
+            bestScore: Math.max(prev.bestScore, score),
+          }));
         }
 
         return result;
@@ -59,7 +91,7 @@ export function useGameBase(gameId: GameId): UseGameBaseReturn {
         return { isNewBest: false };
       }
     },
-    [user, gameId, state.bestScore]
+    [userId, gameId]
   );
 
   const updateScore = useCallback((score: number) => {
@@ -99,7 +131,7 @@ export function useGameBase(gameId: GameId): UseGameBaseReturn {
 
   return {
     ...state,
-    userId: user?.uid,
+    userId,
     isAuthenticated,
     startGame,
     endGame,
