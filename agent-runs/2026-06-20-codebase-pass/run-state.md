@@ -11,25 +11,25 @@
 
 ## Current State
 
-- Phase: Package and Dead-Code Cleanup
-- Task: T-007
+- Phase: Stabilization Loop
+- Task: Stabilization score race fix
 - Status: Ready for commit-push checkpoint
-- Last command: npm audit --omit=dev
-- Last result: Failed with 2 moderate vulnerabilities after safe updates; remaining fix requires `npm audit fix --force` and breaking Next downgrade
-- Last pushed commit: 34a49d39faff48989eedd5829c877f90086311e3
-- Branch sync: local dev matches origin/dev at 34a49d3
-- Working tree: dirty with in-scope package cleanup and run-report updates
-- Next action: Commit and push Package and Dead-Code Cleanup batch
+- Last command: npm run build
+- Last result: Passed after lint and TypeScript passed
+- Last pushed commit: 252d09406cec154dfea8e78d5c960ee5f0baedaf
+- Branch sync: local dev matches origin/dev at 252d094
+- Working tree: dirty with in-scope stabilization fix and run-report updates
+- Next action: Commit and push stabilization fix
 
 ## Dirty File Classification
 
 | Path | Classification | Owner/Reason |
 | --- | --- | --- |
-| package.json | In-scope source | T-007 package update and overrides |
-| package-lock.json | In-scope source | T-007 lockfile update |
-| agent-runs/2026-06-20-codebase-pass/05-package-and-dead-code-cleanup.md | In-scope source | Package phase report |
-| agent-runs/2026-06-20-codebase-pass/run-state.md | In-scope source | Package phase ledger |
-| agent-runs/2026-06-20-codebase-pass/task-queue.md | In-scope source | Package phase queue |
+| src/services/scoreService.ts | In-scope source | Stabilization transaction fix |
+| agent-runs/2026-06-20-codebase-pass/06-review.md | In-scope source | Review report |
+| agent-runs/2026-06-20-codebase-pass/07-stabilization-loop.md | In-scope source | Stabilization report |
+| agent-runs/2026-06-20-codebase-pass/run-state.md | In-scope source | Stabilization ledger |
+| agent-runs/2026-06-20-codebase-pass/task-queue.md | In-scope source | Stabilization queue |
 
 ## Blockers
 
@@ -37,5 +37,5 @@
 
 ## Deferred Items
 
-- Review and stabilization are deferred until the Package Cleanup checkpoint is pushed.
+- Final integration is deferred until the stabilization checkpoint is pushed.
 - Remaining audit issue after package cleanup is deferred because npm requires `--force` and a breaking Next downgrade.
