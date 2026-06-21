@@ -11,23 +11,23 @@
 
 ## Current State
 
-- Phase: Preflight and Repo Docs
-- Task: T-002
+- Phase: Baseline Validation
+- Task: T-003
 - Status: Ready for commit-push checkpoint
-- Last command: git diff --check
-- Last result: Passed after `npm run build` passed
-- Last pushed commit: c2205f8c05e0340f952844087d301c77b72aa75e
-- Branch sync: local dev matches origin/dev at c2205f8
-- Working tree: dirty only with codebase-improvement run reports and docs
-- Next action: Commit and push Preflight and Repo Docs phase
+- Last command: npm audit --omit=dev
+- Last result: Failed with 7 production dependency vulnerabilities after build, TypeScript, and ESLint passed
+- Last pushed commit: 5ee61d3cef9f24b857c335d153c21d0742f8f1b8
+- Branch sync: local dev matches origin/dev at 5ee61d3
+- Working tree: dirty only with baseline run-report updates
+- Next action: Commit and push Baseline Validation report
 
 ## Dirty File Classification
 
 | Path | Classification | Owner/Reason |
 | --- | --- | --- |
-| AGENTS.md | Safe-to-commit | Repo guidance created by this run |
-| SPEC.md | Safe-to-commit | Current-state spec created by this run |
-| agent-runs/2026-06-20-codebase-pass/ | Safe-to-commit | Required run reports and ledger |
+| agent-runs/2026-06-20-codebase-pass/run-state.md | In-scope source | Baseline phase ledger |
+| agent-runs/2026-06-20-codebase-pass/task-queue.md | In-scope source | Baseline phase queue |
+| agent-runs/2026-06-20-codebase-pass/02-baseline-validation.md | In-scope source | Baseline phase report |
 
 ## Blockers
 
@@ -35,4 +35,5 @@
 
 ## Deferred Items
 
-- Baseline validation, findings backlog, fixes, package/dead-code cleanup, review, and stabilization are deferred until the Preflight and Repo Docs checkpoint is pushed.
+- Findings backlog, fixes, package/dead-code cleanup, review, and stabilization are deferred until the Baseline Validation checkpoint is pushed.
+- `npm audit --omit=dev` reports 7 production dependency vulnerabilities; defer changes to package cleanup phase.

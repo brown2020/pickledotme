@@ -2,82 +2,96 @@
 
 ## Agent
 
-Name:
+Name: Codex
 
 ## Scope
 
-What this phase inspected or changed:
+Ran baseline validation for the current `dev` branch without source edits. Checked the repo-defined build, local TypeScript compiler, local ESLint config, and production dependency audit.
 
 ## Inputs
 
-Reports, files, or commands used:
+`package.json`, `package-lock.json`, `eslint.config.mjs`, `tsconfig.json`, `agent-runs/2026-06-20-codebase-pass/01-preflight-and-repo-docs.md`, and command output from baseline checks.
 
 ## Branch and Push
 
-- Branch:
-- Upstream:
-- Commit:
-- Pushed to:
-- Sync status:
+- Branch: `dev`
+- Upstream: `origin/dev`
+- Commit: pending phase commit; current pushed commit is `5ee61d3cef9f24b857c335d153c21d0742f8f1b8`
+- Pushed to: pending phase commit
+- Sync status: local `dev` matches `origin/dev`; working tree dirty only with baseline report updates
 
 ## Loop
 
-- Name:
-- Goal:
-- Verify gate:
-- Stop condition:
-- Attempt:
-- Result:
+- Name: Baseline Validation Loop, Quality Gate Selection Loop
+- Goal: establish a trustworthy baseline and classify failures without source edits
+- Verify gate: repo-defined build and local static checks pass, or failures are classified with commands and ownership
+- Stop condition: baseline is clean or all failures are reproduced and assigned to follow-up
+- Attempt: 1/2
+- Result: build, TypeScript, and ESLint pass; production audit fails with known dependency vulnerabilities
 
 ## Run State
 
-- Current phase:
-- Current task:
-- Last pushed commit:
-- Next action:
-- Blockers:
+- Current phase: Baseline Validation
+- Current task: T-003
+- Last pushed commit: `5ee61d3cef9f24b857c335d153c21d0742f8f1b8`
+- Next action: commit and push baseline report, then build findings backlog
+- Blockers: none for validation; dependency vulnerabilities are queued for package cleanup
 
 ## Commands Run
 
 ```text
-None.
+npm run build
+./node_modules/.bin/tsc --noEmit
+./node_modules/.bin/eslint .
+npm audit --omit=dev
 ```
 
 ## Findings
 
-- None.
+- `npm run build` passes and generates 17 static pages plus the auth session API route and proxy.
+- `./node_modules/.bin/tsc --noEmit` passes.
+- `./node_modules/.bin/eslint .` passes.
+- No `test` or `lint` package script is defined, even though local ESLint can run directly.
+- `npm audit --omit=dev` fails with 7 production dependency vulnerabilities: 5 high and 2 moderate.
+- Audit affected packages include `next`, `@grpc/grpc-js`, `protobufjs`, `@protobufjs/utf8`, `fast-xml-builder`, `form-data`, and `postcss`.
+- `npm audit` reports `npm audit fix` is available; package changes are deferred to the package/dead-code cleanup phase.
 
 ## Changes Made
 
-- None.
+- Updated baseline report, run state, and task queue only.
 
 ## Verification
 
-Checks performed and results:
+| Command | Result | Notes |
+| --- | --- | --- |
+| `npm run build` | Passed | Next.js 16.1.6 production build completed successfully |
+| `./node_modules/.bin/tsc --noEmit` | Passed | No TypeScript errors |
+| `./node_modules/.bin/eslint .` | Passed | No ESLint errors |
+| `npm audit --omit=dev` | Failed | 7 production dependency vulnerabilities; no source edits made |
 
 ## Architecture and Lean Code Scorecard
 
 | Area | Status | Evidence | Action |
 | --- | --- | --- | --- |
-| Dependency direction | Not assessed | N/A | Assess if relevant |
-| Module cohesion | Not assessed | N/A | Assess if relevant |
-| Public surface area | Not assessed | N/A | Assess if relevant |
-| Data and side-effect flow | Not assessed | N/A | Assess if relevant |
-| Async/cache/resource lifecycle | Not assessed | N/A | Assess if relevant |
-| Duplication and dead code | Not assessed | N/A | Assess if relevant |
-| Dependency lean-ness | Not assessed | N/A | Assess if relevant |
-| Testability | Not assessed | N/A | Assess if relevant |
+| Dependency direction | Watch | Static checks pass; no boundary analysis in baseline | Assess in findings |
+| Module cohesion | Watch | Preflight noted `PickleContent.tsx` at 566 lines | Assess in findings |
+| Public surface area | Watch | Static checks pass; export usage not assessed | Assess in findings |
+| Data and side-effect flow | Watch | Score/auth flows need targeted inspection | Assess in findings |
+| Async/cache/resource lifecycle | Watch | Build/static checks do not exercise runtime timers/streams | Assess in findings |
+| Duplication and dead code | Watch | No dead-code diagnostics run yet | Assess in findings |
+| Dependency lean-ness | Fail | `npm audit --omit=dev` reports 7 production vulnerabilities | Queue package cleanup |
+| Testability | Watch | No test script exists in `package.json` | Document as validation gap |
 
 ## Quality Gate
 
-- Command:
-- Result:
-- Notes:
+- Command: `npm run build`
+- Result: Passed
+- Notes: local TypeScript and ESLint also passed; audit failure is a package cleanup finding, not a build gate failure.
 
 ## Commit-Push Checkpoint
 
-- Status inspected:
-- Diff checked:
+- Status inspected: pending
+- Diff checked: pending
 - Files staged:
 - Dry-run push:
 - Push:
@@ -91,7 +105,8 @@ Checks performed and results:
 
 ## Risks
 
-Known risks or uncertainties:
+- No automated test suite is configured, so runtime game and auth behavior are not covered by baseline checks.
+- Production dependency vulnerabilities are confirmed by local audit and should be handled in the package cleanup phase.
 
 ## Open Questions
 
@@ -99,4 +114,4 @@ Known risks or uncertainties:
 
 ## Recommended Next Step
 
-What should happen next:
+Commit and push the baseline report, then create a prioritized findings backlog for dependency vulnerabilities, score persistence, docs drift, and maintainability hotspots.
