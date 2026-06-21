@@ -111,3 +111,34 @@ git diff -- src/services/scoreService.ts
 ## Recommended Next Step
 
 Commit and push the stabilization fix, then finalize.
+
+## Continuation Cycle 2 - 2026-06-21
+
+### Scope
+
+Addressed the confirmed part of deferred F-005 in `src/hooks/useMatchingGame.ts`.
+
+### Finding
+
+- A mismatch timeout was scheduled without a retained handle.
+- Restarting the game or unmounting the hook before the timeout fired could leave delayed state updates alive.
+- The delayed callback used captured card IDs and could flip cards in a newly generated board.
+
+### Changes Made
+
+- Added a mismatch timeout ref.
+- Added a cleanup callback and unmount cleanup effect.
+- Clear any pending mismatch timeout before starting a new game.
+- Store the mismatch timeout handle and reset it after the callback runs.
+
+### Verification
+
+| Command | Result | Notes |
+| --- | --- | --- |
+| `npm run lint` | Passed | Hook dependency list and lint rules are clean |
+| `./node_modules/.bin/tsc --noEmit` | Passed | Timer ref type is valid |
+| `npm run build` | Passed | Next.js 16.2.9 production build clean |
+
+### Remaining Deferred Item
+
+`src/hooks/useSequenceGame.ts` still needs a dedicated cancellation model for its multi-step display loop.
