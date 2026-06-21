@@ -11,25 +11,23 @@
 
 ## Current State
 
-- Phase: Stabilization Loop
-- Task: Stabilization score race fix
-- Status: Ready for commit-push checkpoint
-- Last command: npm run build
-- Last result: Passed after lint and TypeScript passed
-- Last pushed commit: 252d09406cec154dfea8e78d5c960ee5f0baedaf
-- Branch sync: local dev matches origin/dev at 252d094
-- Working tree: dirty with in-scope stabilization fix and run-report updates
-- Next action: Commit and push stabilization fix
+- Phase: Integrator
+- Task: Final report
+- Status: Ready for final report commit
+- Last command: npm audit --omit=dev
+- Last result: Failed with documented 2 moderate forced-fix vulnerabilities after install, lint, typecheck, and build passed
+- Last pushed commit: 76b8604
+- Branch sync: local dev matches origin/dev at 76b8604 before final report edits
+- Working tree: dirty only with final report/run-state updates
+- Next action: Commit and push final report
 
 ## Dirty File Classification
 
 | Path | Classification | Owner/Reason |
 | --- | --- | --- |
-| src/services/scoreService.ts | In-scope source | Stabilization transaction fix |
-| agent-runs/2026-06-20-codebase-pass/06-review.md | In-scope source | Review report |
-| agent-runs/2026-06-20-codebase-pass/07-stabilization-loop.md | In-scope source | Stabilization report |
-| agent-runs/2026-06-20-codebase-pass/run-state.md | In-scope source | Stabilization ledger |
-| agent-runs/2026-06-20-codebase-pass/task-queue.md | In-scope source | Stabilization queue |
+| agent-runs/2026-06-20-codebase-pass/08-integrator.md | In-scope source | Integrator report |
+| agent-runs/2026-06-20-codebase-pass/final-report.md | In-scope source | Final report |
+| agent-runs/2026-06-20-codebase-pass/run-state.md | In-scope source | Final ledger |
 
 ## Blockers
 
@@ -37,5 +35,4 @@
 
 ## Deferred Items
 
-- Final integration is deferred until the stabilization checkpoint is pushed.
 - Remaining audit issue after package cleanup is deferred because npm requires `--force` and a breaking Next downgrade.
