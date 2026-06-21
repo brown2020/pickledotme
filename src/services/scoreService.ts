@@ -9,6 +9,7 @@ import {
   limit,
   getDocs,
   Timestamp,
+  runTransaction,
 } from "firebase/firestore";
 import { db } from "@/lib/firebaseConfig";
 import { GameId } from "@/config/games";
@@ -34,19 +35,56 @@ interface FirestoreScore {
   kind?: "history" | "best";
 }
 
+function scoreFromSnapshot(docSnapshot: {
+  exists: () => boolean;
+  data: () => unknown;
+}): number | null {
+  if (!docSnapshot.exists()) return null;
+  const data = docSnapshot.data() as Partial<FirestoreScore>;
+  return typeof data.score === "number" ? data.score : 0;
+}
+
 async function readBestScore(userId: string, gameId: GameId): Promise<number> {
   const bestDocId = `${gameId}-best-${userId}`;
   const bestSnapshot = await getDoc(doc(db, COLLECTIONS.best, bestDocId));
-  if (bestSnapshot.exists()) {
-    const data = bestSnapshot.data() as Partial<FirestoreScore>;
-    return typeof data.score === "number" ? data.score : 0;
-  }
+  const bestScore = scoreFromSnapshot(bestSnapshot);
+  if (bestScore !== null) return bestScore;
 
   // Backward-compat fallback: legacy doc id.
   const legacySnapshot = await getDoc(doc(db, COLLECTIONS.legacy, bestDocId));
-  if (!legacySnapshot.exists()) return 0;
-  const legacyData = legacySnapshot.data() as Partial<FirestoreScore>;
-  return typeof legacyData.score === "number" ? legacyData.score : 0;
+  return scoreFromSnapshot(legacySnapshot) ?? 0;
+}
+
+async function saveBestScoreIfHigher({
+  userId,
+  gameId,
+  score,
+}: SaveScoreParams): Promise<boolean> {
+  const bestDocId = `${gameId}-best-${userId}`;
+  const bestRef = doc(db, COLLECTIONS.best, bestDocId);
+  const legacyRef = doc(db, COLLECTIONS.legacy, bestDocId);
+
+  return runTransaction(db, async (transaction) => {
+    const bestSnapshot = await transaction.get(bestRef);
+    let currentBest = scoreFromSnapshot(bestSnapshot);
+
+    if (currentBest === null) {
+      const legacySnapshot = await transaction.get(legacyRef);
+      currentBest = scoreFromSnapshot(legacySnapshot) ?? 0;
+    }
+
+    if (score <= currentBest) {
+      return false;
+    }
+
+    transaction.set(bestRef, {
+      userId,
+      gameId,
+      score,
+      timestamp: Timestamp.now(),
+    });
+    return true;
+  });
 }
 
 export interface DisplayScore {
@@ -119,24 +157,13 @@ export const scoreService = {
   async saveGameResult(
     params: SaveScoreParams
   ): Promise<{ isNewBest: boolean }> {
-    let currentBest: number | null = null;
-    try {
-      currentBest = await readBestScore(params.userId, params.gameId);
-    } catch (error) {
-      console.error("Failed to read current best score:", error);
-    }
-
     await scoreService.saveScore(params);
-    if (currentBest === null) {
+    try {
+      return { isNewBest: await saveBestScoreIfHigher(params) };
+    } catch (error) {
+      console.error("Failed to update best score:", error);
       return { isNewBest: false };
     }
-
-    const isNewBest = params.score > currentBest;
-    if (isNewBest) {
-      await scoreService.saveBestScore(params);
-    }
-
-    return { isNewBest };
   },
 
   /**
