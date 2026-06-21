@@ -26,9 +26,9 @@ Pickle.me is an AI advice and brain-training game app. The current implementatio
 
 ## Current Validation Surface
 
-- Repo-defined scripts: `npm run dev`, `npm run build`, `npm run start`.
+- Repo-defined scripts: `npm run dev`, `npm run build`, `npm run lint`, `npm run start`.
 - TypeScript is configured with `strict: true` and `noEmit: true`.
-- ESLint flat config exists, but no package script currently runs it.
+- ESLint flat config exists and is run by `npm run lint`.
 - No dedicated test script is currently defined in `package.json`.
 
 ## Known Quality Risks

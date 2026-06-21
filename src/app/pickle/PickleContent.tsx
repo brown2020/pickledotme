@@ -56,13 +56,8 @@ export function PickleContent() {
     return copy;
   }, [threadMessages]);
 
-  // Once the final assistant message is persisted and visible, hide the draft bubble
-  // to avoid “it disappears” (too early) *and* to avoid duplicates.
-  useEffect(() => {
-    if (!hasPersistedDraft) return;
-    setAdvice("");
-    setDraftThreadId(null);
-  }, [hasPersistedDraft]);
+  const visibleDraft =
+    draftThreadId === selectedThreadId && !hasPersistedDraft ? advice : "";
 
   // Keep the view pinned to the latest message / streaming chunk.
   useEffect(() => {
@@ -70,7 +65,7 @@ export function PickleContent() {
       behavior: "smooth",
       block: "end",
     });
-  }, [selectedThreadId, sortedThreadMessages.length, advice]);
+  }, [selectedThreadId, sortedThreadMessages.length, visibleDraft]);
 
   function mergeStreamChunk(current: string, incoming: string): string {
     const next = incoming ?? "";
@@ -95,15 +90,18 @@ export function PickleContent() {
     }));
 
     // When streaming, we mirror the assistant draft as the last assistant message.
-    if (advice) {
+    if (visibleDraft) {
       const withoutDraft = base.filter(
         (m, idx) => !(idx === base.length - 1 && m.role === "assistant")
       );
-      return [...withoutDraft, { role: "assistant" as const, content: advice }];
+      return [
+        ...withoutDraft,
+        { role: "assistant" as const, content: visibleDraft },
+      ];
     }
 
     return base;
-  }, [sortedThreadMessages, advice]);
+  }, [sortedThreadMessages, visibleDraft]);
 
   const handleSubmit = async (params: {
     dilemma: string;
@@ -468,8 +466,7 @@ export function PickleContent() {
             ) : null}
 
             <div className="p-4 space-y-4 max-h-[60vh] overflow-y-auto">
-              {sortedThreadMessages.length === 0 &&
-              !(advice && draftThreadId === selectedThreadId) ? (
+              {sortedThreadMessages.length === 0 && !visibleDraft ? (
                 <div className="text-sm text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-slate-800/50 rounded-2xl p-6">
                   Submit a pickle above to start a thread. Your history will
                   show up on the left.
@@ -505,15 +502,13 @@ export function PickleContent() {
               ))}
 
               {/* Streaming draft belongs at the end of the conversation */}
-              {advice &&
-              draftThreadId === selectedThreadId &&
-              !hasPersistedDraft ? (
+              {visibleDraft ? (
                 <div className="flex justify-start">
                   <div className="w-full max-w-3xl rounded-2xl border border-emerald-200 dark:border-emerald-800/30 bg-white dark:bg-slate-800 px-4 py-3">
                     <div className="text-[11px] font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400 mb-2">
                       {isLoading ? "AI (streaming)" : "AI"}
                     </div>
-                    <AdviceDisplay advice={advice} variant="plain" />
+                    <AdviceDisplay advice={visibleDraft} variant="plain" />
                   </div>
                 </div>
               ) : null}

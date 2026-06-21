@@ -19,10 +19,11 @@ The current `package.json` exposes:
 ```bash
 npm run dev
 npm run build
+npm run lint
 npm run start
 ```
 
-There is an ESLint flat config in `eslint.config.mjs`, but no `npm run lint` script is currently defined. Use the local ESLint binary directly only when adding a lint step intentionally.
+`npm run lint` uses the ESLint flat config in `eslint.config.mjs`.
 
 ## Architecture Notes
 
@@ -46,7 +47,7 @@ There is an ESLint flat config in `eslint.config.mjs`, but no `npm run lint` scr
 
 ## Validation Notes
 
-- Prefer `npm run build` as the strongest repo-defined gate until a lint/typecheck script is added.
+- Prefer `npm run lint` and `npm run build` as the standard gates.
 - For docs/report-only changes, record when build or other checks are not run or fail for pre-existing reasons.
 - For score changes, verify best-score and history behavior with the relevant hook/service path.
 - For auth/session changes, verify both cookie creation/deletion and protected-route proxy behavior.
