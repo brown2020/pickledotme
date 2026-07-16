@@ -12,23 +12,23 @@
 
 ## Current State
 
-- Phase: Preflight and Repo Docs
-- Task: T-001
+- Phase: Baseline Validation
+- Task: T-002
 - Status: Ready for checkpoint
-- Last command: `npm run lint`
-- Last result: Passed with no warnings or errors; T-001 diff check is clean
-- Last pushed commit: `39675a9` (`chore: add final codebase improvement report`)
-- Branch sync: local `dev` matched `origin/dev` at `39675a9` before run-report edits
-- Working tree: only T-001 documentation and new run-report files
-- Next action: exact-stage T-001 files, commit, dry-run push, and push to `origin/dev`
+- Last command: `npm run build`
+- Last result: lint, TypeScript, and production build passed; 25 outdated packages and 3 audit findings classified
+- Last pushed commit: `696c69e` (`docs: map repository guidance and upgrade plan`)
+- Branch sync: local `dev` matched `origin/dev` at `696c69e` before baseline report edits
+- Working tree: T-002 report/ledger updates only
+- Next action: exact-stage baseline evidence, commit/push, then build T-003 findings backlog
 
 ## Dirty File Classification
 
 | Path | Classification | Owner/Reason |
 | --- | --- | --- |
-| `AGENTS.md` | In-scope source | T-001 repository validation guidance |
-| `SPEC.md` | In-scope source | T-001 current run goals and validation evidence |
-| `agent-runs/2026-07-15-codebase-pass/` | In-scope source | Current resumable workflow ledger and reports |
+| `agent-runs/2026-07-15-codebase-pass/02-baseline-validation.md` | In-scope source | T-002 baseline evidence |
+| `agent-runs/2026-07-15-codebase-pass/run-state.md` | In-scope source | T-002 resume ledger |
+| `agent-runs/2026-07-15-codebase-pass/task-queue.md` | In-scope source | T-002 status and next action |
 
 ## Blockers
 
