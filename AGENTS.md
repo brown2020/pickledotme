@@ -25,6 +25,11 @@ npm run start
 
 `npm run lint` uses the ESLint flat config in `eslint.config.mjs`.
 
+The repository currently has no dedicated test or typecheck script. Use
+`npx tsc --noEmit` for an explicit TypeScript gate, and use `npm run build` as
+the production integration check. The verified local toolchain for the
+2026-07-15 dependency pass is Node.js 22.22.3 with npm 11.17.0.
+
 ## Architecture Notes
 
 - `src/app/` contains Next.js App Router pages, layouts, and the auth session API route.
@@ -47,7 +52,9 @@ npm run start
 
 ## Validation Notes
 
-- Prefer `npm run lint` and `npm run build` as the standard gates.
+- Prefer `npm run lint`, `npx tsc --noEmit`, and `npm run build` as the standard gates.
+- For dependency updates, also run `npm outdated`, `npm audit`, and a clean
+  `npm ci` before the final lint/typecheck/build sequence.
 - For docs/report-only changes, record when build or other checks are not run or fail for pre-existing reasons.
 - For score changes, verify best-score and history behavior with the relevant hook/service path.
 - For auth/session changes, verify both cookie creation/deletion and protected-route proxy behavior.
