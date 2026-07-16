@@ -30,6 +30,8 @@ Pickle.me is an AI advice and brain-training game app. The current implementatio
 - TypeScript is configured with `strict: true` and `noEmit: true`.
 - ESLint flat config exists and is run by `npm run lint`.
 - No dedicated test script is currently defined in `package.json`.
+- Dependency changes are verified with npm diagnostics, a clean `npm ci`,
+  explicit `npx tsc --noEmit`, lint, and a production build.
 
 ## Known Quality Risks
 
@@ -42,8 +44,9 @@ Pickle.me is an AI advice and brain-training game app. The current implementatio
 ## Improvement Goals For This Run
 
 - Establish a clean `dev` branch and pushed, resumable run state.
-- Record accurate repo guidance and current-state documentation.
-- Establish baseline validation with the repo-defined checks.
-- Build an evidence-backed findings backlog.
-- Prioritize confirmed bugs and low-risk maintainability fixes that preserve product behavior.
+- Update direct and transitive packages to the newest locally verifiable releases.
+- Repair compatibility bugs, warnings, and audit findings exposed by those updates.
+- Reconcile dependency/version documentation with the installed package graph.
+- Preserve the existing auth, AI advice, score persistence, and game behavior.
+- Stabilize with clean install, lint, TypeScript, audit, and production-build evidence.
 - Avoid creating new roadmap priorities in this workflow.
