@@ -12,23 +12,23 @@
 
 ## Current State
 
-- Phase: Baseline Validation
-- Task: T-002
+- Phase: Findings Backlog
+- Task: T-003
 - Status: Ready for checkpoint
-- Last command: `npm run build`
-- Last result: lint, TypeScript, and production build passed; 25 outdated packages and 3 audit findings classified
-- Last pushed commit: `696c69e` (`docs: map repository guidance and upgrade plan`)
-- Branch sync: local `dev` matched `origin/dev` at `696c69e` before baseline report edits
-- Working tree: T-002 report/ledger updates only
-- Next action: exact-stage baseline evidence, commit/push, then build T-003 findings backlog
+- Last command: targeted timer/source and dependency-path inspection
+- Last result: four concrete lifecycle bugs plus package/audit/docs cleanup queued with exact owners
+- Last pushed commit: `c806ce6` (`test: document package upgrade baseline`)
+- Branch sync: local `dev` matched `origin/dev` at `c806ce6` before findings report edits
+- Working tree: T-003 report/ledger updates only
+- Next action: exact-stage findings, commit/push, then execute F-002 through F-005
 
 ## Dirty File Classification
 
 | Path | Classification | Owner/Reason |
 | --- | --- | --- |
-| `agent-runs/2026-07-15-codebase-pass/02-baseline-validation.md` | In-scope source | T-002 baseline evidence |
-| `agent-runs/2026-07-15-codebase-pass/run-state.md` | In-scope source | T-002 resume ledger |
-| `agent-runs/2026-07-15-codebase-pass/task-queue.md` | In-scope source | T-002 status and next action |
+| `agent-runs/2026-07-15-codebase-pass/03-findings-backlog.md` | In-scope source | T-003 findings and scorecard |
+| `agent-runs/2026-07-15-codebase-pass/run-state.md` | In-scope source | T-003 resume ledger |
+| `agent-runs/2026-07-15-codebase-pass/task-queue.md` | In-scope source | T-003 ownership and next action |
 
 ## Blockers
 
