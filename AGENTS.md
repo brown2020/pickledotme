@@ -30,6 +30,12 @@ The repository currently has no dedicated test or typecheck script. Use
 the production integration check. The verified local toolchain for the
 2026-07-15 dependency pass is Node.js 22.22.3 with npm 11.17.0.
 
+TypeScript 6.0.3 and ESLint 9.39.5 are the newest versions supported by the
+current Next.js lint stack. TypeScript 7 is outside TypeScript-ESLint's
+published range, while Next's React/import/accessibility plugins do not yet
+support ESLint 10. Treat those two newer majors as compatibility migrations,
+not routine package bumps.
+
 ## Architecture Notes
 
 - `src/app/` contains Next.js App Router pages, layouts, and the auth session API route.

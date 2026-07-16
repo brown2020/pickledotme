@@ -32,6 +32,10 @@ Pickle.me is an AI advice and brain-training game app. The current implementatio
 - No dedicated test script is currently defined in `package.json`.
 - Dependency changes are verified with npm diagnostics, a clean `npm ci`,
   explicit `npx tsc --noEmit`, lint, and a production build.
+- The July 2026 dependency baseline uses AI SDK 7, Firebase Admin 14,
+  Next.js 16.2.10, React 19.2.7, Tailwind CSS 4.3.2, TypeScript 6.0.3, and
+  ESLint 9.39.5. TypeScript 7 and ESLint 10 remain deferred until the current
+  TypeScript-ESLint and Next plugin stack supports them.
 
 ## Known Quality Risks
 

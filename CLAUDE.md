@@ -9,10 +9,10 @@
 
 ## Tech Stack
 
-- **Framework:** Next.js 16.0.3 (App Router) + React 19 + TypeScript (strict)
-- **Styling:** Tailwind CSS 4.0.8
-- **AI:** Vercel AI SDK 6.0.3 with multi-provider support
-- **Auth/DB:** Firebase 12.7.0 (Google OAuth + Firestore)
+- **Framework:** Next.js 16.2.10 (App Router) + React 19.2.7 + TypeScript 6.0.3 (strict)
+- **Styling:** Tailwind CSS 4.3.2
+- **AI:** Vercel AI SDK 7.0.29 with multi-provider support
+- **Auth/DB:** Firebase 12.16.0 + Firebase Admin 14.1.0 (Google OAuth, session cookies, and Firestore)
 - **State:** Zustand (settings), SWR (data fetching), React Context (auth/theme)
 - **UI:** Framer Motion, Lucide React, react-markdown
 
@@ -45,6 +45,7 @@ src/
 npm run dev      # Dev server with Turbopack
 npm run build    # Production build
 npm run lint     # ESLint
+npx tsc --noEmit # Strict TypeScript check
 npm start        # Production server
 ```
 
@@ -98,8 +99,10 @@ NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET
 NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID
 NEXT_PUBLIC_FIREBASE_APP_ID
 
-# Server-side Firebase Admin
-GOOGLE_APPLICATION_CREDENTIALS  # Path to service_key.json
+# Server-side Firebase Admin session cookies
+FIREBASE_ADMIN_PROJECT_ID
+FIREBASE_ADMIN_CLIENT_EMAIL
+FIREBASE_ADMIN_PRIVATE_KEY
 ```
 
 ## Adding a New Game
