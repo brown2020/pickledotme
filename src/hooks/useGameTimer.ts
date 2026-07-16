@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
 
 interface UseGameTimerOptions {
   initialTime: number;
-  onTimeUp?: () => void;
+  onTimeUp?: () => void | Promise<void>;
   autoStart?: boolean;
 }
 
@@ -27,6 +27,8 @@ export function useGameTimer({
 }: UseGameTimerOptions): UseGameTimerReturn {
   const [timeLeft, setTimeLeft] = useState(initialTime);
   const [isRunning, setIsRunning] = useState(autoStart);
+  const timeLeftRef = useRef(initialTime);
+  const isRunningRef = useRef(autoStart);
   const onTimeUpRef = useRef(onTimeUp);
 
   // Keep callback ref updated
@@ -34,46 +36,64 @@ export function useGameTimer({
     onTimeUpRef.current = onTimeUp;
   }, [onTimeUp]);
 
+  const finish = useCallback(() => {
+    if (!isRunningRef.current) return;
+
+    isRunningRef.current = false;
+    setIsRunning(false);
+    void onTimeUpRef.current?.();
+  }, []);
+
   useEffect(() => {
-    if (!isRunning || timeLeft <= 0) return;
+    if (!isRunning) return;
 
     const timer = setInterval(() => {
-      setTimeLeft((prev) => {
-        if (prev <= 1) {
-          setIsRunning(false);
-          onTimeUpRef.current?.();
-          return 0;
-        }
-        return prev - 1;
-      });
+      const nextTime = Math.max(0, timeLeftRef.current - 1);
+      timeLeftRef.current = nextTime;
+      setTimeLeft(nextTime);
+
+      if (nextTime === 0) finish();
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [isRunning, timeLeft]);
+  }, [finish, isRunning]);
 
   const start = useCallback(() => {
+    isRunningRef.current = true;
     setIsRunning(true);
   }, []);
 
   const pause = useCallback(() => {
+    isRunningRef.current = false;
     setIsRunning(false);
   }, []);
 
   const reset = useCallback(() => {
+    timeLeftRef.current = initialTime;
+    isRunningRef.current = false;
     setTimeLeft(initialTime);
     setIsRunning(false);
   }, [initialTime]);
 
   const addTime = useCallback(
     (seconds: number) => {
-      setTimeLeft((prev) => Math.min(prev + seconds, initialTime));
+      const nextTime = Math.min(timeLeftRef.current + seconds, initialTime);
+      timeLeftRef.current = nextTime;
+      setTimeLeft(nextTime);
     },
     [initialTime]
   );
 
-  const subtractTime = useCallback((seconds: number) => {
-    setTimeLeft((prev) => Math.max(0, prev - seconds));
-  }, []);
+  const subtractTime = useCallback(
+    (seconds: number) => {
+      const nextTime = Math.max(0, timeLeftRef.current - seconds);
+      timeLeftRef.current = nextTime;
+      setTimeLeft(nextTime);
+
+      if (nextTime === 0) finish();
+    },
+    [finish]
+  );
 
   return {
     timeLeft,

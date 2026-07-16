@@ -12,23 +12,28 @@
 
 ## Current State
 
-- Phase: Findings Backlog
-- Task: T-003
+- Phase: Execute Fixes and Improvements
+- Task: T-004
 - Status: Ready for checkpoint
-- Last command: targeted timer/source and dependency-path inspection
-- Last result: four concrete lifecycle bugs plus package/audit/docs cleanup queued with exact owners
-- Last pushed commit: `c806ce6` (`test: document package upgrade baseline`)
-- Branch sync: local `dev` matched `origin/dev` at `c806ce6` before findings report edits
-- Working tree: T-003 report/ledger updates only
-- Next action: exact-stage findings, commit/push, then execute F-002 through F-005
+- Last command: `npm run build`
+- Last result: F-002 through F-005 fixed; lint, TypeScript, build, and diff checks passed
+- Last pushed commit: `fc0d779` (`chore: add package and lifecycle findings backlog`)
+- Branch sync: local `dev` matched `origin/dev` at `fc0d779` before T-004 edits
+- Working tree: four T-004 hook owners plus execution report/ledger
+- Next action: exact-stage T-004, commit/push, then begin T-005 package updates
 
 ## Dirty File Classification
 
 | Path | Classification | Owner/Reason |
 | --- | --- | --- |
-| `agent-runs/2026-07-15-codebase-pass/03-findings-backlog.md` | In-scope source | T-003 findings and scorecard |
-| `agent-runs/2026-07-15-codebase-pass/run-state.md` | In-scope source | T-003 resume ledger |
-| `agent-runs/2026-07-15-codebase-pass/task-queue.md` | In-scope source | T-003 ownership and next action |
+| `src/hooks/useGameTimer.ts` | In-scope source | F-002 timer completion |
+| `src/hooks/useSequenceGame.ts` | In-scope source | F-003 playback cancellation |
+| `src/hooks/useWordGame.ts` | In-scope source | F-004 timeout ownership |
+| `src/hooks/useReactionGame.ts` | In-scope source | F-005 unmount cleanup |
+| `agent-runs/2026-07-15-codebase-pass/03-findings-backlog.md` | In-scope source | Finding status update |
+| `agent-runs/2026-07-15-codebase-pass/04-execute-fixes-and-improvements.md` | In-scope source | T-004 report |
+| `agent-runs/2026-07-15-codebase-pass/run-state.md` | In-scope source | T-004 resume ledger |
+| `agent-runs/2026-07-15-codebase-pass/task-queue.md` | In-scope source | T-004 status |
 
 ## Blockers
 

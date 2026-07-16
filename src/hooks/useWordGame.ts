@@ -93,6 +93,27 @@ export function useWordGame() {
   const [showCorrect, setShowCorrect] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const wordsCompletedRef = useRef(0);
+  const pendingTimeoutsRef = useRef<
+    Set<ReturnType<typeof setTimeout>>
+  >(new Set());
+
+  const clearPendingTimeouts = useCallback(() => {
+    pendingTimeoutsRef.current.forEach(clearTimeout);
+    pendingTimeoutsRef.current.clear();
+  }, []);
+
+  const scheduleTimeout = useCallback(
+    (callback: () => void, delay: number) => {
+      const timeoutId = setTimeout(() => {
+        pendingTimeoutsRef.current.delete(timeoutId);
+        callback();
+      }, delay);
+      pendingTimeoutsRef.current.add(timeoutId);
+    },
+    []
+  );
+
+  useEffect(() => clearPendingTimeouts, [clearPendingTimeouts]);
 
   useEffect(() => {
     wordsCompletedRef.current = wordsCompleted;
@@ -107,7 +128,10 @@ export function useWordGame() {
   // Use shared timer hook
   const timer = useGameTimer({
     initialTime: GAME_DURATION,
-    onTimeUp: () => gameBase.endGame(),
+    onTimeUp: () => {
+      clearPendingTimeouts();
+      return gameBase.endGame();
+    },
   });
 
   const generateNewWord = useCallback(() => {
@@ -169,13 +193,13 @@ export function useWordGame() {
         }
 
         // Generate new word after delay
-        setTimeout(() => {
+        scheduleTimeout(() => {
           generateNewWord();
         }, 1000);
       } else {
         // Wrong - clear and try again
         setIsProcessing(true);
-        setTimeout(() => {
+        scheduleTimeout(() => {
           setScrambledLetters((prev) =>
             prev.map((l) => ({ ...l, isSelected: false }))
           );
@@ -190,6 +214,7 @@ export function useWordGame() {
       generateNewWord,
       hintUsed,
       isProcessing,
+      scheduleTimeout,
       showCorrect,
       timer.timeLeft,
     ]
@@ -289,15 +314,17 @@ export function useWordGame() {
   ]);
 
   const startGame = useCallback(() => {
+    clearPendingTimeouts();
     setWordsCompleted(0);
     setIsProcessing(false);
     timer.reset();
     timer.start();
     gameBase.startGame();
     generateNewWord();
-  }, [gameBase, generateNewWord, timer]);
+  }, [clearPendingTimeouts, gameBase, generateNewWord, timer]);
 
   const resetGame = useCallback(() => {
+    clearPendingTimeouts();
     setCurrentWord("");
     setScrambledLetters([]);
     setSelectedLetters([]);
@@ -307,7 +334,7 @@ export function useWordGame() {
     setIsProcessing(false);
     timer.reset();
     gameBase.resetGame();
-  }, [gameBase, timer]);
+  }, [clearPendingTimeouts, gameBase, timer]);
 
   return {
     currentWord,

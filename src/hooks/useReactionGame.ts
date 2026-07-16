@@ -45,6 +45,8 @@ export function useReactionGame() {
     }
   }, []);
 
+  useEffect(() => clearTimeouts, [clearTimeouts]);
+
   const calculateScore = useCallback((avgTime: number) => {
     // Score based on reaction time: faster = higher score
     // 200ms or less = 1000 points, scales down from there
