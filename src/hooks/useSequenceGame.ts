@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { useGameBase } from "./useGameBase";
 
 const GAME_ID = "sequence-pickle" as const;
@@ -11,28 +11,43 @@ export function useSequenceGame() {
   const [sequence, setSequence] = useState<number[]>([]);
   const [playerSequence, setPlayerSequence] = useState<number[]>([]);
   const [isShowingSequence, setIsShowingSequence] = useState(false);
+  const playbackIdRef = useRef(0);
+
+  useEffect(() => {
+    return () => {
+      playbackIdRef.current += 1;
+    };
+  }, []);
 
   const showSequence = useCallback(async (seq: number[]) => {
+    const playbackId = ++playbackIdRef.current;
     setIsShowingSequence(true);
     setPlayerSequence([]);
 
     await new Promise((resolve) => setTimeout(resolve, SEQUENCE_SHOW_DELAY));
+    if (playbackIdRef.current !== playbackId) return;
 
     for (let i = 0; i < seq.length; i++) {
       setPlayerSequence([seq[i]]);
       await new Promise((resolve) =>
         setTimeout(resolve, SEQUENCE_HIGHLIGHT_DURATION)
       );
+      if (playbackIdRef.current !== playbackId) return;
+
       setPlayerSequence([]);
       await new Promise((resolve) =>
         setTimeout(resolve, SEQUENCE_PAUSE_DURATION)
       );
+      if (playbackIdRef.current !== playbackId) return;
     }
+
     setIsShowingSequence(false);
   }, []);
 
   const handleGameOver = useCallback(async () => {
+    playbackIdRef.current += 1;
     setPlayerSequence([]);
+    setIsShowingSequence(false);
     await gameBase.endGame();
   }, [gameBase]);
 
@@ -80,6 +95,7 @@ export function useSequenceGame() {
   );
 
   const resetGame = useCallback(() => {
+    playbackIdRef.current += 1;
     setSequence([]);
     setPlayerSequence([]);
     setIsShowingSequence(false);
