@@ -18,4 +18,4 @@ PASS: clean install/tree/audit, lint, strict TypeScript, production build, React
 
 ## Checkpoint Status
 
-Ready for exact-file staging, source/report commit, push, sync verification, then a report-only finalization commit.
+Source checkpoint `af7d62a` was pushed and local/origin `dev` matched (`0 0`). This report-only checkpoint completes the integration record.

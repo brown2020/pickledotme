@@ -11,10 +11,11 @@
 
 - Phase: Final checkpoint
 - Task: T-006
-- Status: Ready to exact-stage, commit, and push
+- Status: Final report checkpoint (this commit)
 - Last result: clean install/audit/tree/lint/type/build and production smoke passed
-- Working tree: in-scope source, rules, docs, and run reports only
-- Next action: source/report checkpoint, push/sync check, report-only finalization checkpoint
+- Last pushed source commit: `af7d62a`; local and origin `dev` matched (`0 0`)
+- Working tree: final report/status updates only
+- Next action: commit/push this report checkpoint and verify final clean sync
 
 ## Deferred Items
 
