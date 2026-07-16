@@ -38,4 +38,4 @@ Email/password, MFA, admin roles, and account-management expansion were not in s
 | Hard cookie clearing | Pass | Production DELETE response |
 | Password/admin coverage | N/A | Product exposes neither |
 | Credentialed browser QA | Manual | Requires Firebase/AI configuration |
-| Branch clean/synced | Pending checkpoint | Completed after report commit/push |
+| Branch clean/synced | Pass | `af7d62a` matched `origin/dev`; this report-only checkpoint finalizes the ledger |

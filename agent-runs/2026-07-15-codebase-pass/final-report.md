@@ -34,13 +34,23 @@ Updated the complete compatible dependency graph, fixed verified bugs and warnin
 - Score ownership and bounds are server-enforced, but gameplay remains client-side; fully cheat-proof leaderboards would require a separate server-authoritative game design.
 - React Doctor reports Firebase Auth internal metadata as a BaaS authority map and treats two server-only Admin query filters as client authorization; source and built-artifact evidence classify all three as false positives.
 
+## Branch And Commits
+
+- Branch/upstream: `dev` / `origin/dev`
+- Planning/baseline/findings: `696c69e`, `c806ce6`, `fc0d779`
+- Game lifecycle fixes: `59b3194`
+- Package/documentation update: `520cde2`
+- Final source/auth/data/warning checkpoint: `af7d62a`
+- Source checkpoint sync: local and origin `dev` matched (`0 0`) after push
+- GitHub default-branch alert #84 still reports `postcss <8.5.10` on `main`; this `dev` branch uses `postcss@8.5.19` and `npm audit` reports zero vulnerabilities.
+
 ## Final Completion Gate
 
 - P0/P1 findings: closed or compatibility-deferred with evidence
 - Confirmed races: closed
 - Architecture scorecard failures: none
 - Introduced regressions: none found
-- Working tree/branch sync: pending final checkpoint commits
+- Working tree/branch sync: source checkpoint clean/synced; this report-only checkpoint completes the run
 
 ## Recommended User Tests
 

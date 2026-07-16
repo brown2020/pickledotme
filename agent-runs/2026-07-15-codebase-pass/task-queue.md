@@ -7,4 +7,4 @@
 | T-003 | Findings | P1 | Done | Package, lifecycle, auth, warning, and cleanup work owned | Findings/architecture loops |
 | T-004 | Game lifecycle | P1 | Done | Timer/playback/timeout defects fixed | lint/type/build/review |
 | T-005 | Packages/docs | P1 | Done | Compatible latest graph, 0 audit, docs reconciled | clean install/tree/lint/type/build; pushed `520cde2` |
-| T-006 | Review/stabilize/integrate | P1 | Ready for checkpoint | Auth/data hardening, warnings/dead code, full gates/smoke complete | review + stabilization reports |
+| T-006 | Review/stabilize/integrate | P1 | Done | Auth/data hardening, warnings/dead code, full gates/smoke pushed in `af7d62a`; finalized by this report checkpoint | review + stabilization + `0 0` sync |
