@@ -6,7 +6,7 @@ import { Menu, X } from "lucide-react";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import { HeaderAuthControls } from "./HeaderAuthControls";
 import { HeaderSoundToggle } from "./HeaderSoundToggle";
-import { useAuth } from "@/providers/AuthProvider";
+import { useAuth } from "@/providers/authContext";
 
 export function HeaderClient() {
   const { user } = useAuth();
@@ -25,6 +25,7 @@ export function HeaderClient() {
       <div className="flex md:hidden items-center gap-2">
         <ThemeToggle />
         <button
+          type="button"
           className="p-2 text-slate-600 dark:text-slate-300"
           onClick={() => setIsMobileMenuOpen((v) => !v)}
           aria-label="Toggle menu"

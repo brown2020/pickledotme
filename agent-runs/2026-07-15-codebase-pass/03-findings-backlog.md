@@ -62,6 +62,10 @@ targeted source inspection for AI, Firebase Admin, Sequence, Word, Reaction, Pic
 | F-007 | P2 | Package update/security | Done | Next/PostCSS graph | Next embedded vulnerable `postcss@8.4.31`; npm's forced-fix downgrade was unsafe | direct-reference override dedupes Next to `postcss@8.5.19`; audit/build pass | moderate XSS advisory removed | Small | audit/build passed | checkpoint T-005 |
 | F-008 | P2 | Documentation | Done | Dependency docs | Runtime, package versions, AI providers/models, and install guidance drifted from code/package metadata | README/CLAUDE/AGENTS/SPEC reconciled to final graph/code | misleading setup/test handoff | Small | search/diff/lint/build passed | checkpoint T-005 |
 | F-009 | P3 | Dead code/install cleanup | Done | `node_modules` | Six extraneous WASM/N-API packages existed in the prior install tree | clean `npm ci`; `npm ls --depth=0` has none | noisy/non-reproducible local tree | Small | clean install and tree check passed | checkpoint T-005 |
+| F-011 | P1 | Auth/security bug | Done | AI advice actions | Exported advice action trusted page proxy and assistant persistence used a client write forbidden by rules | direct revoked-cookie session checks plus Admin persistence | unauthorized direct invocation and lost replies | Medium | auth review, lint/type/build, signed-out smoke | checkpoint T-006 |
+| F-012 | P1 | Data authority/security | Done | Advice and scores | Browser code supplied ownership fields and best-score writes were client-authorized | all Firestore access moved to session-owned Admin actions; rules deny client writes | larger browser attack surface and mutable leaderboard authority | Medium | imports/rules/actions review, build, React Doctor | checkpoint T-006 |
+| F-013 | P2 | Game correctness | Done | Matching/Reaction/Sequence/Speed/Word/Pop | Matching/Reaction did not end shared state, Sequence/Speed wrote duplicate interim histories, hinted final letters skipped the penalty, and state updaters performed side effects | one final-score end boundary, hint override, ref-owned pickle/results transitions | stuck controls, duplicate history, and incorrect scores | Medium | source review, lint/type/build | checkpoint T-006 |
+| F-014 | P2 | React/UI quality | Done | Providers/components | 78 React Doctor hypotheses included real reduced-motion, button, provider drift, component/state, dead-code, and bundle issues | high-confidence findings fixed; three security diagnostics evidence-classified as false positives | accessibility/performance/maintenance regressions | Medium | React Doctor reduced to 3 reviewed warnings/0 errors | checkpoint T-006 |
 | F-010 | P2 | Test gap | Deferred | Runtime behavior | No automated test suite covers game timers, auth, Firestore, or AI streaming | no `test` script or test files | static/build gates cannot prove external/runtime behavior | Medium | future focused unit/integration suite | document residual risk |
 
 ### Execution Order
@@ -83,14 +87,14 @@ Every direct production dependency has source/config/import evidence or is a req
 
 | Area | Status | Evidence | Action |
 | --- | --- | --- | --- |
-| Dependency direction | Pass | Routes/components -> hooks/providers -> services remains clear | Preserve |
-| Module cohesion | Watch | Large advice module remains but is unrelated to verified failures | Defer refactor |
-| Public surface area | Pass | Major package APIs used in a small set of files | Migrate exact call sites only |
-| Data and side-effect flow | Pass | Auth/advice/score service ownership is explicit | Preserve |
-| Async/cache/resource lifecycle | Fail | F-002 through F-005 are concrete timer/cancellation defects | Fix in T-004 |
-| Duplication and dead code | Watch | No source deletion proof; extraneous install artifacts only | Clean install; no speculative deletion |
-| Dependency lean-ness | Fail | 25 outdated direct packages and 3 advisories | Update/audit in T-005 |
-| Testability | Watch | Lint/type/build pass; no runtime test suite | Record residual risk |
+| Dependency direction | Pass | Final client -> action -> Admin flow keeps server authority out of browser bundles | Preserve |
+| Module cohesion | Pass | Advice reducer/history/conversation and focused action modules | Preserve |
+| Public surface area | Pass | Dead barrels/helpers/exports removed after reference proof | Preserve |
+| Data and side-effect flow | Pass | Session-owned Admin reads/writes and transactional best scores | Preserve |
+| Async/cache/resource lifecycle | Pass | F-002 through F-005 and timer ownership follow-ups closed | Preserve |
+| Duplication and dead code | Pass | Duplicated history UI and verified dead source removed | Preserve |
+| Dependency lean-ness | Pass | Compatible latest graph, clean tree, zero audit | Revisit TS7/ESLint10 peers later |
+| Testability | Watch | Lint/type/build/smoke pass; no credentialed automated suite | Record residual risk |
 
 ## Quality Gate
 

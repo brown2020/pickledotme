@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui";
 import { Play, RotateCcw, Square } from "lucide-react";
+import { useSound } from "@/hooks/useSound";
 
 interface GameControlsProps {
   onStart: () => void;
@@ -16,10 +17,18 @@ export function GameControls({
   canPause = false,
   onPause,
 }: GameControlsProps) {
+  const { playSound } = useSound();
+  const primaryAction = isPlaying ? (canPause ? onPause : onReset) : onStart;
+
+  const runAction = (action: (() => void) | undefined) => {
+    playSound("click");
+    action?.();
+  };
+
   return (
     <div className="flex gap-3">
       <Button
-        onClick={isPlaying ? (canPause ? onPause : onReset) : onStart}
+        onClick={() => runAction(primaryAction)}
         variant={isPlaying ? (canPause ? "secondary" : "destructive") : "primary"}
         className="gap-2"
       >
@@ -42,7 +51,11 @@ export function GameControls({
           </>
         )}
       </Button>
-      <Button onClick={onReset} variant="ghost" className="gap-2">
+      <Button
+        onClick={() => runAction(onReset)}
+        variant="ghost"
+        className="gap-2"
+      >
         <RotateCcw className="w-4 h-4" />
         Reset
       </Button>

@@ -2,12 +2,13 @@
 
 import Link from "next/link";
 import dynamic from "next/dynamic";
-import { motion } from "framer-motion";
+import * as m from "framer-motion/m";
 import { Button } from "@/components/ui";
 import { ArrowLeft } from "lucide-react";
 import { GameId } from "@/config/games";
 import { scaleIn } from "@/components/PageTransition";
 import { PageBackground } from "@/components/layout/page/PageBackground";
+import { LeaderboardTable } from "@/components/shared/LeaderboardTable";
 
 const gameComponents: Record<GameId, React.ComponentType> = {
   "sequence-pickle": dynamic(
@@ -55,7 +56,7 @@ export function GameContent({ gameId }: GameContentProps) {
     <PageBackground variant="default-with-padding" className="py-8">
       <div className="max-w-4xl mx-auto">
         {/* Back button */}
-        <motion.div
+        <m.div
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
         >
@@ -65,12 +66,19 @@ export function GameContent({ gameId }: GameContentProps) {
               Back to Games
             </Button>
           </Link>
-        </motion.div>
+        </m.div>
 
         {/* Game Component */}
-        <motion.div variants={scaleIn} initial="initial" animate="animate">
+        <m.div variants={scaleIn} initial="initial" animate="animate">
           <GameComponent />
-        </motion.div>
+        </m.div>
+
+        <section className="mt-10 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-700 dark:bg-slate-800">
+          <h2 className="mb-4 text-xl font-bold text-slate-900 dark:text-white">
+            Leaderboard
+          </h2>
+          <LeaderboardTable gameId={gameId} />
+        </section>
       </div>
     </PageBackground>
   );

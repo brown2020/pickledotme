@@ -43,16 +43,16 @@ not routine package bumps.
 - `src/lib/authSession.ts` and `src/lib/firebaseAdmin.ts` own server-side session-cookie configuration and Firebase Admin initialization.
 - `src/providers/` owns client auth and theme context.
 - `src/actions/getAdvice.ts` streams advice through selected AI providers.
-- `src/services/` owns Firestore reads/writes for advice and scores.
+- `src/actions/adviceThreads.ts` and `src/actions/scores.ts` own session-verified Firestore access through Firebase Admin.
 - `src/hooks/useGameBase.ts` provides shared game state and score-saving behavior.
 - Individual game hooks in `src/hooks/use*Game.ts` coordinate game-specific state.
 - UI components live under `src/components/`, with game components grouped under `src/components/games/`.
 
 ## Risk Areas
 
-- Score persistence spans `useGameBase`, game-specific hooks, `useScores`, and `scoreService`; changes need targeted verification.
+- Score persistence spans `useGameBase`, game-specific hooks, `useScores`, and the server actions in `src/actions/scores.ts`; changes need targeted verification.
 - Auth boundaries depend on server-issued session cookies plus proxy checks; avoid trusting client auth state for protected server behavior.
-- `src/app/pickle/PickleContent.tsx` is the largest module and combines UI, conversation state, streaming state, and persistence.
+- Advice state orchestration lives in `src/app/pickle/PickleContent.tsx`; history and conversation rendering live in focused components under `src/components/pickle/`.
 - The repo has local ignored secret-like files present in the workspace; do not inspect or commit them.
 - The README and older assistant guidance may mention commands or versions that drift from `package.json`.
 
@@ -62,5 +62,5 @@ not routine package bumps.
 - For dependency updates, also run `npm outdated`, `npm audit`, and a clean
   `npm ci` before the final lint/typecheck/build sequence.
 - For docs/report-only changes, record when build or other checks are not run or fail for pre-existing reasons.
-- For score changes, verify best-score and history behavior with the relevant hook/service path.
+- For score changes, verify best-score and history behavior through the relevant hook/server-action path.
 - For auth/session changes, verify both cookie creation/deletion and protected-route proxy behavior.

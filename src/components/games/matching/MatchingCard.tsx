@@ -12,6 +12,7 @@ export function MatchingCard({ card, onClick, disabled }: MatchingCardProps) {
 
   return (
     <button
+      type="button"
       onClick={onClick}
       disabled={disabled}
       className={cn(

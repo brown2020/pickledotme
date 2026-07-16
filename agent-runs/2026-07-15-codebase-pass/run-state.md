@@ -2,43 +2,26 @@
 
 ## Target
 
-- Repo: /Users/stephenbrown/Code/OPENSOURCE/pickledotme
-- Branch: dev
-- Mode: full
-- Run folder: /Users/stephenbrown/Code/OPENSOURCE/pickledotme/agent-runs/2026-07-15-codebase-pass
-- Created: 2026-07-15T20:06:42-07:00
-- Upstream:
-- Upstream: origin/dev
+- Repo: `/Users/stephenbrown/Code/OPENSOURCE/pickledotme`
+- Branch/upstream: `dev` / `origin/dev`
+- Mode: full codebase improvement and package update
+- Starting point: `520cde2` for final source phase
 
 ## Current State
 
-- Phase: Package and Dead-Code Cleanup
-- Task: T-005
-- Status: Ready for checkpoint
-- Last command: post-`npm ci` `npm run build`
-- Last result: all compatible direct packages updated; audit/install/lint/type/build clean; TS7/ESLint10 incompatibilities documented
-- Last pushed commit: `59b3194` (`fix: cancel stale game timer work`)
-- Branch sync: local `dev` matched `origin/dev` at `59b3194` before T-005 edits
-- Working tree: T-005 manifest/lock, footer compatibility, dependency docs, report/ledger
-- Next action: exact-stage T-005, commit/push, then run Judge and Stabilization loops
+- Phase: Final checkpoint
+- Task: T-006
+- Status: Ready to exact-stage, commit, and push
+- Last result: clean install/audit/tree/lint/type/build and production smoke passed
+- Working tree: in-scope source, rules, docs, and run reports only
+- Next action: source/report checkpoint, push/sync check, report-only finalization checkpoint
 
-## Dirty File Classification
+## Deferred Items
 
-| Path | Classification | Owner/Reason |
-| --- | --- | --- |
-| `package.json`, `package-lock.json` | In-scope source | F-001/F-006/F-007/F-009 dependency graph |
-| `src/components/layout/Footer.tsx` | In-scope source | Lucide 1 removed brand icon exports |
-| `README.md`, `CLAUDE.md`, `AGENTS.md`, `SPEC.md` | In-scope source | F-008 dependency/provider/setup guidance |
-| `agent-runs/2026-07-15-codebase-pass/03-findings-backlog.md` | In-scope source | Finding status update |
-| `agent-runs/2026-07-15-codebase-pass/05-package-and-dead-code-cleanup.md` | In-scope source | T-005 report |
-| `agent-runs/2026-07-15-codebase-pass/run-state.md`, `task-queue.md` | In-scope source | T-005 ledger |
+- TypeScript 7.0.2 until TypeScript-ESLint supports it.
+- ESLint 10.7.0 until the Next React/import/accessibility plugin stack supports it.
+- Credentialed Firebase/AI browser QA and future automated test infrastructure.
 
 ## Blockers
 
 - None.
-
-## Deferred Items
-
-- TypeScript 7.0.2: latest TypeScript-ESLint parser supports TypeScript `<6.1.0` and crashes on TS7's removed extension enum.
-- ESLint 10.7.0: current Next React/import/accessibility plugins exclude ESLint 10 and the React rule context crashes.
-- F-010 automated runtime tests: separate future test-infrastructure task.

@@ -52,8 +52,7 @@ export function useMatchingGame() {
 
   const handleGameComplete = useCallback(
     async (finalScore: number) => {
-      gameBase.updateScore(finalScore);
-      await gameBase.saveScore(finalScore);
+      await gameBase.endGame(finalScore);
     },
     [gameBase]
   );

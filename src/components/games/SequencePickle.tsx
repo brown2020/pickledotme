@@ -53,10 +53,11 @@ export function SequencePickle() {
         <div className="grid grid-cols-2 gap-4 mb-8">
           {SEQUENCE_COLORS.map((color, index) => (
             <button
-              key={index}
+              key={color.id}
+              type="button"
               onClick={() => handleColorClick(index)}
               disabled={!isPlaying || isShowingSequence}
-              aria-label={`Color ${index + 1}`}
+              aria-label={`${color.id} color`}
               className={`
                 relative h-28 md:h-32 rounded-2xl transform
                 transition-all duration-200 ease-out

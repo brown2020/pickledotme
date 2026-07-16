@@ -96,14 +96,15 @@ export function LeaderboardTable({ gameId }: LeaderboardTableProps) {
               </td>
               <td className="py-3 px-4">
                 <span className="font-bold text-slate-900 dark:text-white">
-                  {score.score.toLocaleString()}
+                  {score.score.toLocaleString("en-US")}
                 </span>
               </td>
               <td className="py-3 px-4 text-slate-500 dark:text-slate-400">
-                {score.timestamp.toLocaleDateString(undefined, {
+                {score.timestamp.toLocaleDateString("en-US", {
                   month: "short",
                   day: "numeric",
                   year: "numeric",
+                  timeZone: "UTC",
                 })}
               </td>
             </tr>

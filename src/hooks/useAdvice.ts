@@ -1,20 +1,19 @@
 "use client";
 
 import useSWR from "swr";
-import { useAuth } from "@/providers/AuthProvider";
+import { useAuth } from "@/providers/authContext";
 import {
-  adviceService,
-  AdviceMessage,
-  AdviceThread,
-} from "@/services/adviceService";
+  getAdviceThreadMessages,
+  listAdviceThreads,
+} from "@/actions/adviceThreads";
+import type { AdviceMessage, AdviceThread } from "@/types/advice";
 
 export function useAdviceThreads() {
   const { user, isLoading: isAuthLoading } = useAuth();
 
   const { data, error, isLoading, mutate } = useSWR(
     user?.uid ? `advice-threads-${user.uid}` : null,
-    () =>
-      user?.uid ? adviceService.listThreads(user.uid) : Promise.resolve([]),
+    () => (user?.uid ? listAdviceThreads() : Promise.resolve([])),
     {
       revalidateOnFocus: false,
       dedupingInterval: 5000,
@@ -37,7 +36,7 @@ export function useAdviceThread(threadId: string | null) {
     user?.uid && threadId ? `advice-thread-${threadId}-${user.uid}` : null,
     () =>
       user?.uid && threadId
-        ? adviceService.getThreadMessages({ userId: user.uid, threadId })
+        ? getAdviceThreadMessages({ threadId })
         : Promise.resolve([]),
     {
       revalidateOnFocus: false,

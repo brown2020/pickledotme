@@ -1,7 +1,9 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { getFirebaseAdminAuth } from "@/lib/firebaseAdmin";
-import { isDevSessionCookie, SESSION_COOKIE_NAME } from "@/lib/authSession";
+import {
+  getVerifiedSessionUid,
+  SESSION_COOKIE_NAME,
+} from "@/lib/authSession";
 
 /**
  * Routes that require authentication
@@ -50,19 +52,7 @@ export async function proxy(request: NextRequest) {
   let isAuthenticated = false;
   if (isProtectedRoute || isAuthRoute) {
     const sessionCookie = request.cookies.get(SESSION_COOKIE_NAME)?.value;
-    if (sessionCookie) {
-      try {
-        if (isDevSessionCookie(sessionCookie)) {
-          isAuthenticated = true;
-        } else {
-          const adminAuth = getFirebaseAdminAuth();
-          await adminAuth.verifySessionCookie(sessionCookie, true);
-          isAuthenticated = true;
-        }
-      } catch {
-        isAuthenticated = false;
-      }
-    }
+    isAuthenticated = Boolean(await getVerifiedSessionUid(sessionCookie));
   }
 
   // Redirect unauthenticated users from protected routes to home

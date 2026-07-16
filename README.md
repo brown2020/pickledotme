@@ -161,7 +161,7 @@ NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=your-project.appspot.com
 NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=...
 NEXT_PUBLIC_FIREBASE_APP_ID=...
 
-# Firebase Admin session-cookie configuration (required for protected routes)
+# Firebase Admin configuration (required for sessions and persisted app data)
 FIREBASE_ADMIN_PROJECT_ID=your-project-id
 FIREBASE_ADMIN_CLIENT_EMAIL=firebase-adminsdk-...@your-project.iam.gserviceaccount.com
 FIREBASE_ADMIN_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----\n"
@@ -192,7 +192,10 @@ Visit [http://localhost:3000](http://localhost:3000) to see the app.
 ```
 src/
 ├── actions/              # Server actions
-│   └── getAdvice.ts      # AI advice generation
+│   ├── adviceThreads.ts  # Session-owned advice persistence
+│   ├── authSession.ts    # Session-cookie synchronization
+│   ├── getAdvice.ts      # AI advice generation
+│   └── scores.ts         # Transactional score persistence and reads
 ├── app/                  # Next.js App Router
 │   ├── games/            # Games routes
 │   │   ├── [gameId]/     # Dynamic game pages
@@ -233,7 +236,6 @@ src/
 │   └── useWordGame.ts
 ├── lib/
 │   ├── cn.ts             # Class name utility
-│   ├── errors.ts         # Error handling
 │   ├── firebaseConfig.ts # Firebase setup
 │   └── validations.ts    # Zod schemas
 ├── providers/
@@ -241,12 +243,10 @@ src/
 │   ├── ThemeProvider.tsx # Dark mode
 │   └── index.tsx         # Provider composition
 ├── proxy.ts              # Route protection (Next.js 16)
-├── services/
-│   └── scoreService.ts   # Firestore operations
 └── types/
-    ├── game.ts           # Game types
+    ├── advice.ts         # Advice records
     ├── matching-game.ts  # Matching game types
-    └── user.ts           # User types
+    └── score.ts          # Score records
 ```
 
 ---
@@ -289,7 +289,7 @@ Auth state is synced via cookies between client (Firebase) and server (proxy).
 
 Games use custom hooks built on `useGameBase`:
 
-- Handles score saving to Firestore
+- Saves scores through a session-verified server action
 - Manages play/pause/reset states
 - Tracks best scores
 
@@ -298,8 +298,8 @@ Timer logic is shared via `useGameTimer` for consistency.
 #### Data Fetching
 
 - **SWR** for client-side data with caching
-- **Server Actions** for AI streaming responses
-- **Firestore** for persistent storage
+- **Server Actions** for AI streaming and session-owned data access
+- **Firestore Admin SDK** for persistent storage; browser Firestore writes are denied
 
 ---
 

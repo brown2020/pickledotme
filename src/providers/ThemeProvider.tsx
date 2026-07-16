@@ -1,26 +1,19 @@
 "use client";
 
 import {
-  createContext,
-  useContext,
   useEffect,
   useState,
   ReactNode,
   useCallback,
+  useMemo,
   useSyncExternalStore,
 } from "react";
 import { THEME_STORAGE_KEY } from "@/lib/theme";
-
-type Theme = "light" | "dark" | "system";
-
-interface ThemeContextType {
-  theme: Theme;
-  resolvedTheme: "light" | "dark";
-  setTheme: (theme: Theme) => void;
-  toggleTheme: () => void;
-}
-
-const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
+import {
+  ThemeContext,
+  type Theme,
+  type ThemeContextType,
+} from "./themeContext";
 
 function getStoredTheme(): Theme {
   if (typeof window === "undefined") return "system";
@@ -70,19 +63,14 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     root.classList.add(resolvedTheme);
   }, [resolvedTheme]);
 
+  const contextValue = useMemo<ThemeContextType>(
+    () => ({ theme, resolvedTheme, setTheme, toggleTheme }),
+    [theme, resolvedTheme, setTheme, toggleTheme]
+  );
+
   return (
-    <ThemeContext.Provider
-      value={{ theme, resolvedTheme, setTheme, toggleTheme }}
-    >
+    <ThemeContext.Provider value={contextValue}>
       {children}
     </ThemeContext.Provider>
   );
-}
-
-export function useTheme() {
-  const context = useContext(ThemeContext);
-  if (context === undefined) {
-    throw new Error("useTheme must be used within a ThemeProvider");
-  }
-  return context;
 }

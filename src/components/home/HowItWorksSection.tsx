@@ -41,7 +41,7 @@ export function HowItWorksSection() {
 
       <div className="grid md:grid-cols-4 gap-8">
         {steps.map((step, index) => (
-          <div key={index} className="relative text-center animate-fade-in">
+          <div key={step.title} className="relative text-center animate-fade-in">
             {/* Connector line */}
             {index < steps.length - 1 && (
               <div className="hidden md:block absolute top-8 left-[60%] w-full h-0.5 bg-slate-200 dark:bg-slate-700" />

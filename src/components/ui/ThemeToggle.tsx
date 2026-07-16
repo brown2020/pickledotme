@@ -1,7 +1,7 @@
 "use client";
 
 import { Moon, Sun, Monitor } from "lucide-react";
-import { useTheme } from "@/providers/ThemeProvider";
+import { useTheme } from "@/providers/themeContext";
 import { cn } from "@/lib/cn";
 
 interface ThemeToggleProps {
@@ -16,6 +16,7 @@ export function ThemeToggle({ className, showLabel = false }: ThemeToggleProps) 
   if (!showLabel) {
     return (
       <button
+        type="button"
         onClick={toggleTheme}
         className={cn(
           "p-2 rounded-xl transition-colors",
@@ -36,6 +37,7 @@ export function ThemeToggle({ className, showLabel = false }: ThemeToggleProps) 
   return (
     <div className={cn("flex items-center gap-1", className)}>
       <button
+        type="button"
         onClick={() => setTheme("light")}
         className={cn(
           "p-2 rounded-lg transition-colors",
@@ -48,6 +50,7 @@ export function ThemeToggle({ className, showLabel = false }: ThemeToggleProps) 
         <Sun className="w-4 h-4" />
       </button>
       <button
+        type="button"
         onClick={() => setTheme("dark")}
         className={cn(
           "p-2 rounded-lg transition-colors",
@@ -60,6 +63,7 @@ export function ThemeToggle({ className, showLabel = false }: ThemeToggleProps) 
         <Moon className="w-4 h-4" />
       </button>
       <button
+        type="button"
         onClick={() => setTheme("system")}
         className={cn(
           "p-2 rounded-lg transition-colors",

@@ -1,7 +1,8 @@
 import "server-only";
 
-import { cert, getApps, initializeApp } from "firebase-admin/app";
+import { cert, getApp, getApps, initializeApp } from "firebase-admin/app";
 import { getAuth } from "firebase-admin/auth";
+import { getFirestore } from "firebase-admin/firestore";
 
 function getOptionalEnv(name: string): string | undefined {
   return process.env[name] || undefined;
@@ -23,7 +24,7 @@ export function hasFirebaseAdminConfig() {
  * - FIREBASE_ADMIN_CLIENT_EMAIL
  * - FIREBASE_ADMIN_PRIVATE_KEY (with \\n escaped newlines)
  */
-export function getFirebaseAdminAuth() {
+function getFirebaseAdminApp() {
   if (!getApps().length) {
     if (!hasFirebaseAdminConfig()) {
       throw new Error(
@@ -31,7 +32,7 @@ export function getFirebaseAdminAuth() {
       );
     }
 
-    initializeApp({
+    return initializeApp({
       credential: cert({
         projectId: getOptionalEnv("FIREBASE_ADMIN_PROJECT_ID")!,
         clientEmail: getOptionalEnv("FIREBASE_ADMIN_CLIENT_EMAIL")!,
@@ -43,5 +44,13 @@ export function getFirebaseAdminAuth() {
     });
   }
 
-  return getAuth();
+  return getApp();
+}
+
+export function getFirebaseAdminAuth() {
+  return getAuth(getFirebaseAdminApp());
+}
+
+export function getFirebaseAdminFirestore() {
+  return getFirestore(getFirebaseAdminApp());
 }
