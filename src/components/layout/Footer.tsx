@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { Github, Twitter } from "lucide-react";
 
 export function Footer() {
   return (
@@ -26,7 +25,7 @@ export function Footer() {
                 className="p-2 rounded-lg hover:bg-slate-800 transition-colors"
                 aria-label="GitHub"
               >
-                <Github className="w-5 h-5" />
+                <span className="text-sm font-medium">GitHub</span>
               </a>
               <a
                 href="https://twitter.com"
@@ -35,7 +34,7 @@ export function Footer() {
                 className="p-2 rounded-lg hover:bg-slate-800 transition-colors"
                 aria-label="Twitter"
               >
-                <Twitter className="w-5 h-5" />
+                <span className="text-sm font-medium">Twitter</span>
               </a>
             </div>
           </div>

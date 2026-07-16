@@ -6,7 +6,7 @@
 [![License: AGPL-3.0](https://img.shields.io/badge/License-AGPL--3.0-blue.svg)](LICENSE.md)
 [![Next.js](https://img.shields.io/badge/Next.js-16-black)](https://nextjs.org/)
 [![React](https://img.shields.io/badge/React-19-blue)](https://react.dev/)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5-blue)](https://www.typescriptlang.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-6-blue)](https://www.typescriptlang.org/)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind-4-38bdf8)](https://tailwindcss.com/)
 
 **AI-powered advice meets brain-training games**
@@ -23,7 +23,7 @@ Pickle.me is a Next.js 16 application that combines AI-powered advice with engag
 
 ### Why Pickle.me?
 
-- **🤖 Multi-Model AI** - Choose from 5 leading AI providers for personalized advice
+- **🤖 Multi-Model AI** - Choose from 4 leading AI providers for personalized advice
 - **🎮 6 Brain Games** - Train memory, reflexes, and problem-solving skills
 - **🌙 Dark Mode** - Full dark mode support for comfortable viewing
 - **📱 Responsive** - Works beautifully on desktop, tablet, and mobile
@@ -37,13 +37,12 @@ Pickle.me is a Next.js 16 application that combines AI-powered advice with engag
 
 Get thoughtful, actionable advice for any dilemma using your choice of AI model:
 
-| Provider  | Model             |
-| --------- | ----------------- |
-| OpenAI    | GPT-4.1           |
-| Google    | Gemini 1.5 Pro    |
-| Anthropic | Claude 3.5 Sonnet |
-| Mistral   | Mistral Large     |
-| Fireworks | LLaMA v3p1 405B   |
+| Provider  | Model                  |
+| --------- | ---------------------- |
+| OpenAI    | GPT-5.2 Chat Latest    |
+| Google    | Gemini 2.5 Flash       |
+| Anthropic | Claude Sonnet 4.5      |
+| Mistral   | Mistral Large (latest) |
 
 - Real-time streaming responses
 - Markdown-formatted output
@@ -84,38 +83,39 @@ Features:
 
 | Technology                                | Version | Purpose                         |
 | ----------------------------------------- | ------- | ------------------------------- |
-| [Next.js](https://nextjs.org/)            | 16.1.1  | React framework with App Router |
-| [React](https://react.dev/)               | 19.2.3  | UI library                      |
-| [TypeScript](https://typescriptlang.org/) | 5.9.3   | Type safety                     |
-| [Tailwind CSS](https://tailwindcss.com/)  | 4.1.18  | Utility-first styling           |
+| [Next.js](https://nextjs.org/)            | 16.2.10 | React framework with App Router |
+| [React](https://react.dev/)               | 19.2.7  | UI library                      |
+| [TypeScript](https://typescriptlang.org/) | 6.0.3   | Type safety                     |
+| [Tailwind CSS](https://tailwindcss.com/)  | 4.3.2   | Utility-first styling           |
 
 ### AI & Backend
 
 | Technology                                                                              | Version | Purpose                    |
 | --------------------------------------------------------------------------------------- | ------- | -------------------------- |
-| [Vercel AI SDK](https://sdk.vercel.ai/)                                                 | 6.0.3   | AI streaming & integration |
-| [@ai-sdk/openai](https://sdk.vercel.ai/providers/ai-sdk-providers/openai)               | 3.0.1   | OpenAI provider            |
-| [@ai-sdk/google](https://sdk.vercel.ai/providers/ai-sdk-providers/google-generative-ai) | 3.0.1   | Google AI provider         |
-| [@ai-sdk/anthropic](https://sdk.vercel.ai/providers/ai-sdk-providers/anthropic)         | 3.0.1   | Anthropic provider         |
-| [@ai-sdk/mistral](https://sdk.vercel.ai/providers/ai-sdk-providers/mistral)             | 3.0.1   | Mistral provider           |
-| [Firebase](https://firebase.google.com/)                                                | 12.7.0  | Auth & Firestore database  |
+| [Vercel AI SDK](https://sdk.vercel.ai/)                                                 | 7.0.29  | AI streaming & integration |
+| [@ai-sdk/openai](https://sdk.vercel.ai/providers/ai-sdk-providers/openai)               | 4.0.15  | OpenAI provider            |
+| [@ai-sdk/google](https://sdk.vercel.ai/providers/ai-sdk-providers/google-generative-ai) | 4.0.17  | Google AI provider         |
+| [@ai-sdk/anthropic](https://sdk.vercel.ai/providers/ai-sdk-providers/anthropic)         | 4.0.15  | Anthropic provider         |
+| [@ai-sdk/mistral](https://sdk.vercel.ai/providers/ai-sdk-providers/mistral)             | 4.0.12  | Mistral provider           |
+| [Firebase](https://firebase.google.com/)                                                | 12.16.0 | Auth & Firestore database  |
+| [Firebase Admin](https://firebase.google.com/docs/admin/setup)                          | 14.1.0  | Server session validation  |
 
 ### UI & Animation
 
 | Technology                                                   | Version | Purpose                 |
 | ------------------------------------------------------------ | ------- | ----------------------- |
-| [Framer Motion](https://www.framer.com/motion/)              | 12.23.26 | Animations             |
-| [Lucide React](https://lucide.dev/)                          | 0.562.0 | Icons                   |
-| [SWR](https://swr.vercel.app/)                               | 2.3.8   | Data fetching & caching |
+| [Framer Motion](https://www.framer.com/motion/)              | 12.42.2 | Animations              |
+| [Lucide React](https://lucide.dev/)                          | 1.24.0  | Icons                   |
+| [SWR](https://swr.vercel.app/)                               | 2.4.2   | Data fetching & caching |
 | [react-markdown](https://github.com/remarkjs/react-markdown) | 10.1.0  | Markdown rendering      |
 
 ### Utilities
 
 | Technology                                                  | Version | Purpose                |
 | ----------------------------------------------------------- | ------- | ---------------------- |
-| [Zod](https://zod.dev/)                                     | 4.2.1   | Schema validation      |
+| [Zod](https://zod.dev/)                                     | 4.4.3   | Schema validation      |
 | [clsx](https://github.com/lukeed/clsx)                      | 2.1.1   | Class name utilities   |
-| [tailwind-merge](https://github.com/dcastil/tailwind-merge) | 3.4.0   | Tailwind class merging |
+| [tailwind-merge](https://github.com/dcastil/tailwind-merge) | 3.6.0   | Tailwind class merging |
 
 ---
 
@@ -123,17 +123,17 @@ Features:
 
 ### Prerequisites
 
-- **Node.js** 18.17 or later
-- **npm** or **yarn** or **pnpm**
+- **Node.js** 22 or later
+- **npm** (the committed lockfile is npm-managed)
 - **Firebase** project with Firestore and Authentication enabled
-- **API Keys** from at least one AI provider (OpenAI, Google, Anthropic, Mistral, or Fireworks)
+- **API Keys** from at least one AI provider (OpenAI, Google, Anthropic, or Mistral)
 
 ### Installation
 
 1. **Clone the repository**
 
 ```bash
-git clone https://github.com/yourusername/pickledotme.git
+git clone https://github.com/brown2020/pickledotme.git
 cd pickledotme
 ```
 
@@ -153,8 +153,6 @@ OPENAI_API_KEY=sk-...
 GOOGLE_API_KEY=...
 ANTHROPIC_API_KEY=sk-ant-...
 MISTRAL_API_KEY=...
-FIREWORKS_API_KEY=...
-
 # Firebase Configuration (required)
 NEXT_PUBLIC_FIREBASE_API_KEY=...
 NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=your-project.firebaseapp.com
@@ -162,6 +160,11 @@ NEXT_PUBLIC_FIREBASE_PROJECT_ID=your-project-id
 NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=your-project.appspot.com
 NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=...
 NEXT_PUBLIC_FIREBASE_APP_ID=...
+
+# Firebase Admin session-cookie configuration (required for protected routes)
+FIREBASE_ADMIN_PROJECT_ID=your-project-id
+FIREBASE_ADMIN_CLIENT_EMAIL=firebase-adminsdk-...@your-project.iam.gserviceaccount.com
+FIREBASE_ADMIN_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----\n"
 
 # App URL (optional, for metadata)
 NEXT_PUBLIC_APP_URL=https://pickle.me
@@ -264,6 +267,9 @@ npm start
 
 # Run ESLint
 npm run lint
+
+# Run the strict TypeScript gate
+npx tsc --noEmit
 ```
 
 ### Architecture Decisions
@@ -333,7 +339,7 @@ git checkout -b feature/amazing-feature
 
 4. **Make** your changes
 5. **Test** locally with `npm run dev`
-6. **Lint** your code with `npm run lint`
+6. **Verify** with `npm run lint`, `npx tsc --noEmit`, and `npm run build`
 7. **Commit** with a descriptive message
 
 ```bash
@@ -385,6 +391,6 @@ This project is licensed under the GNU Affero General Public License v3.0 (AGPL-
 
 **Built with 🥒 by the Pickle.me Team**
 
-[Report Bug](https://github.com/yourusername/pickledotme/issues) • [Request Feature](https://github.com/yourusername/pickledotme/issues)
+[Report Bug](https://github.com/brown2020/pickledotme/issues) • [Request Feature](https://github.com/brown2020/pickledotme/issues)
 
 </div>
