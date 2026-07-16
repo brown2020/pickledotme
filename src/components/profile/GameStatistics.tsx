@@ -1,5 +1,5 @@
 import { GAMES, GAME_CONFIGS } from "@/config/games";
-import { DisplayScore } from "@/services/scoreService";
+import type { DisplayScore } from "@/types/score";
 import { ProfileCard } from "./ProfileCard";
 import { Trophy } from "lucide-react";
 

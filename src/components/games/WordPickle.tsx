@@ -1,6 +1,7 @@
 "use client";
 
-import { motion, AnimatePresence } from "framer-motion";
+import { AnimatePresence } from "framer-motion";
+import * as m from "framer-motion/m";
 import { useWordGame, Letter } from "@/hooks/useWordGame";
 import { GameControls } from "./common/GameControls";
 import { ScoreDisplay } from "./common/ScoreDisplay";
@@ -19,15 +20,16 @@ function LetterTile({
   showCorrect?: boolean;
 }) {
   return (
-    <motion.button
+    <m.button
+      type="button"
       layout
-      initial={{ scale: 0, rotate: -10 }}
+      initial={{ scale: 0.8, rotate: -10, opacity: 0 }}
       animate={{ 
         scale: 1, 
         rotate: 0,
         backgroundColor: showCorrect ? "#10b981" : undefined,
       }}
-      exit={{ scale: 0, rotate: 10 }}
+      exit={{ scale: 0.8, rotate: 10, opacity: 0 }}
       whileHover={{ scale: 1.05 }}
       whileTap={{ scale: 0.95 }}
       onClick={onClick}
@@ -49,7 +51,7 @@ function LetterTile({
       `}
     >
       {letter.char}
-    </motion.button>
+    </m.button>
   );
 }
 
@@ -122,9 +124,9 @@ export function WordPickle() {
               </p>
               <div className="flex justify-center gap-2 min-h-[60px] p-4 bg-slate-100 dark:bg-slate-700 rounded-2xl">
                 <AnimatePresence mode="popLayout">
-                  {selectedLetters.map((letter, index) => (
+                  {selectedLetters.map((letter) => (
                     <LetterTile
-                      key={`answer-${letter.id}-${index}`}
+                      key={`answer-${letter.id}`}
                       letter={letter}
                       onClick={() => deselectLetter(letter)}
                       isAnswer
@@ -133,13 +135,13 @@ export function WordPickle() {
                   ))}
                 </AnimatePresence>
                 {showCorrect && (
-                  <motion.div
-                    initial={{ scale: 0 }}
-                    animate={{ scale: 1 }}
+                  <m.div
+                    initial={{ scale: 0.8, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
                     className="flex items-center ml-2"
                   >
                     <Check className="w-8 h-8 text-emerald-500" />
-                  </motion.div>
+                  </m.div>
                 )}
               </div>
             </div>
@@ -249,5 +251,3 @@ export function WordPickle() {
     </Card>
   );
 }
-
-

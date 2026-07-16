@@ -33,8 +33,8 @@ export function FeatureGrid() {
         What can you do?
       </h2>
       <div className="grid md:grid-cols-3 gap-6">
-        {features.map((feature, index) => (
-          <div key={index} className="animate-fade-in">
+        {features.map((feature) => (
+          <div key={feature.link} className="animate-fade-in">
             <FeatureCard {...feature} />
           </div>
         ))}

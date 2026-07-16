@@ -13,7 +13,7 @@ export default function TermsPage() {
           Terms of Service
         </h1>
         <p className="text-slate-500 dark:text-slate-400 mb-8">
-          Last updated: {new Date().toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}
+          Last updated: July 15, 2026
         </p>
 
         <div className="prose prose-slate dark:prose-invert max-w-none space-y-8">

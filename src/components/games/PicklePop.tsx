@@ -1,12 +1,25 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { AnimatePresence } from "framer-motion";
+import * as m from "framer-motion/m";
 import { usePicklePopGame, PopPickle } from "@/hooks/usePicklePopGame";
 import { GameControls } from "./common/GameControls";
 import { ScoreDisplay } from "./common/ScoreDisplay";
 import { Card, CardContent, CardHeader } from "@/components/ui";
 import { Target, Flame, Clock } from "lucide-react";
+
+const PICKLE_COLORS = {
+  normal: "from-emerald-400 to-emerald-600",
+  golden: "from-yellow-400 to-amber-500",
+  rotten: "from-stone-500 to-stone-700",
+} as const;
+
+const PICKLE_SHADOWS = {
+  normal: "shadow-emerald-500/30",
+  golden: "shadow-yellow-500/40",
+  rotten: "shadow-stone-500/30",
+} as const;
 
 function PickleButton({ pickle, onClick }: { pickle: PopPickle; onClick: () => void }) {
   const [timeLeft, setTimeLeft] = useState(100);
@@ -20,30 +33,19 @@ function PickleButton({ pickle, onClick }: { pickle: PopPickle; onClick: () => v
     return () => clearInterval(interval);
   }, [pickle.expiresAt]);
 
-  const colors = {
-    normal: "from-emerald-400 to-emerald-600",
-    golden: "from-yellow-400 to-amber-500",
-    rotten: "from-stone-500 to-stone-700",
-  };
-
-  const shadows = {
-    normal: "shadow-emerald-500/30",
-    golden: "shadow-yellow-500/40",
-    rotten: "shadow-stone-500/30",
-  };
-
   return (
-    <motion.button
-      initial={{ scale: 0, rotate: -180 }}
+    <m.button
+      type="button"
+      initial={{ scale: 0.8, rotate: -180, opacity: 0 }}
       animate={{ scale: 1, rotate: 0 }}
-      exit={{ scale: 0, rotate: 180 }}
+      exit={{ scale: 0.8, rotate: 180, opacity: 0 }}
       whileHover={{ scale: 1.1 }}
       whileTap={{ scale: 0.9 }}
       onClick={onClick}
       className={`
         absolute inset-2 rounded-2xl
-        bg-gradient-to-br ${colors[pickle.type]}
-        shadow-lg ${shadows[pickle.type]}
+        bg-gradient-to-br ${PICKLE_COLORS[pickle.type]}
+        shadow-lg ${PICKLE_SHADOWS[pickle.type]}
         flex items-center justify-center
         cursor-pointer transition-shadow
         hover:shadow-xl
@@ -54,14 +56,14 @@ function PickleButton({ pickle, onClick }: { pickle: PopPickle; onClick: () => v
       </span>
 
       <div className="absolute bottom-1 left-1 right-1 h-1 bg-black/20 rounded-full overflow-hidden">
-        <motion.div
-          className={`h-full ${pickle.type === "golden" ? "bg-yellow-300" : "bg-white/60"}`}
-          initial={{ width: "100%" }}
-          animate={{ width: `${timeLeft}%` }}
+        <m.div
+          className={`h-full origin-left ${pickle.type === "golden" ? "bg-yellow-300" : "bg-white/60"}`}
+          initial={{ scaleX: 1 }}
+          animate={{ scaleX: timeLeft / 100 }}
           transition={{ duration: 0.1 }}
         />
       </div>
-    </motion.button>
+    </m.button>
   );
 }
 
@@ -78,6 +80,9 @@ export function PicklePop() {
     startGame,
     handlePickleClick,
   } = usePicklePopGame();
+  const picklesByPosition = new Map(
+    pickles.map((pickle) => [pickle.position, pickle])
+  );
 
   return (
     <Card variant="elevated" className="max-w-2xl mx-auto dark:bg-slate-800">
@@ -123,9 +128,15 @@ export function PicklePop() {
           {Array.from({ length: 9 }).map((_, index) => (
             <div key={index} className="relative aspect-square bg-slate-100 dark:bg-slate-700 rounded-2xl">
               <AnimatePresence>
-                {pickles.filter((p) => p.position === index).map((pickle) => (
-                  <PickleButton key={pickle.id} pickle={pickle} onClick={() => handlePickleClick(pickle.id)} />
-                ))}
+                {picklesByPosition.has(index) ? (
+                  <PickleButton
+                    key={picklesByPosition.get(index)!.id}
+                    pickle={picklesByPosition.get(index)!}
+                    onClick={() =>
+                      handlePickleClick(picklesByPosition.get(index)!.id)
+                    }
+                  />
+                ) : null}
               </AnimatePresence>
             </div>
           ))}
@@ -168,5 +179,3 @@ export function PicklePop() {
     </Card>
   );
 }
-
-

@@ -46,7 +46,7 @@ export function useSpeedPickleGame() {
   }, [gameBase, generatePickles, timer]);
 
   const handlePickleClick = useCallback(
-    async (isTarget: boolean) => {
+    (isTarget: boolean) => {
       if (!gameBase.isPlaying) return;
 
       if (isTarget) {
@@ -56,11 +56,6 @@ export function useSpeedPickleGame() {
         // Level up every 500 points
         if (newScore % 500 === 0) {
           gameBase.setLevel(gameBase.level + 1);
-        }
-
-        // Save if new best
-        if (newScore > gameBase.bestScore) {
-          await gameBase.saveScore(newScore);
         }
 
         setPickles(generatePickles());

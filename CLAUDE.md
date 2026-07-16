@@ -20,7 +20,7 @@
 
 ```
 src/
-├── actions/           # Server Actions (AI streaming)
+├── actions/           # Session, advice, and score Server Actions
 ├── app/               # Next.js App Router pages
 │   ├── api/auth/      # Session management
 │   ├── games/         # Games routes (protected)
@@ -33,7 +33,6 @@ src/
 ├── hooks/             # Custom hooks (useGameBase, useSound, useScores, etc.)
 ├── lib/               # Utilities (cn, firebase configs, validations)
 ├── providers/         # Auth + Theme contexts
-├── services/          # Firestore operations
 ├── stores/            # Zustand stores
 ├── types/             # TypeScript types
 └── proxy.ts           # Route protection (Next.js 16 middleware replacement)
@@ -63,14 +62,14 @@ npm start        # Production server
 - Redirects to home with `?redirect=` param
 
 ### Data Fetching
-- **SWR** for client-side score fetching with caching
-- **Server Actions** for AI streaming responses
-- **Firestore direct** for user data persistence
+- **SWR** for cached client orchestration
+- **Server Actions** for AI streaming and all Firestore access
+- **Firebase Admin** for session-verified persistence
 
 ### Validation
 - Zod schemas in `src/lib/validations.ts`
 - `validateOrThrow()` for server actions
-- `validate()` for form submissions
+- `.safeParse()` for client form validation
 
 ### Styling
 - Tailwind utilities with `cn()` helper (clsx + tailwind-merge)
@@ -99,7 +98,7 @@ NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET
 NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID
 NEXT_PUBLIC_FIREBASE_APP_ID
 
-# Server-side Firebase Admin session cookies
+# Server-side Firebase Admin sessions and Firestore access
 FIREBASE_ADMIN_PROJECT_ID
 FIREBASE_ADMIN_CLIENT_EMAIL
 FIREBASE_ADMIN_PRIVATE_KEY
@@ -123,9 +122,8 @@ FIREBASE_ADMIN_PRIVATE_KEY
 
 ## Error Handling
 
-- Custom `AppError` class in `src/lib/errors.ts`
-- Error codes: AUTH_REQUIRED, SAVE_FAILED, etc.
-- Firebase errors mapped to user-friendly messages
+- Service boundaries translate Firebase failures into user-facing messages
+- Server actions validate untrusted input with Zod before processing
 
 ## Security Notes
 

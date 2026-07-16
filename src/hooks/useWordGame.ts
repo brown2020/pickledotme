@@ -125,13 +125,15 @@ export function useWordGame() {
     levelRef.current = gameBase.level;
   }, [gameBase.level]);
 
+  const handleTimeUp = useCallback(() => {
+    clearPendingTimeouts();
+    return gameBase.endGame();
+  }, [clearPendingTimeouts, gameBase]);
+
   // Use shared timer hook
   const timer = useGameTimer({
     initialTime: GAME_DURATION,
-    onTimeUp: () => {
-      clearPendingTimeouts();
-      return gameBase.endGame();
-    },
+    onTimeUp: handleTimeUp,
   });
 
   const generateNewWord = useCallback(() => {
@@ -161,7 +163,7 @@ export function useWordGame() {
 
   // Check an attempt and advance game state (called from event handlers)
   const checkAttempt = useCallback(
-    (attemptLetters: Letter[]) => {
+    (attemptLetters: Letter[], usedHint = hintUsed) => {
       if (isProcessing || showCorrect) return;
       if (
         attemptLetters.length !== currentWord.length ||
@@ -178,7 +180,7 @@ export function useWordGame() {
 
         const basePoints = currentWord.length * 20;
         const timeBonus = Math.floor(timer.timeLeft / 2);
-        const hintPenalty = hintUsed ? HINT_PENALTY : 0;
+        const hintPenalty = usedHint ? HINT_PENALTY : 0;
         const points = Math.max(10, basePoints + timeBonus - hintPenalty);
 
         gameBase.updateScore(gameBase.score + points);
@@ -270,40 +272,29 @@ export function useWordGame() {
   const useHint = useCallback(() => {
     if (hintUsed || showCorrect || isProcessing) return;
 
+    const nextChar = currentWord[selectedLetters.length];
+    const letterToAdd = scrambledLetters.find(
+      (letter) => !letter.isSelected && letter.char === nextChar
+    );
+    if (!letterToAdd) return;
+
+    const nextSelected = [...selectedLetters, letterToAdd];
     setHintUsed(true);
-    // Find the next correct letter
-    setSelectedLetters((prevSelected) => {
-      const nextChar = currentWord[prevSelected.length];
+    setScrambledLetters((previous) =>
+      previous.map((letter) =>
+        letter.id === letterToAdd.id
+          ? { ...letter, isSelected: true }
+          : letter
+      )
+    );
+    setSelectedLetters(nextSelected);
 
-      setScrambledLetters((prevScrambled) => {
-        const letterToSelect = prevScrambled.find(
-          (l) => !l.isSelected && l.char === nextChar
-        );
-
-        if (letterToSelect) {
-          return prevScrambled.map((l) =>
-            l.id === letterToSelect.id ? { ...l, isSelected: true } : l
-          );
-        }
-        return prevScrambled;
-      });
-
-      const letterToAdd = scrambledLetters.find(
-        (l) => !l.isSelected && l.char === nextChar
-      );
-
-      const nextSelected = letterToAdd
-        ? [...prevSelected, letterToAdd]
-        : prevSelected;
-      if (
-        nextSelected.length === currentWord.length &&
-        currentWord.length > 0 &&
-        nextSelected !== prevSelected
-      ) {
-        queueMicrotask(() => checkAttempt(nextSelected));
-      }
-      return nextSelected;
-    });
+    if (
+      nextSelected.length === currentWord.length &&
+      currentWord.length > 0
+    ) {
+      checkAttempt(nextSelected, true);
+    }
   }, [
     checkAttempt,
     hintUsed,
@@ -311,6 +302,7 @@ export function useWordGame() {
     isProcessing,
     currentWord,
     scrambledLetters,
+    selectedLetters,
   ]);
 
   const startGame = useCallback(() => {

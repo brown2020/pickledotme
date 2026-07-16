@@ -10,7 +10,7 @@ Pickle.me is an AI advice and brain-training game app. The current implementatio
 - Users can authenticate with Firebase-backed Google auth through the client provider and server session endpoint.
 - Authenticated users can access `/games`, `/pickle`, and `/profile`.
 - Users can play six configured games: sequence, reaction, matching, pop, speed, and word.
-- Game scores are written to Firestore history and best-score collections through `scoreService`.
+- Game scores are written transactionally to Firestore history and best-score collections through `src/actions/scores.ts`.
 - Users can request AI advice with a selected model and tone through `src/actions/getAdvice.ts`.
 
 ## Architecture Summary
@@ -19,7 +19,7 @@ Pickle.me is an AI advice and brain-training game app. The current implementatio
 - Styling: Tailwind CSS with utility components in `src/components/ui`.
 - Auth: Firebase client auth plus Firebase Admin session cookies.
 - Route protection: `src/proxy.ts` redirects unauthenticated protected-route access.
-- Persistence: Firestore service modules in `src/services`.
+- Persistence: session-verified Firebase Admin actions in `src/actions`.
 - AI: Vercel AI SDK with OpenAI, Anthropic, Google, and Mistral providers.
 - Client state: React context for auth/theme, SWR for score reads, Zustand for persisted settings.
 - Game behavior: shared state in `useGameBase` and game-specific hooks under `src/hooks`.
@@ -39,10 +39,8 @@ Pickle.me is an AI advice and brain-training game app. The current implementatio
 
 ## Known Quality Risks
 
-- Persisted best-score loading and shared game state appear split between `useScores` and `useGameBase`, which needs verification before score-related fixes.
-- The largest interactive module is `src/app/pickle/PickleContent.tsx`, which may be a maintainability hotspot.
-- Documentation has version and command drift from `package.json`.
-- AI provider docs and code currently differ from some README model/provider descriptions.
+- Score reads and writes cross `useScores`, `useGameBase`, and server actions and need targeted validation when changed.
+- Advice orchestration crosses streaming actions, persistence actions, SWR hooks, and reducer state and needs targeted validation when changed.
 - Local ignored secret-like files exist in the workspace; they should remain untracked and unread.
 
 ## Improvement Goals For This Run

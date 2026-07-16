@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { User, Calendar, Mail } from "lucide-react";
-import { useAuth } from "@/providers/AuthProvider";
+import { useAuth } from "@/providers/authContext";
 import { GameStatistics } from "@/components/profile/GameStatistics";
 import { RecentActivity } from "@/components/profile/RecentActivity";
 import { ProfileSkeleton, Card, CardContent } from "@/components/ui";
@@ -54,7 +54,10 @@ export function ProfileClient() {
                   <Calendar className="w-4 h-4" />
                   Member since{" "}
                   {user?.metadata?.creationTime
-                    ? new Date(user.metadata.creationTime).toLocaleDateString()
+                    ? new Date(user.metadata.creationTime).toLocaleDateString(
+                        "en-US",
+                        { timeZone: "UTC" }
+                      )
                     : "Unknown"}
                 </span>
               </div>

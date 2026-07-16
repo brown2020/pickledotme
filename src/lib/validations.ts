@@ -27,8 +27,6 @@ export const adviceRequestSchema = z.object({
   tone: adviceToneSchema.optional().default("balanced"),
 });
 
-export type AdviceRequest = z.infer<typeof adviceRequestSchema>;
-
 /**
  * Advice chat request validation (supports follow-ups)
  */
@@ -43,7 +41,10 @@ export const adviceChatRequestSchema = z.object({
   tone: adviceToneSchema.optional().default("balanced"),
 });
 
-export type AdviceChatRequest = z.infer<typeof adviceChatRequestSchema>;
+export const assistantMessageRequestSchema = z.object({
+  threadId: z.string().trim().min(1).max(200),
+  content: z.string().trim().min(1).max(50000),
+});
 
 /**
  * Score submission validation
@@ -53,22 +54,15 @@ export const scoreSubmissionSchema = z.object({
   score: z.number().int().min(0).max(1000000),
 });
 
-export type ScoreSubmission = z.infer<typeof scoreSubmissionSchema>;
-
-/**
- * Game ID validation
- */
 export const gameIdSchema = z.enum(GAME_IDS);
 
-/**
- * User profile validation
- */
-export const userProfileSchema = z.object({
-  displayName: z.string().min(1).max(100).optional(),
-  photoURL: z.string().url().optional(),
+export const threadRequestSchema = z.object({
+  threadId: z.string().trim().min(1).max(200),
 });
 
-export type UserProfile = z.infer<typeof userProfileSchema>;
+export const userMessageRequestSchema = threadRequestSchema.extend({
+  content: z.string().trim().min(1).max(5000),
+});
 
 /**
  * Validate and parse data with proper error handling
@@ -80,21 +74,4 @@ export function validateOrThrow<T>(schema: z.ZodSchema<T>, data: unknown): T {
     throw new Error(errors);
   }
   return result.data;
-}
-
-/**
- * Validate and return result with errors
- */
-export function validate<T>(
-  schema: z.ZodSchema<T>,
-  data: unknown
-): { success: true; data: T } | { success: false; errors: string[] } {
-  const result = schema.safeParse(data);
-  if (!result.success) {
-    return {
-      success: false,
-      errors: result.error.issues.map((e) => e.message),
-    };
-  }
-  return { success: true, data: result.data };
 }

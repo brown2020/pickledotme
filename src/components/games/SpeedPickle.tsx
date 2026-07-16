@@ -7,6 +7,12 @@ import { GameRules } from "./speed-pickle/GameRules";
 import { Card, CardContent, CardHeader } from "@/components/ui";
 import { Timer, Clock } from "lucide-react";
 
+function getGridClass(length: number) {
+  if (length <= 16) return "grid-cols-4";
+  if (length <= 25) return "grid-cols-5";
+  return "grid-cols-6";
+}
+
 export function SpeedPickle() {
   const {
     pickles,
@@ -18,12 +24,6 @@ export function SpeedPickle() {
     startGame,
     handlePickleClick,
   } = useSpeedPickleGame();
-
-  const getGridClass = (length: number) => {
-    if (length <= 16) return "grid-cols-4";
-    if (length <= 25) return "grid-cols-5";
-    return "grid-cols-6";
-  };
 
   return (
     <Card variant="elevated" className="max-w-3xl mx-auto">
@@ -63,8 +63,10 @@ export function SpeedPickle() {
           {pickles.map((pickle) => (
             <button
               key={pickle.id}
+              type="button"
               onClick={() => handlePickleClick(pickle.isTarget)}
               disabled={!isPlaying}
+              aria-label={pickle.isTarget ? "Target pickle" : "Regular pickle"}
               className={`
                 aspect-square rounded-xl transition-all duration-200
                 hover:scale-95 active:scale-90

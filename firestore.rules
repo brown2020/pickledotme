@@ -6,59 +6,17 @@ service cloud.firestore {
       return request.auth != null;
     }
 
-    function isOwner(userId) {
-      return signedIn() && request.auth.uid == userId;
-    }
-
-    function isValidScore() {
-      return request.resource.data.score is int
-        && request.resource.data.score >= 0
-        && request.resource.data.score <= 1000000;
-    }
-
-    function isValidGameId() {
-      return request.resource.data.gameId in [
-        'sequence-pickle',
-        'matching-pickles',
-        'speed-pickle',
-        'pickle-pop',
-        'reaction-pickle',
-        'word-pickle'
-      ];
-    }
-
-    function isValidTimestamp(field) {
-      return field is timestamp;
-    }
-
     // --- Pickle Advice ---
     match /adviceThreads/{threadId} {
-      allow create: if isOwner(request.resource.data.userId)
-        && request.resource.data.title is string
-        && request.resource.data.tone is string
-        && request.resource.data.modelName is string
-        && request.resource.data.lastPreview is string
-        && isValidTimestamp(request.resource.data.createdAt)
-        && isValidTimestamp(request.resource.data.updatedAt);
-
-      allow read, update, delete: if signedIn() && resource.data.userId == request.auth.uid;
+      allow read: if signedIn() && resource.data.userId == request.auth.uid;
+      allow create, update, delete: if false;
 
       match /messages/{messageId} {
         allow read: if signedIn()
           && get(/databases/$(database)/documents/adviceThreads/$(threadId)).data.userId == request.auth.uid;
 
-        // Users can only create 'user' role messages (assistant messages come from server)
-        allow create: if isOwner(request.resource.data.userId)
-          && request.resource.data.threadId == threadId
-          && request.resource.data.role == 'user'
-          && request.resource.data.content is string
-          && request.resource.data.content.size() > 0
-          && request.resource.data.content.size() <= 5000
-          && isValidTimestamp(request.resource.data.createdAt)
-          && get(/databases/$(database)/documents/adviceThreads/$(threadId)).data.userId == request.auth.uid;
-
-        // Keep messages append-only (safer and simpler).
-        allow update, delete: if false;
+        // Advice writes are session-verified server actions using Firebase Admin.
+        allow create, update, delete: if false;
       }
     }
 
@@ -67,37 +25,21 @@ service cloud.firestore {
     match /scoreHistory/{docId} {
       allow read: if signedIn() && resource.data.userId == request.auth.uid;
 
-      // Each write is a new record; enforce ownership.
-      allow create: if isOwner(request.resource.data.userId)
-        && isValidGameId()
-        && isValidScore()
-        && isValidTimestamp(request.resource.data.timestamp);
-
-      allow update, delete: if false;
+      allow create, update, delete: if false;
     }
 
     // Best scores are readable by signed-in users for leaderboards.
     match /bestScores/{docId} {
       allow read: if signedIn();
 
-      allow create, update: if isOwner(request.resource.data.userId)
-        && isValidGameId()
-        && isValidScore()
-        && isValidTimestamp(request.resource.data.timestamp);
-
-      allow delete: if false;
+      allow create, update, delete: if false;
     }
 
     // Legacy mixed collection (backwards compatibility).
     match /scores/{docId} {
       allow read: if signedIn();
 
-      allow create, update: if isOwner(request.resource.data.userId)
-        && isValidGameId()
-        && isValidScore()
-        && isValidTimestamp(request.resource.data.timestamp);
-
-      allow delete: if false;
+      allow create, update, delete: if false;
     }
 
     // Deny everything else by default.

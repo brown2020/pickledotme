@@ -1,5 +1,7 @@
 import "server-only";
 
+import { getFirebaseAdminAuth } from "@/lib/firebaseAdmin";
+
 export const SESSION_COOKIE_NAME =
   process.env.NODE_ENV === "production"
     ? "__Host-pickle-session"
@@ -20,4 +22,21 @@ export function isInsecureDevAuthEnabled() {
 
 export function isDevSessionCookie(value: string | undefined) {
   return isInsecureDevAuthEnabled() && value === DEV_SESSION_COOKIE_VALUE;
+}
+
+export async function getVerifiedSessionUid(
+  sessionCookie: string | undefined
+): Promise<string | null> {
+  if (!sessionCookie) return null;
+  if (isDevSessionCookie(sessionCookie)) return DEV_SESSION_COOKIE_VALUE;
+
+  try {
+    const decodedToken = await getFirebaseAdminAuth().verifySessionCookie(
+      sessionCookie,
+      true
+    );
+    return decodedToken.uid;
+  } catch {
+    return null;
+  }
 }

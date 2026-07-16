@@ -1,5 +1,5 @@
 import { GAMES } from "@/config/games";
-import { DisplayScore } from "@/services/scoreService";
+import type { DisplayScore } from "@/types/score";
 import { ProfileCard } from "./ProfileCard";
 import { Clock, Trophy } from "lucide-react";
 
@@ -16,9 +16,9 @@ export function RecentActivity({ scores }: RecentActivityProps) {
     <ProfileCard title="Recent Activity">
       {sortedScores.length > 0 ? (
         <div className="space-y-3">
-          {sortedScores.map((score, index) => (
+          {sortedScores.map((score) => (
             <div
-              key={`${score.gameId}-${score.timestamp.getTime()}-${index}`}
+              key={score.id}
               className="flex justify-between items-center p-4 rounded-xl bg-slate-50 dark:bg-slate-800/50 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
             >
               <div className="flex items-center gap-4">
@@ -32,18 +32,19 @@ export function RecentActivity({ scores }: RecentActivityProps) {
                   <div className="flex items-center gap-1 text-sm text-slate-500 dark:text-slate-400">
                     <Clock className="w-3 h-3" />
                     <span>
-                      {score.timestamp.toLocaleDateString(undefined, {
+                      {score.timestamp.toLocaleDateString("en-US", {
                         month: "short",
                         day: "numeric",
                         hour: "2-digit",
                         minute: "2-digit",
+                        timeZone: "UTC",
                       })}
                     </span>
                   </div>
                 </div>
               </div>
               <span className="text-xl font-bold text-emerald-600 dark:text-emerald-400">
-                {score.score.toLocaleString()}
+                {score.score.toLocaleString("en-US")}
               </span>
             </div>
           ))}

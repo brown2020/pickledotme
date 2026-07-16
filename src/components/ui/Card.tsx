@@ -5,23 +5,23 @@ export interface CardProps extends HTMLAttributes<HTMLDivElement> {
   variant?: "default" | "glass" | "elevated";
 }
 
+const CARD_VARIANTS = {
+  default:
+    "bg-white border border-slate-200 dark:bg-slate-800 dark:border-slate-700",
+  glass:
+    "bg-white/80 backdrop-blur-lg border border-white/20 shadow-xl dark:bg-slate-800/80 dark:border-slate-700/20",
+  elevated:
+    "bg-white shadow-xl shadow-slate-200/50 dark:bg-slate-800 dark:shadow-slate-900/50",
+} as const;
+
 const Card = forwardRef<HTMLDivElement, CardProps>(
   ({ className, variant = "default", children, ...props }, ref) => {
-    const variants = {
-      default:
-        "bg-white border border-slate-200 dark:bg-slate-800 dark:border-slate-700",
-      glass:
-        "bg-white/80 backdrop-blur-lg border border-white/20 shadow-xl dark:bg-slate-800/80 dark:border-slate-700/20",
-      elevated:
-        "bg-white shadow-xl shadow-slate-200/50 dark:bg-slate-800 dark:shadow-slate-900/50",
-    };
-
     return (
       <div
         ref={ref}
         className={cn(
           "rounded-2xl overflow-hidden",
-          variants[variant],
+          CARD_VARIANTS[variant],
           className
         )}
         {...props}

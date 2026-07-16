@@ -23,9 +23,15 @@ export function usePicklePopGame() {
   const [pickles, setPickles] = useState<PopPickle[]>([]);
   const [combo, setCombo] = useState(0);
   const [maxCombo, setMaxCombo] = useState(0);
+  const picklesRef = useRef<PopPickle[]>([]);
   const nextIdRef = useRef(0);
   const spawnIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const expiredIntervalRef = useRef<NodeJS.Timeout | null>(null);
+
+  const replacePickles = useCallback((nextPickles: PopPickle[]) => {
+    picklesRef.current = nextPickles;
+    setPickles(nextPickles);
+  }, []);
 
   // Centralized cleanup function
   const clearAllIntervals = useCallback(() => {
@@ -42,9 +48,9 @@ export function usePicklePopGame() {
   // End the game
   const endGame = useCallback(async () => {
     clearAllIntervals();
-    setPickles([]);
+    replacePickles([]);
     await gameBase.endGame();
-  }, [gameBase, clearAllIntervals]);
+  }, [gameBase, clearAllIntervals, replacePickles]);
 
   // Use shared timer hook - defined early for use in callbacks
   const timer = useGameTimer({
@@ -65,46 +71,47 @@ export function usePicklePopGame() {
 
   // Spawn a new pickle
   const spawnPickle = useCallback(() => {
-    setPickles((prev) => {
-      const occupiedPositions = prev.map((p) => p.position);
-      const availablePositions = Array.from({ length: 9 }, (_, i) => i).filter(
-        (pos) => !occupiedPositions.includes(pos)
-      );
+    const occupiedPositions = new Set(
+      picklesRef.current.map((pickle) => pickle.position)
+    );
+    const availablePositions = Array.from({ length: 9 }, (_, index) =>
+      index
+    ).filter((position) => !occupiedPositions.has(position));
+    if (availablePositions.length === 0) return;
 
-      if (availablePositions.length === 0) return prev;
+    const position =
+      availablePositions[
+        Math.floor(Math.random() * availablePositions.length)
+      ];
+    const randomType = Math.random();
+    const type: PickleType =
+      randomType < 0.1
+        ? "golden"
+        : randomType < 0.25
+          ? "rotten"
+          : "normal";
+    const newPickle: PopPickle = {
+      id: nextIdRef.current++,
+      position,
+      type,
+      expiresAt: Date.now() + getPickleDuration(),
+    };
 
-      const position =
-        availablePositions[
-          Math.floor(Math.random() * availablePositions.length)
-        ];
-
-      // Determine pickle type (10% golden, 15% rotten, 75% normal)
-      const rand = Math.random();
-      let type: PickleType = "normal";
-      if (rand < 0.1) type = "golden";
-      else if (rand < 0.25) type = "rotten";
-
-      const newPickle: PopPickle = {
-        id: nextIdRef.current++,
-        position,
-        type,
-        expiresAt: Date.now() + getPickleDuration(),
-      };
-
-      return [...prev, newPickle];
-    });
-  }, [getPickleDuration]);
+    replacePickles([...picklesRef.current, newPickle]);
+  }, [getPickleDuration, replacePickles]);
 
   // Handle clicking a pickle
   const handlePickleClick = useCallback(
     (pickleId: number) => {
       if (!gameBase.isPlaying) return;
 
-      const pickle = pickles.find((p) => p.id === pickleId);
+      const pickle = picklesRef.current.find((item) => item.id === pickleId);
       if (!pickle) return;
 
       // Remove the clicked pickle
-      setPickles((prev) => prev.filter((p) => p.id !== pickleId));
+      replacePickles(
+        picklesRef.current.filter((item) => item.id !== pickleId)
+      );
 
       if (pickle.type === "rotten") {
         // Clicked rotten pickle - penalty!
@@ -127,19 +134,19 @@ export function usePicklePopGame() {
         }
       }
     },
-    [gameBase, pickles, combo, timer]
+    [gameBase, combo, replacePickles, timer]
   );
 
   // Start the game
   const startGame = useCallback(() => {
-    setPickles([]);
+    replacePickles([]);
     setCombo(0);
     setMaxCombo(0);
     nextIdRef.current = 0;
     timer.reset();
     timer.start();
     gameBase.startGame();
-  }, [gameBase, timer]);
+  }, [gameBase, replacePickles, timer]);
 
   // Spawn pickles periodically and check for expired - combined into single effect
   useEffect(() => {
@@ -152,28 +159,44 @@ export function usePicklePopGame() {
     spawnPickle();
 
     // Set up spawn interval
-    spawnIntervalRef.current = setInterval(spawnPickle, getSpawnInterval());
+    const spawnInterval = setInterval(spawnPickle, getSpawnInterval());
+    spawnIntervalRef.current = spawnInterval;
 
     // Set up expired check interval - uses functional update to avoid stale closure
-    expiredIntervalRef.current = setInterval(() => {
+    const expiredInterval = setInterval(() => {
       const now = Date.now();
-      setPickles((prevPickles) => {
-        const expired = prevPickles.filter((p) => p.expiresAt <= now);
-
-        // Break combo if any non-rotten pickle expired (missed)
-        if (expired.some((p) => p.type !== "rotten")) {
-          setCombo(0);
-        }
-
-        // Return filtered list
-        return prevPickles.filter((p) => p.expiresAt > now);
-      });
+      const expired = picklesRef.current.filter(
+        (pickle) => pickle.expiresAt <= now
+      );
+      if (expired.some((pickle) => pickle.type !== "rotten")) {
+        setCombo(0);
+      }
+      if (expired.length > 0) {
+        replacePickles(
+          picklesRef.current.filter((pickle) => pickle.expiresAt > now)
+        );
+      }
     }, 100);
+    expiredIntervalRef.current = expiredInterval;
 
     return () => {
-      clearAllIntervals();
+      clearInterval(spawnInterval);
+      clearInterval(expiredInterval);
+      if (spawnIntervalRef.current === spawnInterval) {
+        spawnIntervalRef.current = null;
+      }
+      if (expiredIntervalRef.current === expiredInterval) {
+        expiredIntervalRef.current = null;
+      }
     };
-  }, [gameBase.isPlaying, gameBase.level, spawnPickle, getSpawnInterval, clearAllIntervals]);
+  }, [
+    gameBase.isPlaying,
+    gameBase.level,
+    spawnPickle,
+    getSpawnInterval,
+    clearAllIntervals,
+    replacePickles,
+  ]);
 
   return {
     pickles,

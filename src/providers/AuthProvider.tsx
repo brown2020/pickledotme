@@ -1,12 +1,12 @@
 "use client";
 
 import {
-  createContext,
-  useContext,
   useEffect,
   useState,
   ReactNode,
   useCallback,
+  useMemo,
+  useRef,
 } from "react";
 import {
   User,
@@ -17,18 +17,8 @@ import {
 } from "firebase/auth";
 import { useRouter, useSearchParams } from "next/navigation";
 import { auth } from "@/lib/firebaseConfig";
-
-interface AuthContextType {
-  user: User | null;
-  isLoading: boolean;
-  isAuthenticated: boolean;
-  authError: string | null;
-  signInWithGoogle: () => Promise<void>;
-  logout: () => Promise<void>;
-  clearAuthError: () => void;
-}
-
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+import { AuthContext, type AuthContextType } from "./authContext";
+import { syncAuthSession } from "@/actions/authSession";
 
 const googleProvider = new GoogleAuthProvider();
 
@@ -36,22 +26,13 @@ const googleProvider = new GoogleAuthProvider();
  * Sync Firebase auth state to a server-issued, httpOnly session cookie.
  */
 async function syncSessionCookie(user: User | null) {
-  try {
-    if (!user) {
-      await fetch("/api/auth/session", { method: "DELETE" });
-      return;
-    }
-
-    const idToken = await user.getIdToken();
-    await fetch("/api/auth/session", {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ idToken }),
-    });
-  } catch (error) {
-    // Session cookie sync failures should not break the client UI.
-    console.error("Failed to sync session cookie:", error);
+  if (!user) {
+    await syncAuthSession(null);
+    return;
   }
+
+  const idToken = await user.getIdToken();
+  await syncAuthSession(idToken);
 }
 
 export function AuthProvider({ children }: { children: ReactNode }) {
@@ -60,25 +41,47 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [authError, setAuthError] = useState<string | null>(null);
   const router = useRouter();
   const searchParams = useSearchParams();
+  const redirectPath = searchParams?.get("redirect");
+  const wasAuthenticatedRef = useRef(false);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-      const wasLoggedOut = !user;
-      setUser(currentUser);
-      setIsLoading(false);
-      void syncSessionCookie(currentUser);
+    let isActive = true;
 
-      // Handle post-login redirect
-      if (currentUser && wasLoggedOut) {
-        const redirectPath = searchParams?.get("redirect");
-        if (redirectPath && redirectPath.startsWith("/")) {
-          // Validate redirect path to prevent open redirect
-          router.push(redirectPath);
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      const shouldRedirect = Boolean(currentUser) && !wasAuthenticatedRef.current;
+      wasAuthenticatedRef.current = Boolean(currentUser);
+      setUser(currentUser);
+      setIsLoading(true);
+
+      void (async () => {
+        try {
+          await syncSessionCookie(currentUser);
+          if (!isActive) return;
+          setAuthError(null);
+
+          const isSafeInternalPath =
+            redirectPath?.startsWith("/") && !redirectPath.startsWith("//");
+          if (shouldRedirect && redirectPath && isSafeInternalPath) {
+            router.push(redirectPath);
+          }
+        } catch (error) {
+          console.error("Failed to sync session cookie:", error);
+          if (isActive) {
+            setAuthError(
+              "Your browser signed in, but the secure server session could not be created. Please try again."
+            );
+          }
+        } finally {
+          if (isActive) setIsLoading(false);
         }
-      }
+      })();
     });
-    return () => unsubscribe();
-  }, [router, searchParams, user]);
+
+    return () => {
+      isActive = false;
+      unsubscribe();
+    };
+  }, [redirectPath, router]);
 
   const clearAuthError = useCallback(() => {
     setAuthError(null);
@@ -117,27 +120,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
+  const contextValue = useMemo<AuthContextType>(
+    () => ({
+      user,
+      isLoading,
+      isAuthenticated: Boolean(user),
+      authError,
+      signInWithGoogle,
+      logout,
+      clearAuthError,
+    }),
+    [user, isLoading, authError, signInWithGoogle, logout, clearAuthError]
+  );
+
   return (
     <AuthContext.Provider
-      value={{
-        user,
-        isLoading,
-        isAuthenticated: !!user,
-        authError,
-        signInWithGoogle,
-        logout,
-        clearAuthError,
-      }}
+      value={contextValue}
     >
       {children}
     </AuthContext.Provider>
   );
-}
-
-export function useAuth() {
-  const context = useContext(AuthContext);
-  if (context === undefined) {
-    throw new Error("useAuth must be used within an AuthProvider");
-  }
-  return context;
 }

@@ -1,10 +1,53 @@
 "use client";
 
-import { motion } from "framer-motion";
+import * as m from "framer-motion/m";
 import { useReactionGame } from "@/hooks/useReactionGame";
 import { ScoreDisplay } from "./common/ScoreDisplay";
 import { Card, CardContent, CardHeader, Button } from "@/components/ui";
 import { Gauge, Zap, AlertTriangle, CheckCircle, XCircle } from "lucide-react";
+
+function getPhaseColor(phase: string) {
+  switch (phase) {
+    case "ready":
+      return "from-rose-500 to-red-600";
+    case "go":
+      return "from-emerald-500 to-green-600";
+    case "too-early":
+      return "from-amber-500 to-orange-600";
+    case "result":
+      return "from-blue-500 to-indigo-600";
+    default:
+      return "from-slate-400 to-slate-500";
+  }
+}
+
+function getPhaseText(phase: string, currentReactionTime: number | null) {
+  switch (phase) {
+    case "waiting":
+      return "Click Start to Begin";
+    case "ready":
+      return "Wait for green...";
+    case "go":
+      return "CLICK NOW!";
+    case "too-early":
+      return "Too early! 🙈";
+    case "result":
+      return `${currentReactionTime}ms`;
+    case "finished":
+      return "Game Over!";
+    default:
+      return "";
+  }
+}
+
+function getReactionRating(time: number) {
+  if (time <= 200) return { text: "Incredible!", color: "text-emerald-500" };
+  if (time <= 250) return { text: "Excellent!", color: "text-green-500" };
+  if (time <= 300) return { text: "Great!", color: "text-blue-500" };
+  if (time <= 400) return { text: "Good", color: "text-cyan-500" };
+  if (time <= 500) return { text: "Average", color: "text-amber-500" };
+  return { text: "Keep practicing!", color: "text-rose-500" };
+}
 
 export function ReactionPickle() {
   const {
@@ -21,49 +64,6 @@ export function ReactionPickle() {
     resetGame,
     handleClick,
   } = useReactionGame();
-
-  const getPhaseColor = () => {
-    switch (phase) {
-      case "ready":
-        return "from-rose-500 to-red-600";
-      case "go":
-        return "from-emerald-500 to-green-600";
-      case "too-early":
-        return "from-amber-500 to-orange-600";
-      case "result":
-        return "from-blue-500 to-indigo-600";
-      default:
-        return "from-slate-400 to-slate-500";
-    }
-  };
-
-  const getPhaseText = () => {
-    switch (phase) {
-      case "waiting":
-        return "Click Start to Begin";
-      case "ready":
-        return "Wait for green...";
-      case "go":
-        return "CLICK NOW!";
-      case "too-early":
-        return "Too early! 🙈";
-      case "result":
-        return `${currentReactionTime}ms`;
-      case "finished":
-        return "Game Over!";
-      default:
-        return "";
-    }
-  };
-
-  const getReactionRating = (time: number) => {
-    if (time <= 200) return { text: "Incredible!", color: "text-emerald-500" };
-    if (time <= 250) return { text: "Excellent!", color: "text-green-500" };
-    if (time <= 300) return { text: "Great!", color: "text-blue-500" };
-    if (time <= 400) return { text: "Good", color: "text-cyan-500" };
-    if (time <= 500) return { text: "Average", color: "text-amber-500" };
-    return { text: "Keep practicing!", color: "text-rose-500" };
-  };
 
   return (
     <Card variant="elevated" className="max-w-2xl mx-auto dark:bg-slate-800">
@@ -90,12 +90,13 @@ export function ReactionPickle() {
 
       <CardContent className="p-6">
         {/* Main reaction area */}
-        <motion.button
+        <m.button
+          type="button"
           onClick={handleClick}
           disabled={phase === "waiting" || phase === "finished"}
           className={`
             w-full aspect-[2/1] rounded-3xl mb-6
-            bg-gradient-to-br ${getPhaseColor()}
+            bg-gradient-to-br ${getPhaseColor(phase)}
             flex flex-col items-center justify-center
             text-white font-bold
             transition-all duration-200
@@ -106,27 +107,27 @@ export function ReactionPickle() {
           whileTap={phase === "go" || phase === "ready" ? { scale: 0.98 } : {}}
         >
           {phase === "go" && (
-            <motion.div
-              initial={{ scale: 0 }}
-              animate={{ scale: 1 }}
+            <m.div
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
               className="mb-2"
             >
               <Zap className="w-16 h-16" />
-            </motion.div>
+            </m.div>
           )}
           {phase === "too-early" && (
-            <motion.div
-              initial={{ scale: 0 }}
-              animate={{ scale: 1 }}
+            <m.div
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
               className="mb-2"
             >
               <AlertTriangle className="w-16 h-16" />
-            </motion.div>
+            </m.div>
           )}
           {phase === "result" && currentReactionTime && (
-            <motion.div
-              initial={{ scale: 0 }}
-              animate={{ scale: 1 }}
+            <m.div
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
               className="mb-2"
             >
               {currentReactionTime <= 300 ? (
@@ -134,17 +135,19 @@ export function ReactionPickle() {
               ) : (
                 <Gauge className="w-16 h-16" />
               )}
-            </motion.div>
+            </m.div>
           )}
           
-          <span className="text-3xl md:text-4xl">{getPhaseText()}</span>
+          <span className="text-3xl md:text-4xl">
+            {getPhaseText(phase, currentReactionTime)}
+          </span>
           
           {phase === "result" && currentReactionTime && (
             <span className={`text-lg mt-2 ${getReactionRating(currentReactionTime).color}`}>
               {getReactionRating(currentReactionTime).text}
             </span>
           )}
-        </motion.button>
+        </m.button>
 
         {/* Round results */}
         {results.length > 0 && (
@@ -230,5 +233,3 @@ export function ReactionPickle() {
     </Card>
   );
 }
-
-

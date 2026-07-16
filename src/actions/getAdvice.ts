@@ -7,6 +7,7 @@ import { google } from "@ai-sdk/google";
 import { mistral } from "@ai-sdk/mistral";
 import { anthropic } from "@ai-sdk/anthropic";
 import { adviceChatRequestSchema, validateOrThrow } from "@/lib/validations";
+import { requireAuthenticatedSessionUid } from "@/lib/requireAuth";
 
 type ModelName =
   | "gpt-5.2-chat-latest"
@@ -91,6 +92,8 @@ Output format:
  * Server action to generate streaming AI advice (supports follow-ups)
  */
 export async function getAdvice(input: unknown) {
+  await requireAuthenticatedSessionUid();
+
   const { messages, modelName, tone } = validateOrThrow(
     adviceChatRequestSchema,
     input

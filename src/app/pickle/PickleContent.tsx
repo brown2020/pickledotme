@@ -1,107 +1,164 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useMemo, useReducer } from "react";
 import { readStreamableValue } from "@ai-sdk/rsc";
 import Image from "next/image";
-import { Copy, MessageSquarePlus, Plus, Trash2, User } from "lucide-react";
+import { User } from "lucide-react";
 import { getAdvice } from "@/actions/getAdvice";
-import { useAuth } from "@/providers/AuthProvider";
+import {
+  createAdviceThread,
+  deleteAdviceThread,
+  saveAssistantMessage,
+  saveUserMessage,
+} from "@/actions/adviceThreads";
+import { useAuth } from "@/providers/authContext";
+import { AdviceConversation } from "@/components/pickle/AdviceConversation";
 import { AdviceForm } from "@/components/pickle/AdviceForm";
-import { AdviceDisplay } from "@/components/pickle/AdviceDisplay";
+import { AdviceHistory } from "@/components/pickle/AdviceHistory";
 import { PickleLayout } from "@/components/pickle/PickleLayout";
-import { Button, Input } from "@/components/ui";
-import { adviceService, type AdviceTone } from "@/services/adviceService";
+import type { AdviceTone } from "@/types/advice";
 import { useAdviceThread, useAdviceThreads } from "@/hooks/useAdvice";
 
-/**
- * Pickle advice content - AuthGuard handled by layout
- */
+interface AdviceUiState {
+  selectedThreadId: string | null;
+  advice: string;
+  isLoading: boolean;
+  error: string | null;
+  followUp: string;
+  draftThreadId: string | null;
+}
+
+type AdviceUiAction =
+  | { type: "new-thread" }
+  | { type: "select-thread"; threadId: string }
+  | {
+      type: "request-start";
+      draftThreadId: string | null;
+      clearFollowUp?: boolean;
+    }
+  | { type: "thread-created"; threadId: string }
+  | { type: "stream"; advice: string }
+  | { type: "request-error"; message: string }
+  | { type: "request-finish" }
+  | { type: "follow-up-change"; value: string };
+
+const INITIAL_UI_STATE: AdviceUiState = {
+  selectedThreadId: null,
+  advice: "",
+  isLoading: false,
+  error: null,
+  followUp: "",
+  draftThreadId: null,
+};
+
+function adviceUiReducer(
+  state: AdviceUiState,
+  action: AdviceUiAction
+): AdviceUiState {
+  switch (action.type) {
+    case "new-thread":
+      return { ...INITIAL_UI_STATE };
+    case "select-thread":
+      return {
+        ...state,
+        selectedThreadId: action.threadId,
+        advice: "",
+        error: null,
+        draftThreadId: null,
+      };
+    case "request-start":
+      return {
+        ...state,
+        advice: "",
+        isLoading: true,
+        error: null,
+        draftThreadId: action.draftThreadId,
+        followUp: action.clearFollowUp ? "" : state.followUp,
+      };
+    case "thread-created":
+      return {
+        ...state,
+        selectedThreadId: action.threadId,
+        draftThreadId: action.threadId,
+      };
+    case "stream":
+      return { ...state, advice: action.advice };
+    case "request-error":
+      return { ...state, error: action.message };
+    case "request-finish":
+      return { ...state, isLoading: false };
+    case "follow-up-change":
+      return { ...state, followUp: action.value };
+  }
+}
+
+function mergeStreamChunk(current: string, incoming: string): string {
+  if (!incoming) return current;
+  if (incoming.startsWith(current)) return incoming;
+  if (current.startsWith(incoming)) return current;
+  return current + incoming;
+}
+
 export function PickleContent() {
   const { user } = useAuth();
   const { threads, refetch: refetchThreads } = useAdviceThreads();
-
-  const [selectedThreadId, setSelectedThreadId] = useState<string | null>(null);
+  const [ui, dispatch] = useReducer(adviceUiReducer, INITIAL_UI_STATE);
+  const { selectedThreadId, advice, isLoading, error, followUp, draftThreadId } =
+    ui;
   const { messages: threadMessages, refetch: refetchThread } =
     useAdviceThread(selectedThreadId);
 
-  const [advice, setAdvice] = useState<string>("");
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [followUp, setFollowUp] = useState("");
-  const [draftThreadId, setDraftThreadId] = useState<string | null>(null);
-  const messagesEndRef = useRef<HTMLDivElement | null>(null);
-
   const selectedThread = useMemo(
-    () => threads.find((t) => t.id === selectedThreadId) ?? null,
+    () => threads.find((thread) => thread.id === selectedThreadId) ?? null,
     [threads, selectedThreadId]
   );
-
+  const sortedThreadMessages = useMemo(
+    () =>
+      [...threadMessages].sort((left, right) => {
+        const timestampDifference =
+          left.createdAt.getTime() - right.createdAt.getTime();
+        return timestampDifference || left.id.localeCompare(right.id);
+      }),
+    [threadMessages]
+  );
   const hasPersistedDraft = useMemo(() => {
-    if (!advice) return false;
-    if (!draftThreadId) return false;
-    if (draftThreadId !== selectedThreadId) return false;
+    if (!advice || !draftThreadId || draftThreadId !== selectedThreadId) {
+      return false;
+    }
     const draft = advice.trim();
     return threadMessages.some(
-      (m) => m.role === "assistant" && m.content.trim() === draft
+      (message) =>
+        message.role === "assistant" && message.content.trim() === draft
     );
   }, [advice, draftThreadId, selectedThreadId, threadMessages]);
-
-  const sortedThreadMessages = useMemo(() => {
-    const copy = [...threadMessages];
-    copy.sort((a, b) => {
-      const t = a.createdAt.getTime() - b.createdAt.getTime();
-      if (t !== 0) return t;
-      return a.id.localeCompare(b.id);
-    });
-    return copy;
-  }, [threadMessages]);
-
   const visibleDraft =
     draftThreadId === selectedThreadId && !hasPersistedDraft ? advice : "";
-
-  // Keep the view pinned to the latest message / streaming chunk.
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({
-      behavior: "smooth",
-      block: "end",
-    });
-  }, [selectedThreadId, sortedThreadMessages.length, visibleDraft]);
-
-  function mergeStreamChunk(current: string, incoming: string): string {
-    const next = incoming ?? "";
-    if (!next) return current;
-
-    // Some providers stream *deltas* (e.g. "Hel", "lo"), others stream the full
-    // accumulated text each time (e.g. "Hel", "Hello", "Hello!").
-    //
-    // Heuristic:
-    // - If incoming already contains current as a prefix → treat as full text.
-    // - If current contains incoming as a prefix → ignore (out-of-order/dup).
-    // - Else → treat as delta and append.
-    if (next.startsWith(current)) return next;
-    if (current.startsWith(next)) return current;
-    return current + next;
-  }
-
   const chatMessagesForModel = useMemo(() => {
-    const base = sortedThreadMessages.map((m) => ({
-      role: m.role,
-      content: m.content,
+    const messages = sortedThreadMessages.map(({ role, content }) => ({
+      role,
+      content,
     }));
-
-    // When streaming, we mirror the assistant draft as the last assistant message.
-    if (visibleDraft) {
-      const withoutDraft = base.filter(
-        (m, idx) => !(idx === base.length - 1 && m.role === "assistant")
-      );
-      return [
-        ...withoutDraft,
-        { role: "assistant" as const, content: visibleDraft },
-      ];
-    }
-
-    return base;
+    if (!visibleDraft) return messages;
+    const withoutDraft = messages.filter(
+      (message, index) =>
+        !(index === messages.length - 1 && message.role === "assistant")
+    );
+    return [
+      ...withoutDraft,
+      { role: "assistant" as const, content: visibleDraft },
+    ];
   }, [sortedThreadMessages, visibleDraft]);
+
+  const streamAdvice = async (request: Parameters<typeof getAdvice>[0]) => {
+    const adviceStream = await getAdvice(request);
+    let final = "";
+    for await (const chunk of readStreamableValue(adviceStream)) {
+      if (!chunk) continue;
+      final = mergeStreamChunk(final, chunk);
+      dispatch({ type: "stream", advice: final });
+    }
+    return final;
+  };
 
   const handleSubmit = async (params: {
     dilemma: string;
@@ -109,51 +166,29 @@ export function PickleContent() {
     tone: AdviceTone;
   }) => {
     if (!user) return;
-
-    setIsLoading(true);
-    setAdvice("");
-    setError(null);
-    setDraftThreadId(null);
+    dispatch({ type: "request-start", draftThreadId: null });
 
     try {
-      const threadId = await adviceService.createThread({
-        userId: user.uid,
-        dilemma: params.dilemma,
-        modelName: params.modelName,
-        tone: params.tone,
-      });
-      setSelectedThreadId(threadId);
-      setDraftThreadId(threadId);
+      const threadId = await createAdviceThread(params);
+      dispatch({ type: "thread-created", threadId });
       await refetchThreads();
-
-      const adviceStream = await getAdvice({
+      const final = await streamAdvice({
         messages: [{ role: "user", content: params.dilemma }],
         modelName: params.modelName,
         tone: params.tone,
       });
-
-      let final = "";
-      for await (const chunk of readStreamableValue(adviceStream)) {
-        if (chunk) {
-          final = mergeStreamChunk(final, chunk);
-          setAdvice(final);
-        }
-      }
-
       if (final) {
-        await adviceService.addAssistantMessage({
-          userId: user.uid,
-          threadId,
-          content: final,
-        });
-        await refetchThreads();
-        await refetchThread();
+        await saveAssistantMessage({ threadId, content: final });
+        await Promise.all([refetchThreads(), refetchThread()]);
       }
-    } catch (err) {
-      console.error("Error fetching advice:", err);
-      setError("There was an error getting advice. Please try again.");
+    } catch (caughtError) {
+      console.error("Error fetching advice:", caughtError);
+      dispatch({
+        type: "request-error",
+        message: "There was an error getting advice. Please try again.",
+      });
     } finally {
-      setIsLoading(false);
+      dispatch({ type: "request-finish" });
     }
   };
 
@@ -161,90 +196,80 @@ export function PickleContent() {
     if (!user || !selectedThreadId) return;
     const trimmed = message.trim();
     if (!trimmed) return;
-
-    setIsLoading(true);
-    setError(null);
-    setAdvice("");
-    setFollowUp("");
-    setDraftThreadId(selectedThreadId);
+    dispatch({
+      type: "request-start",
+      draftThreadId: selectedThreadId,
+      clearFollowUp: true,
+    });
 
     try {
-      await adviceService.addUserMessage({
-        userId: user.uid,
+      await saveUserMessage({
         threadId: selectedThreadId,
         content: trimmed,
       });
-      // Ensure the user message appears before the assistant starts streaming.
       await refetchThread();
-
-      // Use up to the last 10 messages for context.
-      const context = [
-        ...chatMessagesForModel,
-        { role: "user", content: trimmed },
-      ]
-        .filter((m) => m.content?.trim())
-        .slice(-10);
-
-      const adviceStream = await getAdvice({
-        messages: context,
+      const final = await streamAdvice({
+        messages: [
+          ...chatMessagesForModel,
+          { role: "user", content: trimmed },
+        ]
+          .filter((modelMessage) => modelMessage.content.trim())
+          .slice(-10),
         modelName: "gpt-5.2-chat-latest",
         tone: "balanced",
       });
-
-      let final = "";
-      for await (const chunk of readStreamableValue(adviceStream)) {
-        if (chunk) {
-          final = mergeStreamChunk(final, chunk);
-          setAdvice(final);
-        }
-      }
-
       if (final) {
-        await adviceService.addAssistantMessage({
-          userId: user.uid,
+        await saveAssistantMessage({
           threadId: selectedThreadId,
           content: final,
         });
-        await refetchThreads();
-        await refetchThread();
+        await Promise.all([refetchThreads(), refetchThread()]);
       }
-    } catch (err) {
-      console.error("Error fetching follow-up:", err);
-      setError("There was an error getting a follow-up. Please try again.");
+    } catch (caughtError) {
+      console.error("Error fetching follow-up:", caughtError);
+      dispatch({
+        type: "request-error",
+        message: "There was an error getting a follow-up. Please try again.",
+      });
     } finally {
-      setIsLoading(false);
+      dispatch({ type: "request-finish" });
     }
   };
 
-  const quickFollowUps = useMemo(
-    () => [
-      {
-        label: "Next 3 actions",
-        prompt: "Give me the next 3 actions to take.",
-      },
-      {
-        label: "Pros & cons",
-        prompt: "Make a pros/cons list for each option.",
-      },
-      {
-        label: "Message draft",
-        prompt:
-          "Draft a short message I can send (friendly, clear, and respectful).",
-      },
-      {
-        label: "Ask 3 questions",
-        prompt:
-          "Ask me 3 clarifying questions that would change your recommendation.",
-      },
-    ],
-    []
-  );
+  const handleDelete = async () => {
+    if (!user || !selectedThreadId) return;
+    const threadId = selectedThreadId;
+    dispatch({ type: "new-thread" });
+    try {
+      await deleteAdviceThread({ threadId });
+      await refetchThreads();
+    } catch (caughtError) {
+      console.error("Error deleting conversation:", caughtError);
+      dispatch({
+        type: "request-error",
+        message: "The conversation could not be deleted. Please try again.",
+      });
+    }
+  };
+
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(
+        sortedThreadMessages
+          .map((message) =>
+            `${message.role.toUpperCase()}: ${message.content}`
+          )
+          .join("\n\n")
+      );
+    } catch (caughtError) {
+      console.error("Unable to copy conversation:", caughtError);
+    }
+  };
 
   return (
     <PickleLayout>
-      {/* User Info */}
-      {user && (
-        <div className="flex items-center gap-3 mb-8 p-4 bg-slate-50 dark:bg-slate-800/50 rounded-xl animate-fade-in">
+      {user ? (
+        <div className="mb-8 flex items-center gap-3 rounded-xl bg-slate-50 p-4 dark:bg-slate-800/50">
           {user.photoURL ? (
             <Image
               src={user.photoURL}
@@ -254,8 +279,8 @@ export function PickleContent() {
               className="rounded-full ring-2 ring-emerald-500/20"
             />
           ) : (
-            <div className="w-12 h-12 bg-emerald-100 dark:bg-emerald-900/50 rounded-full flex items-center justify-center">
-              <User className="w-6 h-6 text-emerald-600 dark:text-emerald-400" />
+            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-emerald-100 dark:bg-emerald-900/50">
+              <User className="h-6 w-6 text-emerald-600 dark:text-emerald-400" />
             </div>
           )}
           <div>
@@ -263,297 +288,42 @@ export function PickleContent() {
               Getting advice as
             </p>
             <p className="font-semibold text-slate-900 dark:text-white">
-              {user.displayName}
+              {user.displayName || "Player"}
             </p>
           </div>
         </div>
-      )}
+      ) : null}
 
       <div className="grid gap-8 lg:grid-cols-[320px_1fr]">
-        {/* History (mobile collapsible) */}
-        <details className="lg:hidden rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/50">
-          <summary className="cursor-pointer select-none px-4 py-3 font-bold text-slate-800 dark:text-slate-100 flex items-center justify-between">
-            <span>History</span>
-            <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">
-              {threads.length}
-            </span>
-          </summary>
-          <div className="p-3 space-y-2">
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              className="w-full gap-2"
-              onClick={() => {
-                setSelectedThreadId(null);
-                setAdvice("");
-                setError(null);
-                setDraftThreadId(null);
-              }}
-            >
-              <Plus className="w-4 h-4" />
-              New pickle
-            </Button>
-
-            {threads.length === 0 ? (
-              <div className="text-sm text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-slate-800/50 rounded-xl p-4">
-                No advice yet. Start a new pickle →.
-              </div>
-            ) : (
-              threads.map((t) => (
-                <button
-                  key={t.id}
-                  type="button"
-                  onClick={() => {
-                    setSelectedThreadId(t.id);
-                    setAdvice("");
-                    setError(null);
-                    setDraftThreadId(null);
-                  }}
-                  className={`w-full text-left p-3 rounded-xl border transition-colors ${
-                    selectedThreadId === t.id
-                      ? "border-emerald-400 bg-emerald-50/60 dark:bg-emerald-900/10"
-                      : "border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800/50"
-                  }`}
-                >
-                  <div className="text-sm font-semibold text-slate-900 dark:text-white line-clamp-2">
-                    {t.title}
-                  </div>
-                  {t.lastPreview ? (
-                    <div className="mt-1 text-xs text-slate-500 dark:text-slate-400 line-clamp-2">
-                      {t.lastPreview}
-                    </div>
-                  ) : null}
-                </button>
-              ))
-            )}
-          </div>
-        </details>
-
-        {/* History (desktop sticky) */}
-        <div className="hidden lg:block">
-          <div className="sticky top-24 space-y-3">
-            <div className="flex items-center justify-between">
-              <h2 className="text-sm font-bold text-slate-700 dark:text-slate-200">
-                History
-              </h2>
-              <span className="text-xs text-slate-500 dark:text-slate-400">
-                {threads.length}
-              </span>
-            </div>
-
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              className="w-full gap-2"
-              onClick={() => {
-                setSelectedThreadId(null);
-                setAdvice("");
-                setError(null);
-                setDraftThreadId(null);
-              }}
-            >
-              <Plus className="w-4 h-4" />
-              New pickle
-            </Button>
-
-            <div className="space-y-2 max-h-[60vh] overflow-auto pr-1">
-              {threads.length === 0 ? (
-                <div className="text-sm text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-slate-800/50 rounded-xl p-4">
-                  No advice yet. Start a new pickle →.
-                </div>
-              ) : (
-                threads.map((t) => (
-                  <button
-                    key={t.id}
-                    type="button"
-                    onClick={() => {
-                      setSelectedThreadId(t.id);
-                      setAdvice("");
-                      setError(null);
-                      setDraftThreadId(null);
-                    }}
-                    className={`w-full text-left p-3 rounded-xl border transition-colors ${
-                      selectedThreadId === t.id
-                        ? "border-emerald-400 bg-emerald-50/60 dark:bg-emerald-900/10"
-                        : "border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800/50"
-                    }`}
-                  >
-                    <div className="text-sm font-semibold text-slate-900 dark:text-white line-clamp-2">
-                      {t.title}
-                    </div>
-                    {t.lastPreview ? (
-                      <div className="mt-1 text-xs text-slate-500 dark:text-slate-400 line-clamp-2">
-                        {t.lastPreview}
-                      </div>
-                    ) : null}
-                  </button>
-                ))
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* Main */}
+        <AdviceHistory
+          threads={threads}
+          selectedThreadId={selectedThreadId}
+          onNew={() => dispatch({ type: "new-thread" })}
+          onSelect={(threadId) => dispatch({ type: "select-thread", threadId })}
+        />
         <div className="space-y-6">
           <div className="animate-slide-up">
             <AdviceForm onSubmit={handleSubmit} isLoading={isLoading} />
           </div>
-
-          {error && (
-            <div className="p-4 bg-rose-50 dark:bg-rose-900/20 border border-rose-200 dark:border-rose-800 rounded-xl text-rose-700 dark:text-rose-400 animate-fade-in">
+          {error ? (
+            <div className="rounded-xl border border-rose-200 bg-rose-50 p-4 text-rose-700 dark:border-rose-800 dark:bg-rose-900/20 dark:text-rose-400">
               {error}
             </div>
-          )}
-
-          {/* Controls */}
-          {selectedThreadId ? (
-            <div className="flex flex-wrap gap-2 items-center">
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                className="gap-2"
-                onClick={async () => {
-                  if (!selectedThreadId) return;
-                  try {
-                    await navigator.clipboard.writeText(
-                      sortedThreadMessages
-                        .map((m) => `${m.role.toUpperCase()}: ${m.content}`)
-                        .join("\n\n")
-                    );
-                  } catch {
-                    // ignore
-                  }
-                }}
-              >
-                <Copy className="w-4 h-4" />
-                Copy
-              </Button>
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                className="gap-2 text-rose-700 dark:text-rose-400"
-                onClick={async () => {
-                  if (!user || !selectedThreadId) return;
-                  const id = selectedThreadId;
-                  setSelectedThreadId(null);
-                  setAdvice("");
-                  await adviceService.deleteThread({
-                    userId: user.uid,
-                    threadId: id,
-                  });
-                  await refetchThreads();
-                }}
-              >
-                <Trash2 className="w-4 h-4" />
-                Delete
-              </Button>
-            </div>
           ) : null}
-
-          {/* Conversation (chronological + auto-scroll) */}
-          <div className="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/40">
-            {selectedThread ? (
-              <div className="px-4 py-3 border-b border-slate-100 dark:border-slate-700 text-xs text-slate-500 dark:text-slate-400">
-                Viewing:{" "}
-                <span className="font-semibold text-slate-700 dark:text-slate-200">
-                  {selectedThread.title}
-                </span>
-              </div>
-            ) : null}
-
-            <div className="p-4 space-y-4 max-h-[60vh] overflow-y-auto">
-              {sortedThreadMessages.length === 0 && !visibleDraft ? (
-                <div className="text-sm text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-slate-800/50 rounded-2xl p-6">
-                  Submit a pickle above to start a thread. Your history will
-                  show up on the left.
-                </div>
-              ) : null}
-
-              {sortedThreadMessages.map((m) => (
-                <div
-                  key={m.id}
-                  className={`flex ${
-                    m.role === "user" ? "justify-end" : "justify-start"
-                  }`}
-                >
-                  <div
-                    className={`w-full max-w-3xl rounded-2xl border px-4 py-3 ${
-                      m.role === "user"
-                        ? "border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50"
-                        : "border-emerald-200 dark:border-emerald-800/30 bg-white dark:bg-slate-800"
-                    }`}
-                  >
-                    <div className="text-[11px] font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400 mb-2">
-                      {m.role === "user" ? "You" : "AI"}
-                    </div>
-                    {m.role === "assistant" ? (
-                      <AdviceDisplay advice={m.content} variant="plain" />
-                    ) : (
-                      <p className="text-slate-800 dark:text-slate-100 whitespace-pre-wrap">
-                        {m.content}
-                      </p>
-                    )}
-                  </div>
-                </div>
-              ))}
-
-              {/* Streaming draft belongs at the end of the conversation */}
-              {visibleDraft ? (
-                <div className="flex justify-start">
-                  <div className="w-full max-w-3xl rounded-2xl border border-emerald-200 dark:border-emerald-800/30 bg-white dark:bg-slate-800 px-4 py-3">
-                    <div className="text-[11px] font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400 mb-2">
-                      {isLoading ? "AI (streaming)" : "AI"}
-                    </div>
-                    <AdviceDisplay advice={visibleDraft} variant="plain" />
-                  </div>
-                </div>
-              ) : null}
-
-              <div ref={messagesEndRef} />
-            </div>
-
-            {/* Quick follow-ups */}
-            {selectedThreadId ? (
-              <div className="px-4 py-3 border-t border-slate-100 dark:border-slate-700 space-y-3">
-                <div className="flex flex-wrap gap-2">
-                  {quickFollowUps.map((q) => (
-                    <Button
-                      key={q.label}
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      className="gap-2"
-                      onClick={() => void handleFollowUp(q.prompt)}
-                      disabled={isLoading}
-                    >
-                      <MessageSquarePlus className="w-4 h-4" />
-                      {q.label}
-                    </Button>
-                  ))}
-                </div>
-
-                {/* Follow-up input */}
-                <div className="flex gap-2">
-                  <Input
-                    value={followUp}
-                    onChange={(e) => setFollowUp(e.target.value)}
-                    placeholder="Ask a follow-up…"
-                  />
-                  <Button
-                    type="button"
-                    onClick={() => void handleFollowUp(followUp)}
-                    disabled={isLoading || !followUp.trim()}
-                  >
-                    Send
-                  </Button>
-                </div>
-              </div>
-            ) : null}
-          </div>
+          <AdviceConversation
+            selectedThread={selectedThread}
+            selectedThreadId={selectedThreadId}
+            messages={sortedThreadMessages}
+            visibleDraft={visibleDraft}
+            isLoading={isLoading}
+            followUp={followUp}
+            onFollowUpChange={(value) =>
+              dispatch({ type: "follow-up-change", value })
+            }
+            onFollowUp={(message) => void handleFollowUp(message)}
+            onCopy={() => void handleCopy()}
+            onDelete={() => void handleDelete()}
+          />
         </div>
       </div>
     </PickleLayout>

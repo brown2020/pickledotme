@@ -1,10 +1,10 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { Button, Textarea } from "@/components/ui";
 import { Send } from "lucide-react";
 import { adviceRequestSchema } from "@/lib/validations";
-import type { AdviceTone } from "@/services/adviceService";
+import type { AdviceTone } from "@/types/advice";
 
 interface AdviceFormProps {
   onSubmit: (params: {
@@ -43,8 +43,6 @@ export function AdviceForm({ onSubmit, isLoading }: AdviceFormProps) {
   const [modelName, setModelName] = useState<string>("gpt-5.2-chat-latest");
   const [tone, setTone] = useState<AdviceTone>("balanced");
   const [error, setError] = useState<string | null>(null);
-
-  const isAdvancedEnabled = useMemo(() => true, []);
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -106,7 +104,6 @@ export function AdviceForm({ onSubmit, isLoading }: AdviceFormProps) {
           <select
             value={modelName}
             onChange={(e) => setModelName(e.target.value)}
-            disabled={!isAdvancedEnabled}
             className="w-full px-4 py-3 rounded-xl border-2 transition-all duration-200 bg-white text-slate-900 dark:bg-slate-800 dark:text-slate-100 border-slate-200 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 dark:focus:border-emerald-400 disabled:opacity-60 disabled:cursor-not-allowed"
           >
             <option value="gpt-5.2-chat-latest">OpenAI: GPT‑5.2 (chat)</option>
@@ -149,7 +146,6 @@ export function AdviceForm({ onSubmit, isLoading }: AdviceFormProps) {
             <select
               value={modelName}
               onChange={(e) => setModelName(e.target.value)}
-              disabled={!isAdvancedEnabled}
               className="w-full px-4 py-3 rounded-xl border-2 transition-all duration-200 bg-white text-slate-900 dark:bg-slate-800 dark:text-slate-100 border-slate-200 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 dark:focus:border-emerald-400 disabled:opacity-60 disabled:cursor-not-allowed"
             >
               <option value="gpt-5.2-chat-latest">

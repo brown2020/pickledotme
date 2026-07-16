@@ -34,10 +34,6 @@ export function useReactionGame() {
   const goTimeRef = useRef<number>(0);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
   const resultsRef = useRef<RoundResult[]>([]);
-  useEffect(() => {
-    resultsRef.current = results;
-  }, [results]);
-
   const clearTimeouts = useCallback(() => {
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current);
@@ -82,8 +78,7 @@ export function useReactionGame() {
         setAverageTime(Math.round(avg));
 
         const finalScore = calculateScore(avg);
-        gameBase.updateScore(finalScore);
-        await gameBase.saveScore(finalScore);
+        await gameBase.endGame(finalScore);
       }
     },
     [calculateScore, gameBase]
@@ -100,18 +95,16 @@ export function useReactionGame() {
       // Capture current round for use in timeout
       const roundAtClick = currentRound;
 
-      setResults((prev) => {
-        const next = [
-          ...prev,
-          {
-            round: roundAtClick + 1,
-            reactionTime: TOO_EARLY_PENALTY,
-            tooEarly: true,
-          },
-        ];
-        resultsRef.current = next;
-        return next;
-      });
+      const nextResults = [
+        ...resultsRef.current,
+        {
+          round: roundAtClick + 1,
+          reactionTime: TOO_EARLY_PENALTY,
+          tooEarly: true,
+        },
+      ];
+      resultsRef.current = nextResults;
+      setResults(nextResults);
 
       // Auto-advance after showing penalty
       timeoutRef.current = setTimeout(() => {
@@ -136,14 +129,12 @@ export function useReactionGame() {
       // Capture current round for use in timeout
       const roundAtClick = currentRound;
 
-      setResults((prev) => {
-        const next = [
-          ...prev,
-          { round: roundAtClick + 1, reactionTime, tooEarly: false },
-        ];
-        resultsRef.current = next;
-        return next;
-      });
+      const nextResults = [
+        ...resultsRef.current,
+        { round: roundAtClick + 1, reactionTime, tooEarly: false },
+      ];
+      resultsRef.current = nextResults;
+      setResults(nextResults);
 
       // Auto-advance to next round
       timeoutRef.current = setTimeout(() => {

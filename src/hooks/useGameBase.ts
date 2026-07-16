@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect } from "react";
-import { useAuth } from "@/providers/AuthProvider";
-import { scoreService } from "@/services/scoreService";
+import { useAuth } from "@/providers/authContext";
+import { getUserBestScore, saveGameResult } from "@/actions/scores";
 import { GameId } from "@/config/games";
 
 interface GameBaseState {
@@ -14,10 +14,9 @@ interface UseGameBaseReturn extends GameBaseState {
   userId: string | undefined;
   isAuthenticated: boolean;
   startGame: () => void;
-  endGame: () => Promise<void>;
+  endGame: (finalScore?: number) => Promise<void>;
   updateScore: (score: number) => void;
   setLevel: (level: number) => void;
-  saveScore: (score: number) => Promise<{ isNewBest: boolean }>;
   resetGame: () => void;
 }
 
@@ -47,8 +46,7 @@ export function useGameBase(gameId: GameId): UseGameBaseReturn {
       };
     }
 
-    scoreService
-      .getUserBestScore(userId, gameId)
+    getUserBestScore(gameId)
       .then((bestScore) => {
         if (!isCurrent) return;
         setState((prev) => ({
@@ -72,11 +70,7 @@ export function useGameBase(gameId: GameId): UseGameBaseReturn {
       }
 
       try {
-        const result = await scoreService.saveGameResult({
-          userId,
-          gameId,
-          score,
-        });
+        const result = await saveGameResult({ gameId, score });
 
         if (result.isNewBest) {
           setState((prev) => ({
@@ -111,9 +105,14 @@ export function useGameBase(gameId: GameId): UseGameBaseReturn {
     }));
   }, []);
 
-  const endGame = useCallback(async () => {
-    setState((prev) => ({ ...prev, isPlaying: false }));
-    await saveScore(state.score);
+  const endGame = useCallback(async (finalScore = state.score) => {
+    setState((prev) => ({
+      ...prev,
+      isPlaying: false,
+      score: finalScore,
+      bestScore: Math.max(prev.bestScore, finalScore),
+    }));
+    await saveScore(finalScore);
   }, [saveScore, state.score]);
 
   const setLevel = useCallback((level: number) => {
@@ -137,7 +136,6 @@ export function useGameBase(gameId: GameId): UseGameBaseReturn {
     endGame,
     updateScore,
     setLevel,
-    saveScore,
     resetGame,
   };
 }

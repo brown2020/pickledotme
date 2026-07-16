@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui";
-import { useAuth } from "@/providers/AuthProvider";
+import { useAuth } from "@/providers/authContext";
 
 export function HeroAuthCta() {
   const { user, isLoading, signInWithGoogle } = useAuth();

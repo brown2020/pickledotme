@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect } from "react";
 import { Button } from "@/components/ui";
-import { useAuth } from "@/providers/AuthProvider";
+import { useAuth } from "@/providers/authContext";
 import { cn } from "@/lib/cn";
 
 export function HeaderAuthControls({ className }: { className?: string }) {

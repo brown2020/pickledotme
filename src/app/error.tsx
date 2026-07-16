@@ -31,6 +31,7 @@ export default function Error({ error, reset }: ErrorProps) {
         )}
         <div className="flex gap-4 justify-center">
           <button
+            type="button"
             onClick={reset}
             className="inline-flex items-center gap-2 px-6 py-3 bg-emerald-500 text-white rounded-xl hover:bg-emerald-600 transition-colors font-medium"
           >

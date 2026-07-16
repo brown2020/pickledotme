@@ -1,6 +1,6 @@
 "use client";
 
-import { useAuth } from "@/providers/AuthProvider";
+import { useAuth } from "@/providers/authContext";
 import { Skeleton } from "@/components/ui";
 
 interface AuthGuardProps {
