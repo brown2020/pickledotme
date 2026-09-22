@@ -83,7 +83,7 @@ Features:
 
 | Technology                                | Version | Purpose                         |
 | ----------------------------------------- | ------- | ------------------------------- |
-| [Next.js](https://nextjs.org/)            | 16.2.10 | React framework with App Router |
+| [Next.js](https://nextjs.org/)            | 16.3.5 | React framework with App Router |
 | [React](https://react.dev/)               | 19.2.7  | UI library                      |
 | [TypeScript](https://typescriptlang.org/) | 6.0.3   | Type safety                     |
 | [Tailwind CSS](https://tailwindcss.com/)  | 4.3.2   | Utility-first styling           |

@@ -1,6 +1,7 @@
 "use client";
 
 import { Component, ReactNode } from "react";
+import Link from "next/link";
 import { Button } from "@/components/ui";
 
 interface Props {
@@ -58,12 +59,12 @@ export class ErrorBoundary extends Component<Props, State> {
               <Button onClick={this.handleReset} variant="primary">
                 Try Again
               </Button>
-              <Button
-                onClick={() => (window.location.href = "/")}
-                variant="outline"
+              <Link
+                href="/"
+                className="inline-flex items-center justify-center font-semibold rounded-xl transition-all duration-200 px-5 py-2.5 text-base border-2 border-emerald-600 text-emerald-600 hover:bg-emerald-50 dark:border-emerald-400 dark:text-emerald-400 dark:hover:bg-emerald-950 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2"
               >
                 Go Home
-              </Button>
+              </Link>
             </div>
             {process.env.NODE_ENV === "development" && this.state.error && (
               <details className="mt-6 text-left bg-slate-100 dark:bg-slate-800 rounded-lg p-4">

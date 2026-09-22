@@ -12,17 +12,13 @@ This plan identified specific issues across the Pickle.me codebase, prioritized 
 
 ## CRITICAL ISSUES
 
-### 1. Route Protection Not Working (proxy.ts)
-**Severity:** CRITICAL
+### 1. Route Protection via proxy.ts (RESOLVED for Next.js 16)
+**Severity:** ~~CRITICAL~~ resolved
 **Files:** `src/proxy.ts`
 
-**Problem:** The `proxy.ts` file is NOT being executed as middleware. Next.js middleware must be named `middleware.ts` and located in `src/`. The current file exports a `config` with matchers, but is never invoked—**all protected routes are currently unprotected**.
+**Update (2026-09):** Next.js 16 renamed middleware to `proxy.ts`. The build output shows `ƒ Proxy (Middleware)` and unauthenticated requests to `/games`, `/pickle`, and `/profile` receive `307` redirects to `/?redirect=…`. Do **not** rename this file back to `middleware.ts` on Next 16.
 
-**Fix:**
-- Rename `src/proxy.ts` → `src/middleware.ts`
-- Verify the middleware runs by checking server logs
-
-**Impact:** `/games`, `/pickle`, `/profile` are accessible without authentication.
+**Remaining note:** Proxy is a network gate only. Authorization for mutations remains in server actions via `requireAuthenticatedSessionUid` (covered by vitest).
 
 ---
 
