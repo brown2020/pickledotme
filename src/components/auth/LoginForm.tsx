@@ -2,25 +2,29 @@
 
 import { FormEvent, useId, useState } from "react";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import { Eye, EyeOff } from "lucide-react";
 import { Button, Input } from "@/components/ui";
 import { useAuth } from "@/providers/authContext";
 import { AuthDivider } from "./AuthDivider";
 import { GoogleAuthButton } from "./GoogleAuthButton";
 
-function withRedirect(base: string, redirect: string | null) {
+function withRedirect(base: string, redirect: string | null | undefined) {
   if (redirect?.startsWith("/") && !redirect.startsWith("//")) {
     return `${base}?redirect=${encodeURIComponent(redirect)}`;
   }
   return base;
 }
 
-export function LoginForm() {
+type LoginFormProps = {
+  redirectTo?: string | null;
+};
+
+export function LoginForm({ redirectTo = null }: LoginFormProps) {
   const { signInWithEmail, authError, clearAuthError } = useAuth();
-  const searchParams = useSearchParams();
-  const signupLink = withRedirect("/signup", searchParams.get("redirect"));
+  const signupLink = withRedirect("/signup", redirectTo);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const errorId = useId();
 
@@ -58,7 +62,6 @@ export function LoginForm() {
           <Input
             id="login-email"
             type="email"
-            autoFocus
             name="email"
             autoComplete="username"
             required
@@ -84,17 +87,33 @@ export function LoginForm() {
               Forgot password?
             </Link>
           </div>
-          <Input
-            id="login-password"
-            type="password"
-            name="password"
-            autoComplete="current-password"
-            required
-            value={password}
-            onChange={(event) => setPassword(event.target.value)}
-            placeholder="Your password"
-            aria-describedby={authError ? errorId : undefined}
-          />
+          <div className="relative">
+            <Input
+              id="login-password"
+              type={showPassword ? "text" : "password"}
+              name="password"
+              autoComplete="current-password"
+              required
+              value={password}
+              onChange={(event) => setPassword(event.target.value)}
+              placeholder="Your password"
+              className="pr-12"
+              aria-describedby={authError ? errorId : undefined}
+            />
+            <button
+              type="button"
+              className="absolute right-3 top-1/2 -translate-y-1/2 rounded-md p-1 text-slate-500 hover:text-slate-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 dark:text-slate-400 dark:hover:text-slate-100"
+              onClick={() => setShowPassword((value) => !value)}
+              aria-label={showPassword ? "Hide password" : "Show password"}
+              aria-pressed={showPassword}
+            >
+              {showPassword ? (
+                <EyeOff className="h-5 w-5" aria-hidden="true" />
+              ) : (
+                <Eye className="h-5 w-5" aria-hidden="true" />
+              )}
+            </button>
+          </div>
         </div>
 
         <Button

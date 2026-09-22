@@ -75,7 +75,6 @@ export function ForgotPasswordForm() {
         <Input
           id="forgot-email"
           type="email"
-          autoFocus
           name="email"
           autoComplete="username"
           required

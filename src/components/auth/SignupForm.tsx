@@ -1,54 +1,104 @@
 "use client";
 
-import { FormEvent, useId, useState } from "react";
+import { FormEvent, useId, useReducer } from "react";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import { Eye, EyeOff } from "lucide-react";
 import { Button, Input } from "@/components/ui";
 import { useAuth } from "@/providers/authContext";
 import { AuthDivider } from "./AuthDivider";
 import { GoogleAuthButton } from "./GoogleAuthButton";
 
-function withRedirect(base: string, redirect: string | null) {
+function withRedirect(base: string, redirect: string | null | undefined) {
   if (redirect?.startsWith("/") && !redirect.startsWith("//")) {
     return `${base}?redirect=${encodeURIComponent(redirect)}`;
   }
   return base;
 }
 
-export function SignupForm() {
+type SignupState = {
+  email: string;
+  password: string;
+  confirmPassword: string;
+  localError: string | null;
+  submitting: boolean;
+  showPassword: boolean;
+  showConfirmPassword: boolean;
+};
+
+type SignupAction =
+  | {
+      type: "set";
+      field: keyof SignupState;
+      value: SignupState[keyof SignupState];
+    }
+  | { type: "reset_error" }
+  | { type: "local_error"; message: string }
+  | { type: "submit_start" }
+  | { type: "submit_end" };
+
+const initialState: SignupState = {
+  email: "",
+  password: "",
+  confirmPassword: "",
+  localError: null,
+  submitting: false,
+  showPassword: false,
+  showConfirmPassword: false,
+};
+
+function signupReducer(state: SignupState, action: SignupAction): SignupState {
+  switch (action.type) {
+    case "set":
+      return { ...state, [action.field]: action.value };
+    case "reset_error":
+      return { ...state, localError: null };
+    case "local_error":
+      return { ...state, localError: action.message, submitting: false };
+    case "submit_start":
+      return { ...state, submitting: true, localError: null };
+    case "submit_end":
+      return { ...state, submitting: false };
+    default:
+      return state;
+  }
+}
+
+type SignupFormProps = {
+  redirectTo?: string | null;
+};
+
+export function SignupForm({ redirectTo = null }: SignupFormProps) {
   const { signUpWithEmail, authError, clearAuthError } = useAuth();
-  const searchParams = useSearchParams();
-  const loginLink = withRedirect("/login", searchParams.get("redirect"));
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [localError, setLocalError] = useState<string | null>(null);
-  const [submitting, setSubmitting] = useState(false);
+  const loginLink = withRedirect("/login", redirectTo);
+  const [state, dispatch] = useReducer(signupReducer, initialState);
   const errorId = useId();
 
   const onSubmit = async (event: FormEvent) => {
     event.preventDefault();
-    setLocalError(null);
+    dispatch({ type: "reset_error" });
     clearAuthError();
 
-    if (password.length < 6) {
-      setLocalError("Password must be at least 6 characters.");
+    if (state.password.length < 6) {
+      dispatch({
+        type: "local_error",
+        message: "Password must be at least 6 characters.",
+      });
       return;
     }
-    if (password !== confirmPassword) {
-      setLocalError("Passwords do not match.");
+    if (state.password !== state.confirmPassword) {
+      dispatch({ type: "local_error", message: "Passwords do not match." });
       return;
     }
 
-    setSubmitting(true);
+    dispatch({ type: "submit_start" });
     try {
-      await signUpWithEmail(email, password);
+      await signUpWithEmail(state.email, state.password);
     } finally {
-      setSubmitting(false);
+      dispatch({ type: "submit_end" });
     }
   };
 
-  const displayError = localError || authError;
+  const displayError = state.localError || authError;
 
   return (
     <div className="space-y-6">
@@ -73,12 +123,13 @@ export function SignupForm() {
           <Input
             id="signup-email"
             type="email"
-            autoFocus
             name="email"
             autoComplete="username"
             required
-            value={email}
-            onChange={(event) => setEmail(event.target.value)}
+            value={state.email}
+            onChange={(event) =>
+              dispatch({ type: "set", field: "email", value: event.target.value })
+            }
             placeholder="you@example.com"
             aria-describedby={displayError ? errorId : undefined}
           />
@@ -91,18 +142,48 @@ export function SignupForm() {
           >
             Password
           </label>
-          <Input
-            id="signup-password"
-            type="password"
-            name="password"
-            autoComplete="new-password"
-            required
-            minLength={6}
-            value={password}
-            onChange={(event) => setPassword(event.target.value)}
-            placeholder="At least 6 characters"
-            aria-describedby={displayError ? errorId : undefined}
-          />
+          <div className="relative">
+            <Input
+              id="signup-password"
+              type={state.showPassword ? "text" : "password"}
+              name="password"
+              autoComplete="new-password"
+              required
+              minLength={6}
+              value={state.password}
+              onChange={(event) =>
+                dispatch({
+                  type: "set",
+                  field: "password",
+                  value: event.target.value,
+                })
+              }
+              placeholder="At least 6 characters"
+              className="pr-12"
+              aria-describedby={displayError ? errorId : undefined}
+            />
+            <button
+              type="button"
+              className="absolute right-3 top-1/2 -translate-y-1/2 rounded-md p-1 text-slate-500 hover:text-slate-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 dark:text-slate-400 dark:hover:text-slate-100"
+              onClick={() =>
+                dispatch({
+                  type: "set",
+                  field: "showPassword",
+                  value: !state.showPassword,
+                })
+              }
+              aria-label={
+                state.showPassword ? "Hide password" : "Show password"
+              }
+              aria-pressed={state.showPassword}
+            >
+              {state.showPassword ? (
+                <EyeOff className="h-5 w-5" aria-hidden="true" />
+              ) : (
+                <Eye className="h-5 w-5" aria-hidden="true" />
+              )}
+            </button>
+          </div>
         </div>
 
         <div>
@@ -112,25 +193,57 @@ export function SignupForm() {
           >
             Confirm password
           </label>
-          <Input
-            id="signup-confirm-password"
-            type="password"
-            name="confirmPassword"
-            autoComplete="new-password"
-            required
-            minLength={6}
-            value={confirmPassword}
-            onChange={(event) => setConfirmPassword(event.target.value)}
-            placeholder="Repeat password"
-            aria-describedby={displayError ? errorId : undefined}
-          />
+          <div className="relative">
+            <Input
+              id="signup-confirm-password"
+              type={state.showConfirmPassword ? "text" : "password"}
+              name="confirmPassword"
+              autoComplete="new-password"
+              required
+              minLength={6}
+              value={state.confirmPassword}
+              onChange={(event) =>
+                dispatch({
+                  type: "set",
+                  field: "confirmPassword",
+                  value: event.target.value,
+                })
+              }
+              placeholder="Repeat password"
+              className="pr-12"
+              aria-describedby={displayError ? errorId : undefined}
+            />
+            <button
+              type="button"
+              className="absolute right-3 top-1/2 -translate-y-1/2 rounded-md p-1 text-slate-500 hover:text-slate-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 dark:text-slate-400 dark:hover:text-slate-100"
+              onClick={() =>
+                dispatch({
+                  type: "set",
+                  field: "showConfirmPassword",
+                  value: !state.showConfirmPassword,
+                })
+              }
+              aria-label={
+                state.showConfirmPassword
+                  ? "Hide confirm password"
+                  : "Show confirm password"
+              }
+              aria-pressed={state.showConfirmPassword}
+            >
+              {state.showConfirmPassword ? (
+                <EyeOff className="h-5 w-5" aria-hidden="true" />
+              ) : (
+                <Eye className="h-5 w-5" aria-hidden="true" />
+              )}
+            </button>
+          </div>
         </div>
 
         <Button
           type="submit"
           className="w-full"
-          disabled={submitting}
-          isLoading={submitting}
+          disabled={state.submitting}
+          isLoading={state.submitting}
         >
           Create account
         </Button>

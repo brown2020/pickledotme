@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import { Suspense } from "react";
 import { AuthCard } from "@/components/auth/AuthCard";
 import { SignupForm } from "@/components/auth/SignupForm";
 
@@ -8,24 +7,30 @@ export const metadata: Metadata = {
   description: "Create a Pickle.me account with email or Google.",
 };
 
-function FormFallback() {
-  return (
-    <div
-      className="h-64 w-full animate-pulse rounded-xl bg-slate-100 dark:bg-slate-800"
-      aria-hidden="true"
-    />
-  );
+type SignupPageProps = {
+  searchParams?: Promise<Record<string, string | string[] | undefined>>;
+};
+
+function firstParam(
+  value: string | string[] | undefined
+): string | null {
+  if (typeof value === "string") return value;
+  if (Array.isArray(value) && typeof value[0] === "string") return value[0];
+  return null;
 }
 
-export default function SignupPage() {
+export default async function SignupPage({ searchParams }: SignupPageProps) {
+  const params = searchParams ? await searchParams : {};
+  const raw = firstParam(params.redirect);
+  const redirectTo =
+    raw?.startsWith("/") && !raw.startsWith("//") ? raw : null;
+
   return (
     <AuthCard
       title="Create your account"
       subtitle="Email and password — or continue with Google"
     >
-      <Suspense fallback={<FormFallback />}>
-        <SignupForm />
-      </Suspense>
+      <SignupForm redirectTo={redirectTo} />
     </AuthCard>
   );
 }
