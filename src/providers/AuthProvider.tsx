@@ -5,6 +5,7 @@ import {
   useCallback,
   useMemo,
   useReducer,
+  type Dispatch,
   type ReactNode,
 } from "react";
 import {
@@ -12,10 +13,13 @@ import {
   onAuthStateChanged,
   signInWithPopup,
   signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+  sendPasswordResetEmail,
   signOut,
   GoogleAuthProvider,
 } from "firebase/auth";
 import { auth } from "@/lib/firebaseConfig";
+import { mapFirebaseAuthError } from "@/lib/firebaseAuthErrors";
 import { AuthContext, type AuthContextType } from "./authContext";
 
 const googleProvider = new GoogleAuthProvider();
@@ -77,6 +81,17 @@ function readSafeRedirectPath(): string | null {
   return redirectPath;
 }
 
+function dispatchMappedError(
+  dispatch: Dispatch<AuthAction>,
+  error: unknown,
+  fallback: string
+) {
+  dispatch({
+    type: "set-error",
+    message: mapFirebaseAuthError(error, fallback),
+  });
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(authReducer, {
     user: null,
@@ -97,64 +112,85 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     dispatch({ type: "set-error", message: null });
   }, []);
 
+  const finishAuthenticatedSession = useCallback(async (user: User) => {
+    await syncSessionCookie(user);
+    dispatch({ type: "sync-success", user });
+    const redirectPath = readSafeRedirectPath();
+    if (redirectPath) {
+      // Full navigation after auth — avoids useEffect client redirects.
+      window.location.assign(redirectPath);
+    }
+  }, []);
+
   const signInWithGoogle = useCallback(async () => {
     try {
       dispatch({ type: "set-error", message: null });
       const credential = await signInWithPopup(auth, googleProvider);
-      await syncSessionCookie(credential.user);
-      dispatch({ type: "sync-success", user: credential.user });
-      const redirectPath = readSafeRedirectPath();
-      if (redirectPath) {
-        // Full navigation after popup auth — avoids useEffect client redirects.
-        window.location.assign(redirectPath);
-      }
+      await finishAuthenticatedSession(credential.user);
     } catch (error) {
-      console.error("Sign in error:", error);
-      const message =
-        error instanceof Error ? error.message : "Failed to sign in";
-      if (message.includes("popup-closed-by-user")) {
-        dispatch({
-          type: "set-error",
-          message: "Sign in was cancelled. Please try again.",
-        });
-      } else if (message.includes("network")) {
-        dispatch({
-          type: "set-error",
-          message: "Network error. Please check your connection.",
-        });
-      } else {
-        dispatch({
-          type: "set-error",
-          message: "Failed to sign in. Please try again.",
-        });
-      }
-      throw error;
+      // Handled via authError — do not rethrow (avoids Next.js FirebaseError overlay).
+      dispatchMappedError(
+        dispatch,
+        error,
+        "Failed to sign in. Please try again."
+      );
     }
-  }, []);
+  }, [finishAuthenticatedSession]);
 
+  const signInWithEmail = useCallback(
+    async (email: string, password: string) => {
+      try {
+        dispatch({ type: "set-error", message: null });
+        const credential = await signInWithEmailAndPassword(
+          auth,
+          email.trim(),
+          password
+        );
+        await finishAuthenticatedSession(credential.user);
+      } catch (error) {
+        dispatchMappedError(
+          dispatch,
+          error,
+          "Email sign-in failed. Check your email and password."
+        );
+      }
+    },
+    [finishAuthenticatedSession]
+  );
 
-  const signInWithEmail = useCallback(async (email: string, password: string) => {
+  const signUpWithEmail = useCallback(
+    async (email: string, password: string) => {
+      try {
+        dispatch({ type: "set-error", message: null });
+        const credential = await createUserWithEmailAndPassword(
+          auth,
+          email.trim(),
+          password
+        );
+        await finishAuthenticatedSession(credential.user);
+      } catch (error) {
+        dispatchMappedError(
+          dispatch,
+          error,
+          "Could not create account. Please try again."
+        );
+      }
+    },
+    [finishAuthenticatedSession]
+  );
+
+  const sendPasswordReset = useCallback(async (email: string) => {
     try {
       dispatch({ type: "set-error", message: null });
-      const credential = await signInWithEmailAndPassword(
-        auth,
-        email.trim(),
-        password
-      );
-      // Ensure the httpOnly session cookie exists before any protected navigation.
-      await syncSessionCookie(credential.user);
-      dispatch({ type: "sync-success", user: credential.user });
-      const redirectPath = readSafeRedirectPath();
-      if (redirectPath) {
-        window.location.assign(redirectPath);
-      }
+      await sendPasswordResetEmail(auth, email.trim());
+      return true;
     } catch (error) {
-      console.error("Email sign in error:", error);
-      dispatch({
-        type: "set-error",
-        message: "Email sign-in failed. Check your email and password.",
-      });
-      throw error;
+      dispatchMappedError(
+        dispatch,
+        error,
+        "Could not send reset email. Check the address and try again."
+      );
+      return false;
     }
   }, []);
 
@@ -164,12 +200,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       await signOut(auth);
       await syncSessionCookie(null);
     } catch (error) {
-      console.error("Sign out error:", error);
-      dispatch({
-        type: "set-error",
-        message: "Failed to sign out. Please try again.",
-      });
-      throw error;
+      dispatchMappedError(
+        dispatch,
+        error,
+        "Failed to sign out. Please try again."
+      );
     }
   }, []);
 
@@ -181,6 +216,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       authError: state.authError,
       signInWithGoogle,
       signInWithEmail,
+      signUpWithEmail,
+      sendPasswordReset,
       logout,
       clearAuthError,
     }),
@@ -190,6 +227,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       state.authError,
       signInWithGoogle,
       signInWithEmail,
+      signUpWithEmail,
+      sendPasswordReset,
       logout,
       clearAuthError,
     ]

@@ -19,9 +19,9 @@ export function HeaderAuthControls({ className }: { className?: string }) {
     clearAuthError();
     if (user) {
       await logout();
-    } else {
-      await signInWithGoogle();
+      return;
     }
+    await signInWithGoogle();
   }, [clearAuthError, logout, signInWithGoogle, user]);
 
   if (isLoading) {
@@ -58,8 +58,11 @@ export function HeaderAuthControls({ className }: { className?: string }) {
       <Button onClick={handleAuth} variant="primary" size="sm">
         Sign In
       </Button>
-      {authError && (
-        <p className="text-xs text-rose-500 dark:text-rose-400 max-w-[200px] text-right">
+      {authError ? (
+        <p
+          role="alert"
+          className="text-xs text-rose-500 dark:text-rose-400 max-w-[200px] text-right"
+        >
           {authError}{" "}
           <button
             type="button"
@@ -69,7 +72,7 @@ export function HeaderAuthControls({ className }: { className?: string }) {
             Dismiss
           </button>
         </p>
-      )}
+      ) : null}
     </div>
   );
 }
