@@ -20,21 +20,22 @@ The current `package.json` exposes:
 npm run dev
 npm run build
 npm run lint
+npm run typecheck
+npm test
 npm run start
 ```
 
 `npm run lint` uses the ESLint flat config in `eslint.config.mjs`.
-
-The repository currently has no dedicated test or typecheck script. Use
-`npx tsc --noEmit` for an explicit TypeScript gate, and use `npm run build` as
-the production integration check. The verified local toolchain for the
-2026-07-15 dependency pass is Node.js 22.22.3 with npm 11.17.0.
+`npm run typecheck` is `tsc --noEmit`. `npm test` runs Vitest (`vitest run`).
+CI on `dev`/`main` runs the same lint → typecheck → test → build sequence
+(`.github/workflows/ci.yml`). See `docs/OPERATIONS.md` for failure drills and
+rollback. The verified local toolchain is Node.js 22.x with matching npm.
 
 TypeScript 6.0.3 and ESLint 9.39.5 are the newest versions supported by the
-current Next.js lint stack. TypeScript 7 is outside TypeScript-ESLint's
-published range, while Next's React/import/accessibility plugins do not yet
-support ESLint 10. Treat those two newer majors as compatibility migrations,
-not routine package bumps.
+current Next.js lint stack. TypeScript 7, ESLint 10, Framer Motion 13, and
+Vitest 5 are held major upgrades with review triggers (TS7 + eslint-typescript/
+next support; eslint-config-next ESLint 10; FM13 App Router smoke; Vitest 5
+migration notes) — treat them as compatibility migrations, not routine bumps.
 
 ## Architecture Notes
 
@@ -58,7 +59,7 @@ not routine package bumps.
 
 ## Validation Notes
 
-- Prefer `npm run lint`, `npx tsc --noEmit`, and `npm run build` as the standard gates.
+- Prefer `npm run lint`, `npm run typecheck`, `npm test`, and `npm run build` as the standard gates.
 - For dependency updates, also run `npm outdated`, `npm audit`, and a clean
   `npm ci` before the final lint/typecheck/build sequence.
 - For docs/report-only changes, record when build or other checks are not run or fail for pre-existing reasons.

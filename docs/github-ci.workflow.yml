@@ -1,3 +1,6 @@
+# Documentation mirror only. The live workflow is .github/workflows/ci.yml
+# (includes NEXT_PUBLIC_FIREBASE_* job env for pickledotme). Do not copy this
+# file over the live workflow without merging the env block.
 name: ci
 on:
   push:

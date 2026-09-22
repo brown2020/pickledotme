@@ -24,9 +24,11 @@ Proxy is **not** authorization for mutations. Every mutation re-checks the sessi
 1. **Data:** add optional `metadata` string on score submit → update `scoreSubmissionSchema`, `saveGameResult` write, `DisplayScore` type, SWR consumers.
 2. **Access:** make `bestScores` owner-only reads in `firestore.rules` while leaderboard continues via Admin SDK in `getHighScores`.
 
-## CI (intended)
+## CI
 
-The intended GitHub Actions workflow is checked in as `docs/github-ci.workflow.yml`
-(lint, typecheck, test, build on `dev`/`main` and PRs). Landing it under
-`.github/workflows/` requires a GitHub token with the `workflow` scope; until
-then run the same commands locally before push.
+GitHub Actions: [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) runs
+lint → typecheck → test → build on `dev`/`main` and pull requests. Public
+`NEXT_PUBLIC_FIREBASE_*` values for the pickledotme project are set as job `env`.
+See [OPERATIONS.md](OPERATIONS.md) for failure drills, local/CI/host matrix, and
+rollback. A mirror of the workflow shape (without env) lives at
+`docs/github-ci.workflow.yml` for documentation only.
