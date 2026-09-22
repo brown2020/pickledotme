@@ -9,6 +9,17 @@ interface LeaderboardTableProps {
   gameId: GameId;
 }
 
+function formatScoreDate(value: Date | string | number): string {
+  const date = value instanceof Date ? value : new Date(value);
+  if (Number.isNaN(date.getTime())) return "—";
+  return date.toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+    timeZone: "UTC",
+  });
+}
+
 export function LeaderboardTable({ gameId }: LeaderboardTableProps) {
   const { scores, isLoading, isError } = useHighScores(gameId);
 
@@ -100,12 +111,7 @@ export function LeaderboardTable({ gameId }: LeaderboardTableProps) {
                 </span>
               </td>
               <td className="py-3 px-4 text-slate-500 dark:text-slate-400">
-                {score.timestamp.toLocaleDateString("en-US", {
-                  month: "short",
-                  day: "numeric",
-                  year: "numeric",
-                  timeZone: "UTC",
-                })}
+                {formatScoreDate(score.timestamp)}
               </td>
             </tr>
           ))}

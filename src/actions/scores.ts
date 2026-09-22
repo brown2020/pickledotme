@@ -18,9 +18,31 @@ const COLLECTIONS = {
   legacy: "scores",
 } as const;
 
+/** Cap for equality-only fetches before in-memory top-N sort (avoids composite indexes). */
+const LEADERBOARD_FETCH_CAP = 500;
+const LEADERBOARD_LIMIT = 10;
+
 function scoreFromData(data: Record<string, unknown> | undefined): number | null {
   if (!data) return null;
   return typeof data.score === "number" ? data.score : 0;
+}
+
+function toMillis(value: unknown): number {
+  if (value instanceof Timestamp) return value.toMillis();
+  if (value instanceof Date) return value.getTime();
+  if (
+    value &&
+    typeof value === "object" &&
+    "toMillis" in value &&
+    typeof (value as { toMillis?: unknown }).toMillis === "function"
+  ) {
+    return (value as { toMillis: () => number }).toMillis();
+  }
+  if (typeof value === "string" || typeof value === "number") {
+    const parsed = new Date(value).getTime();
+    return Number.isFinite(parsed) ? parsed : 0;
+  }
+  return 0;
 }
 
 function toDisplayScore(
@@ -29,15 +51,26 @@ function toDisplayScore(
 ): DisplayScore {
   return {
     id,
-    userId: data.userId as string,
-    gameId: data.gameId as string,
-    score: data.score as number,
-    timestamp:
-      data.timestamp instanceof Timestamp
-        ? data.timestamp.toDate()
-        : new Date(0),
+    userId: String(data.userId ?? ""),
+    gameId: String(data.gameId ?? ""),
+    score: typeof data.score === "number" ? data.score : 0,
+    // ISO string survives the server-action boundary; UI coerces to Date.
+    timestamp: new Date(toMillis(data.timestamp)),
     kind: data.kind as "history" | "best" | undefined,
   };
+}
+
+function topScoresByScore(
+  docs: Array<{ id: string; data: () => Record<string, unknown> }>,
+  limit: number
+): DisplayScore[] {
+  return docs
+    .map((document) => toDisplayScore(document.id, document.data()))
+    .sort((a, b) => {
+      if (b.score !== a.score) return b.score - a.score;
+      return b.timestamp.getTime() - a.timestamp.getTime();
+    })
+    .slice(0, limit);
 }
 
 async function readBestScore(uid: string, gameId: GameId): Promise<number> {
@@ -108,31 +141,37 @@ export async function getUserBestScore(input: unknown): Promise<number> {
   return readBestScore(uid, gameId);
 }
 
+/**
+ * Top scores for a game. Uses equality-only queries + in-memory sort so the
+ * leaderboard works without composite Firestore indexes (orderBy + where
+ * previously threw FAILED_PRECONDITION → "Failed to load leaderboard").
+ */
 export async function getHighScores(input: unknown): Promise<DisplayScore[]> {
   await requireAuthenticatedSessionUid();
   const gameId = validateOrThrow(gameIdSchema, input);
   const db = getFirebaseAdminFirestore();
+
   const bestSnapshot = await db
     .collection(COLLECTIONS.best)
     .where("gameId", "==", gameId)
-    .orderBy("score", "desc")
-    .limit(10)
+    .limit(LEADERBOARD_FETCH_CAP)
     .get();
-  const bestScores = bestSnapshot.docs.map((document) =>
-    toDisplayScore(document.id, document.data())
-  );
+  const bestScores = topScoresByScore(bestSnapshot.docs, LEADERBOARD_LIMIT);
   if (bestScores.length > 0) return bestScores;
 
-  const legacySnapshot = await db
-    .collection(COLLECTIONS.legacy)
-    .where("gameId", "==", gameId)
-    .where("kind", "==", "best")
-    .orderBy("score", "desc")
-    .limit(10)
-    .get();
-  return legacySnapshot.docs.map((document) =>
-    toDisplayScore(document.id, document.data())
-  );
+  // Legacy fallback is best-effort: missing indexes / empty legacy must not
+  // surface as a leaderboard error when bestScores simply has no rows yet.
+  try {
+    const legacySnapshot = await db
+      .collection(COLLECTIONS.legacy)
+      .where("gameId", "==", gameId)
+      .where("kind", "==", "best")
+      .limit(LEADERBOARD_FETCH_CAP)
+      .get();
+    return topScoresByScore(legacySnapshot.docs, LEADERBOARD_LIMIT);
+  } catch {
+    return [];
+  }
 }
 
 export async function getUserGameScores(): Promise<DisplayScore[]> {

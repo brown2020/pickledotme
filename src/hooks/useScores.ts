@@ -21,11 +21,15 @@ const userScoresFetcher = async (): Promise<DisplayScore[]> => {
 };
 
 /**
- * Hook for fetching high scores with SWR caching
+ * Hook for fetching high scores with SWR caching.
+ * Waits for auth (games routes are session-gated) so we do not race the
+ * session cookie and flash "Failed to load leaderboard".
  */
 export function useHighScores(gameId: GameId) {
+  const { user, isLoading: isAuthLoading } = useAuth();
+
   const { data, error, isLoading, mutate } = useSWR(
-    `high-scores-${gameId}`,
+    !isAuthLoading && user?.uid ? `high-scores-${gameId}-${user.uid}` : null,
     () => highScoresFetcher(gameId),
     {
       revalidateOnFocus: false,
@@ -36,7 +40,7 @@ export function useHighScores(gameId: GameId) {
 
   return {
     scores: data ?? [],
-    isLoading,
+    isLoading: isLoading || isAuthLoading,
     isError: !!error,
     error,
     refetch: mutate,
