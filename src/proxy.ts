@@ -2,7 +2,9 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import {
   getVerifiedSessionUid,
-  SESSION_COOKIE_NAME,
+  readSessionCookieValue,
+  SESSION_COOKIE_NAME_INSECURE,
+  SESSION_COOKIE_NAME_SECURE,
 } from "@/lib/authSession";
 
 /**
@@ -51,7 +53,7 @@ export async function proxy(request: NextRequest) {
 
   let isAuthenticated = false;
   if (isProtectedRoute || isAuthRoute) {
-    const sessionCookie = request.cookies.get(SESSION_COOKIE_NAME)?.value;
+    const sessionCookie = readSessionCookieValue(request.cookies);
     isAuthenticated = Boolean(await getVerifiedSessionUid(sessionCookie));
   }
 
@@ -62,7 +64,8 @@ export async function proxy(request: NextRequest) {
     url.searchParams.set("redirect", pathname);
     const response = NextResponse.redirect(url);
     // Clear any invalid session cookie.
-    response.cookies.set(SESSION_COOKIE_NAME, "", { path: "/", maxAge: 0 });
+    response.cookies.set(SESSION_COOKIE_NAME_SECURE, "", { path: "/", maxAge: 0 });
+    response.cookies.set(SESSION_COOKIE_NAME_INSECURE, "", { path: "/", maxAge: 0 });
     return addSecurityHeaders(response);
   }
 

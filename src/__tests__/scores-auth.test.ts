@@ -11,6 +11,9 @@ vi.mock("next/headers", () => ({
 
 vi.mock("@/lib/authSession", () => ({
   SESSION_COOKIE_NAME: "pickle-session",
+  readSessionCookieValue: (store) =>
+    store.get("__Host-pickle-session")?.value ??
+    store.get("pickle-session")?.value,
   getVerifiedSessionUid: vi.fn(async (value: string | undefined) =>
     value === "valid-session" ? "user-a" : null
   ),
@@ -90,7 +93,7 @@ describe("createAdviceThread auth boundary", () => {
       createAdviceThread({
         dilemma: "I need practical help choosing between two job offers today.",
         tone: "balanced",
-        modelName: "gpt-5.2-chat-latest",
+        modelName: "gpt-5.2",
       })
     ).rejects.toThrow(/Authentication required/i);
   });

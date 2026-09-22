@@ -216,7 +216,7 @@ export function PickleContent() {
           ]
             .filter((modelMessage) => modelMessage.content.trim())
             .slice(-10),
-          modelName: "gpt-5.2-chat-latest",
+          modelName: "gpt-5.2",
           tone: "balanced",
         }),
       ]);
@@ -308,7 +308,10 @@ export function PickleContent() {
             <AdviceForm onSubmit={handleSubmit} isLoading={isLoading} />
           </div>
           {error ? (
-            <div className="rounded-xl border border-rose-200 bg-rose-50 p-4 text-rose-700 dark:border-rose-800 dark:bg-rose-900/20 dark:text-rose-400">
+            <div
+              role="alert"
+              className="rounded-xl border border-rose-200 bg-rose-50 p-4 text-rose-700 dark:border-rose-800 dark:bg-rose-900/20 dark:text-rose-400"
+            >
               {error}
             </div>
           ) : null}

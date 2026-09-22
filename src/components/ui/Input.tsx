@@ -1,4 +1,4 @@
-import { forwardRef, InputHTMLAttributes, TextareaHTMLAttributes } from "react";
+import { forwardRef, InputHTMLAttributes, TextareaHTMLAttributes, useId } from "react";
 import { cn } from "@/lib/cn";
 
 interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
@@ -6,11 +6,17 @@ interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
 }
 
 const Input = forwardRef<HTMLInputElement, InputProps>(
-  ({ className, error, ...props }, ref) => {
+  ({ className, error, id, ...props }, ref) => {
+    const autoId = useId();
+    const inputId = id ?? autoId;
+    const errorId = `${inputId}-error`;
     return (
       <div className="w-full">
         <input
           ref={ref}
+          id={inputId}
+          aria-invalid={error ? true : undefined}
+          aria-describedby={error ? errorId : undefined}
           className={cn(
             "w-full px-4 py-3 rounded-xl border-2 transition-[color,background-color,box-shadow,transform,opacity] duration-200",
             "bg-white text-slate-900 placeholder:text-slate-400",
@@ -24,7 +30,11 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
           )}
           {...props}
         />
-        {error && <p className="mt-1.5 text-sm text-rose-600">{error}</p>}
+        {error ? (
+          <p id={errorId} role="alert" className="mt-1.5 text-sm text-rose-600">
+            {error}
+          </p>
+        ) : null}
       </div>
     );
   }
@@ -37,11 +47,17 @@ interface TextareaProps
 }
 
 const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
-  ({ className, error, ...props }, ref) => {
+  ({ className, error, id, ...props }, ref) => {
+    const autoId = useId();
+    const inputId = id ?? autoId;
+    const errorId = `${inputId}-error`;
     return (
       <div className="w-full">
         <textarea
           ref={ref}
+          id={inputId}
+          aria-invalid={error ? true : undefined}
+          aria-describedby={error ? errorId : undefined}
           className={cn(
             "w-full px-4 py-3 rounded-xl border-2 transition-[color,background-color,box-shadow,transform,opacity] duration-200 resize-none",
             "bg-white text-slate-900 placeholder:text-slate-400",
@@ -55,7 +71,11 @@ const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
           )}
           {...props}
         />
-        {error && <p className="mt-1.5 text-sm text-rose-600">{error}</p>}
+        {error ? (
+          <p id={errorId} role="alert" className="mt-1.5 text-sm text-rose-600">
+            {error}
+          </p>
+        ) : null}
       </div>
     );
   }

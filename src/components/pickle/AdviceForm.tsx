@@ -40,7 +40,7 @@ const TEMPLATES: Array<{ label: string; value: string }> = [
 
 export function AdviceForm({ onSubmit, isLoading }: AdviceFormProps) {
   const [dilemma, setDilemma] = useState("");
-  const [modelName, setModelName] = useState<string>("gpt-5.2-chat-latest");
+  const [modelName, setModelName] = useState<string>("gpt-5.2");
   const [tone, setTone] = useState<AdviceTone>("balanced");
   const [error, setError] = useState<string | null>(null);
 
@@ -60,7 +60,7 @@ export function AdviceForm({ onSubmit, isLoading }: AdviceFormProps) {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
+    <form onSubmit={handleSubmit} className="space-y-6" aria-busy={isLoading || undefined}>
       {/* Templates */}
       <div className="flex flex-wrap gap-2">
         {TEMPLATES.map((t) => (
@@ -107,7 +107,7 @@ export function AdviceForm({ onSubmit, isLoading }: AdviceFormProps) {
             onChange={(e) => setModelName(e.target.value)}
             className="w-full px-4 py-3 rounded-xl border-2 transition-[color,background-color,box-shadow,transform,opacity] duration-200 bg-white text-slate-900 dark:bg-slate-800 dark:text-slate-100 border-slate-200 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 dark:focus:border-emerald-400 disabled:opacity-60 disabled:cursor-not-allowed"
           >
-            <option value="gpt-5.2-chat-latest">OpenAI: GPT‑5.2 (chat)</option>
+            <option value="gpt-5.2">OpenAI: GPT‑5.2</option>
             <option value="claude-sonnet-4-5">Anthropic: Sonnet 4.5</option>
             <option value="gemini-2.5-flash">Google: Gemini 2.5 Flash</option>
             <option value="mistral-large-latest">
@@ -149,8 +149,8 @@ export function AdviceForm({ onSubmit, isLoading }: AdviceFormProps) {
               onChange={(e) => setModelName(e.target.value)}
               className="w-full px-4 py-3 rounded-xl border-2 transition-[color,background-color,box-shadow,transform,opacity] duration-200 bg-white text-slate-900 dark:bg-slate-800 dark:text-slate-100 border-slate-200 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 dark:focus:border-emerald-400 disabled:opacity-60 disabled:cursor-not-allowed"
             >
-              <option value="gpt-5.2-chat-latest">
-                OpenAI: GPT‑5.2 (chat)
+              <option value="gpt-5.2">
+                OpenAI: GPT‑5.2
               </option>
               <option value="claude-sonnet-4-5">Anthropic: Sonnet 4.5</option>
               <option value="gemini-2.5-flash">Google: Gemini 2.5 Flash</option>
@@ -171,12 +171,15 @@ export function AdviceForm({ onSubmit, isLoading }: AdviceFormProps) {
         </label>
         <Textarea
           id="dilemma"
+          name="dilemma"
+          autoComplete="off"
+          spellCheck={true}
           value={dilemma}
           onChange={(e) => {
             setDilemma(e.target.value);
             setError(null);
           }}
-          placeholder="I'm facing a difficult situation where..."
+          placeholder="I'm facing a difficult situation where…"
           rows={5}
           error={error || undefined}
           className="border-emerald-200 dark:border-emerald-800/50 focus:border-emerald-500 dark:bg-slate-800/50"
@@ -194,7 +197,7 @@ export function AdviceForm({ onSubmit, isLoading }: AdviceFormProps) {
         className="w-full"
       >
         {isLoading ? (
-          "Analyzing your situation..."
+          "Analyzing your situation…"
         ) : (
           <>
             Get Expert Advice

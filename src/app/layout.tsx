@@ -105,8 +105,16 @@ export default function RootLayout({
         <Script id="theme-init" strategy="beforeInteractive">{`try{var t=localStorage.getItem("pickle-theme");var d=window.matchMedia("(prefers-color-scheme: dark)").matches;if(t==="dark"||(t==="system"&&d)||(!t&&d))document.documentElement.classList.add("dark")}catch(e){}`}</Script>
         <Providers>
           <div className="flex flex-col min-h-screen">
+            <a
+              href="#main-content"
+              className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-lg focus:bg-emerald-600 focus:px-4 focus:py-2 focus:text-white focus:outline-none focus:ring-2 focus:ring-emerald-300"
+            >
+              Skip to main content
+            </a>
             <Header />
-            <main className="grow">{children}</main>
+            <main id="main-content" className="grow" tabIndex={-1}>
+              {children}
+            </main>
             <Footer />
           </div>
         </Providers>

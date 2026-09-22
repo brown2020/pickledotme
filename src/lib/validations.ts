@@ -6,12 +6,12 @@ import { GAME_IDS } from "@/config/games";
  */
 const modelNameSchema = z
   .enum([
-    "gpt-5.2-chat-latest",
+    "gpt-5.2",
     "claude-sonnet-4-5",
     "gemini-2.5-flash",
     "mistral-large-latest",
   ])
-  .default("gpt-5.2-chat-latest");
+  .default("gpt-5.2");
 
 const adviceToneSchema = z
   .enum(["balanced", "gentle", "blunt", "coach", "funny"])
@@ -23,7 +23,7 @@ export const adviceRequestSchema = z.object({
     .min(10, "Please describe your situation in at least 10 characters")
     .max(5000, "Please keep your description under 5000 characters")
     .trim(),
-  modelName: modelNameSchema.optional().default("gpt-5.2-chat-latest"),
+  modelName: modelNameSchema.optional().default("gpt-5.2"),
   tone: adviceToneSchema.optional().default("balanced"),
 });
 
@@ -37,7 +37,7 @@ const adviceChatMessageSchema = z.object({
 
 export const adviceChatRequestSchema = z.object({
   messages: z.array(adviceChatMessageSchema).min(1).max(20),
-  modelName: modelNameSchema.optional().default("gpt-5.2-chat-latest"),
+  modelName: modelNameSchema.optional().default("gpt-5.2"),
   tone: adviceToneSchema.optional().default("balanced"),
 });
 

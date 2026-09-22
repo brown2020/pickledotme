@@ -11,6 +11,9 @@ vi.mock("next/headers", () => ({
 
 vi.mock("@/lib/authSession", () => ({
   SESSION_COOKIE_NAME: "pickle-session",
+  readSessionCookieValue: (store) =>
+    store.get("__Host-pickle-session")?.value ??
+    store.get("pickle-session")?.value,
   getVerifiedSessionUid: vi.fn(async () => "user-a"),
 }));
 

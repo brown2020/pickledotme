@@ -3,12 +3,12 @@ import "server-only";
 import { cookies } from "next/headers";
 import {
   getVerifiedSessionUid,
-  SESSION_COOKIE_NAME,
+  readSessionCookieValue,
 } from "@/lib/authSession";
 
 export async function requireAuthenticatedSessionUid(): Promise<string> {
   const cookieStore = await cookies();
-  const sessionCookie = cookieStore.get(SESSION_COOKIE_NAME)?.value;
+  const sessionCookie = readSessionCookieValue(cookieStore);
   const uid = await getVerifiedSessionUid(sessionCookie);
 
   if (!uid) {

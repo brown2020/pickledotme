@@ -55,7 +55,7 @@ async function syncSessionCookie(user: User | null) {
     }
     return;
   }
-  const idToken = await user.getIdToken();
+  const idToken = await user.getIdToken(true);
   const response = await fetch("/api/auth/session", {
     method: "POST",
     headers: { "Content-Type": "application/json" },

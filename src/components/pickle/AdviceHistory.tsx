@@ -21,7 +21,10 @@ function HistoryItems({
 >) {
   if (threads.length === 0) {
     return (
-      <div className="rounded-xl bg-slate-50 p-4 text-sm text-slate-500 dark:bg-slate-800/50 dark:text-slate-400">
+      <div
+        role="status"
+        className="rounded-xl bg-slate-50 p-4 text-sm text-slate-500 dark:bg-slate-800/50 dark:text-slate-400"
+      >
         No advice yet. Start a new pickle →.
       </div>
     );
@@ -86,7 +89,7 @@ export function AdviceHistory(props: AdviceHistoryProps) {
         </div>
       </details>
 
-      <div className="hidden lg:block">
+      <nav className="hidden lg:block" aria-label="Advice history">
         <div className="sticky top-24 space-y-3">
           <div className="flex items-center justify-between">
             <h2 className="text-sm font-bold text-slate-700 dark:text-slate-200">
@@ -101,7 +104,7 @@ export function AdviceHistory(props: AdviceHistoryProps) {
             <HistoryItems {...items} />
           </div>
         </div>
-      </div>
+      </nav>
     </>
   );
 }

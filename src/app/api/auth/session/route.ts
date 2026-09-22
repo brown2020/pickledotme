@@ -8,7 +8,10 @@ import {
 import {
   DEV_SESSION_COOKIE_VALUE,
   isInsecureDevAuthEnabled,
-  SESSION_COOKIE_NAME,
+  isSecureSessionRequest,
+  sessionCookieNameForRequest,
+  SESSION_COOKIE_NAME_INSECURE,
+  SESSION_COOKIE_NAME_SECURE,
 } from "@/lib/authSession";
 
 export const runtime = "nodejs";
@@ -19,13 +22,19 @@ const createSessionSchema = z.object({
   idToken: z.string().min(1),
 });
 
-function isSecureRequest(request: NextRequest) {
-  // In production, always use secure cookies
-  // In development, only use secure if actually on HTTPS
-  if (process.env.NODE_ENV === "production") {
-    return true;
+function clearBothSessionCookies(
+  response: NextResponse,
+  secure: boolean
+) {
+  for (const name of [SESSION_COOKIE_NAME_SECURE, SESSION_COOKIE_NAME_INSECURE]) {
+    response.cookies.set(name, "", {
+      httpOnly: true,
+      secure: name === SESSION_COOKIE_NAME_SECURE ? true : secure,
+      sameSite: "strict",
+      path: "/",
+      maxAge: 0,
+    });
   }
-  return request.nextUrl.protocol === "https:";
 }
 
 export async function POST(request: NextRequest) {
@@ -54,10 +63,14 @@ export async function POST(request: NextRequest) {
       sessionCookie = DEV_SESSION_COOKIE_VALUE;
     }
 
+    const secure = isSecureSessionRequest(request.nextUrl.protocol);
+    const cookieName = sessionCookieNameForRequest(secure);
     const response = NextResponse.json({ ok: true });
-    response.cookies.set(SESSION_COOKIE_NAME, sessionCookie, {
+    // Drop the alternate name so only one session cookie is active.
+    clearBothSessionCookies(response, secure);
+    response.cookies.set(cookieName, sessionCookie, {
       httpOnly: true,
-      secure: isSecureRequest(request),
+      secure,
       sameSite: "strict",
       path: "/",
       maxAge: SESSION_MAX_AGE_SECONDS,
@@ -73,13 +86,8 @@ export async function POST(request: NextRequest) {
 }
 
 export async function DELETE(request: NextRequest) {
+  const secure = isSecureSessionRequest(request.nextUrl.protocol);
   const response = NextResponse.json({ ok: true });
-  response.cookies.set(SESSION_COOKIE_NAME, "", {
-    httpOnly: true,
-    secure: isSecureRequest(request),
-    sameSite: "strict",
-    path: "/",
-    maxAge: 0,
-  });
+  clearBothSessionCookies(response, secure);
   return response;
 }

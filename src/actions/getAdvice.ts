@@ -10,7 +10,7 @@ import { adviceChatRequestSchema, validateOrThrow } from "@/lib/validations";
 import { requireAuthenticatedSessionUid } from "@/lib/requireAuth";
 
 type ModelName =
-  | "gpt-5.2-chat-latest"
+  | "gpt-5.2"
   | "claude-sonnet-4-5"
   | "gemini-2.5-flash"
   | "mistral-large-latest";
@@ -20,7 +20,7 @@ type ModelName =
  */
 async function getModel(modelName: ModelName) {
   const models = {
-    "gpt-5.2-chat-latest": () => openai("gpt-5.2-chat-latest"),
+    "gpt-5.2": () => openai("gpt-5.2"),
     "claude-sonnet-4-5": () => anthropic("claude-sonnet-4-5"),
     "gemini-2.5-flash": () => google("gemini-2.5-flash"),
     "mistral-large-latest": () => mistral("mistral-large-latest"),
@@ -44,17 +44,30 @@ async function generateResponse(
 ) {
   const model = await getModel(modelName);
 
-  const fullMessages: ModelMessage[] = [
-    { role: "system", content: systemPrompt },
-    ...messages,
-  ];
-
+  // AI SDK v7+: system text goes in `instructions`, not a system message.
+  const stream = createStreamableValue("");
   const result = streamText({
     model,
-    messages: fullMessages,
+    instructions: systemPrompt,
+    messages,
+    onError: ({ error }) => {
+      stream.error(error);
+    },
   });
 
-  const stream = createStreamableValue(result.textStream);
+  (async () => {
+    try {
+      let full = "";
+      for await (const chunk of result.textStream) {
+        full += chunk;
+        stream.update(full);
+      }
+      stream.done(full);
+    } catch (error) {
+      stream.error(error);
+    }
+  })();
+
   return stream.value;
 }
 
