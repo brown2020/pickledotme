@@ -10,7 +10,7 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 
 const BUTTON_VARIANTS = {
   primary:
-    "bg-emerald-600 text-white hover:bg-emerald-700 shadow-lg shadow-emerald-500/20 dark:bg-emerald-500 dark:hover:bg-emerald-600",
+    "bg-emerald-700 text-white hover:bg-emerald-800 shadow-lg shadow-emerald-700/20 dark:bg-emerald-700 dark:hover:bg-emerald-600",
   secondary:
     "bg-slate-800 text-white hover:bg-slate-700 dark:bg-slate-700 dark:hover:bg-slate-600",
   destructive:
@@ -18,7 +18,7 @@ const BUTTON_VARIANTS = {
   ghost:
     "hover:bg-slate-100 text-slate-700 dark:text-slate-300 dark:hover:bg-slate-800",
   outline:
-    "border-2 border-emerald-600 text-emerald-600 hover:bg-emerald-50 dark:border-emerald-400 dark:text-emerald-400 dark:hover:bg-emerald-950",
+    "border-2 border-emerald-700 text-emerald-800 hover:bg-emerald-50 dark:border-emerald-400 dark:text-emerald-400 dark:hover:bg-emerald-950",
 } as const;
 
 const BUTTON_SIZES = {

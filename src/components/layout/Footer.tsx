@@ -94,7 +94,7 @@ export function Footer() {
           <p className="text-sm">
             © {new Date().getFullYear()} Pickle.me — All rights reserved.
           </p>
-          <p className="text-sm text-slate-500">
+          <p className="text-sm text-slate-400">
             Made with 🥒 and a lot of ☕
           </p>
         </div>

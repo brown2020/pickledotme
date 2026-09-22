@@ -23,3 +23,10 @@ Proxy is **not** authorization for mutations. Every mutation re-checks the sessi
 
 1. **Data:** add optional `metadata` string on score submit → update `scoreSubmissionSchema`, `saveGameResult` write, `DisplayScore` type, SWR consumers.
 2. **Access:** make `bestScores` owner-only reads in `firestore.rules` while leaderboard continues via Admin SDK in `getHighScores`.
+
+## CI (intended)
+
+The intended GitHub Actions workflow is checked in as `docs/github-ci.workflow.yml`
+(lint, typecheck, test, build on `dev`/`main` and PRs). Landing it under
+`.github/workflows/` requires a GitHub token with the `workflow` scope; until
+then run the same commands locally before push.

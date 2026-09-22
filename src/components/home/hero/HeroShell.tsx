@@ -9,7 +9,7 @@ export function HeroShell() {
       <div className="absolute -bottom-24 -left-24 w-96 h-96 bg-gradient-to-tr from-blue-400/20 to-indigo-400/20 dark:from-blue-400/10 dark:to-indigo-400/10 rounded-full blur-3xl" />
 
       <div className="relative p-8 md:p-12">
-        <div className="flex items-center gap-2 text-emerald-600 dark:text-emerald-400 font-medium text-sm mb-4">
+        <div className="flex items-center gap-2 text-emerald-700 dark:text-emerald-400 font-medium text-sm mb-4">
           <Sparkles className="w-4 h-4" />
           <span>AI-Powered Problem Solving</span>
         </div>
