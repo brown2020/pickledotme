@@ -316,6 +316,7 @@ export function PickleContent() {
             </div>
           ) : null}
           <AdviceConversation
+            key={selectedThreadId ?? "new"}
             selectedThread={selectedThread}
             selectedThreadId={selectedThreadId}
             messages={sortedThreadMessages}

@@ -51,10 +51,6 @@ export function AdviceConversation({
   const [confirmDelete, setConfirmDelete] = useState(false);
 
   useEffect(() => {
-    setConfirmDelete(false);
-  }, [selectedThreadId]);
-
-  useEffect(() => {
     const reduceMotion =
       typeof window !== "undefined" &&
       window.matchMedia("(prefers-reduced-motion: reduce)").matches;
