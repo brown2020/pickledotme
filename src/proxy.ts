@@ -15,7 +15,7 @@ const PROTECTED_ROUTES = ["/games", "/pickle", "/profile"];
 /**
  * Routes that should redirect authenticated users away
  */
-const AUTH_ROUTES = ["/login", "/signup"];
+const AUTH_ROUTES = ["/login", "/signup", "/forgot-password"];
 
 /**
  * Add security headers to response
@@ -57,10 +57,10 @@ export async function proxy(request: NextRequest) {
     isAuthenticated = Boolean(await getVerifiedSessionUid(sessionCookie));
   }
 
-  // Redirect unauthenticated users from protected routes to home
+  // Redirect unauthenticated users from protected routes to sign-in
   if (isProtectedRoute && !isAuthenticated) {
     const url = request.nextUrl.clone();
-    url.pathname = "/";
+    url.pathname = "/login";
     url.searchParams.set("redirect", pathname);
     const response = NextResponse.redirect(url);
     // Clear any invalid session cookie.
