@@ -34,7 +34,7 @@ export function SpeedPickle() {
               <Timer className="w-6 h-6 text-violet-600 dark:text-violet-400" />
             </div>
             <div>
-              <h2 className="text-2xl font-bold text-slate-900 dark:text-white">Speed Pickle</h2>
+              <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Speed Pickle</h1>
               <p className="text-sm text-slate-600 dark:text-slate-400">Level {level}</p>
             </div>
           </div>

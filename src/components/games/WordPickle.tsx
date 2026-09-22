@@ -84,9 +84,9 @@ export function WordPickle() {
               <Type className="w-6 h-6 text-pink-600 dark:text-pink-400" />
             </div>
             <div>
-              <h2 className="text-2xl font-bold text-slate-900 dark:text-white">
+              <h1 className="text-2xl font-bold text-slate-900 dark:text-white">
                 Word Pickle
-              </h2>
+              </h1>
               <p className="text-sm text-slate-600 dark:text-slate-400">
                 Level {level} • {wordsCompleted} words
               </p>

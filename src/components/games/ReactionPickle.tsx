@@ -74,9 +74,9 @@ export function ReactionPickle() {
               <Gauge className="w-6 h-6 text-cyan-600 dark:text-cyan-400" />
             </div>
             <div>
-              <h2 className="text-2xl font-bold text-slate-900 dark:text-white">
+              <h1 className="text-2xl font-bold text-slate-900 dark:text-white">
                 Reaction Pickle
-              </h2>
+              </h1>
               {isPlaying && (
                 <p className="text-sm text-slate-600 dark:text-slate-400">
                   Round {currentRound + 1} of {totalRounds}

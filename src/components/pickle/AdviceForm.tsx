@@ -67,11 +67,12 @@ export function AdviceForm({ onSubmit, isLoading }: AdviceFormProps) {
           <button
             key={t.label}
             type="button"
+            aria-label={`Use template: ${t.label}`}
             onClick={() => {
               setDilemma(t.value);
               setError(null);
             }}
-            className="px-3 py-1.5 rounded-full text-sm font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 dark:bg-slate-800 dark:hover:bg-slate-700 dark:text-slate-200 transition-colors"
+            className="px-3 py-1.5 rounded-full text-sm font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 dark:bg-slate-800 dark:hover:bg-slate-700 dark:text-slate-200 transition-colors focus-visible:ring-2 focus-visible:ring-emerald-500"
           >
             {t.label}
           </button>

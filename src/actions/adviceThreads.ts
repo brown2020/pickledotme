@@ -1,5 +1,6 @@
 "use server";
 
+import { revalidatePath } from "next/cache";
 import { FieldValue, Timestamp } from "firebase-admin/firestore";
 import { getFirebaseAdminFirestore } from "@/lib/firebaseAdmin";
 import { requireAuthenticatedSessionUid } from "@/lib/requireAuth";
@@ -75,6 +76,7 @@ export async function createAdviceThread(input: unknown): Promise<string> {
     createdAt: FieldValue.serverTimestamp(),
   });
   await batch.commit();
+  revalidatePath("/pickle");
   return threadRef.id;
 }
 

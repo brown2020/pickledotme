@@ -32,7 +32,9 @@ function HistoryItems({
       key={thread.id}
       type="button"
       onClick={() => onSelect(thread.id)}
-      className={`w-full rounded-xl border p-3 text-left transition-colors ${
+      aria-label={`Open advice thread: ${thread.title}`}
+      aria-current={selectedThreadId === thread.id ? "true" : undefined}
+      className={`w-full rounded-xl border p-3 text-left transition-colors focus-visible:ring-2 focus-visible:ring-emerald-500 ${
         selectedThreadId === thread.id
           ? "border-emerald-400 bg-emerald-50/60 dark:bg-emerald-900/10"
           : "border-slate-200 hover:bg-slate-50 dark:border-slate-700 dark:hover:bg-slate-800/50"

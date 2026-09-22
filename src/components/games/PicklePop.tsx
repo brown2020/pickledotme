@@ -93,7 +93,7 @@ export function PicklePop() {
               <Target className="w-6 h-6 text-orange-600 dark:text-orange-400" />
             </div>
             <div>
-              <h2 className="text-2xl font-bold text-slate-900 dark:text-white">Pickle Pop</h2>
+              <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Pickle Pop</h1>
               <p className="text-sm text-slate-600 dark:text-slate-400">Level {level}</p>
             </div>
           </div>

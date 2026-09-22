@@ -1,5 +1,6 @@
 "use server";
 
+import { revalidatePath } from "next/cache";
 import { FieldValue, Timestamp } from "firebase-admin/firestore";
 import { getFirebaseAdminFirestore } from "@/lib/firebaseAdmin";
 import { requireAuthenticatedSessionUid } from "@/lib/requireAuth";
@@ -92,6 +93,12 @@ export async function saveGameResult(
       });
     }
     return { isNewBest };
+  }).then((result) => {
+    // Client SWR caches are also mutated by callers; this keeps RSC/profile routes fresh.
+    revalidatePath("/profile");
+    revalidatePath("/games");
+    revalidatePath(`/games/${gameId}`);
+    return result;
   });
 }
 
