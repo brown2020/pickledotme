@@ -13,7 +13,7 @@ export function ScoreDisplay({ currentScore, bestScore }: ScoreDisplayProps) {
           <Star className="w-4 h-4" />
           <span>Score</span>
         </div>
-        <p className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">
+        <p className="text-2xl font-bold text-emerald-700 dark:text-emerald-300">
           {currentScore.toLocaleString()}
         </p>
       </div>

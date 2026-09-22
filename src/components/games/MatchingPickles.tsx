@@ -78,7 +78,7 @@ export function MatchingPickles() {
         {/* Instructions */}
         {!isPlaying && score === 0 && (
           <div className="mt-8 p-6 bg-slate-50 dark:bg-slate-700/50 rounded-2xl">
-            <h3 className="font-bold text-slate-900 dark:text-white mb-3">How to Play:</h3>
+            <h2 className="font-bold text-slate-900 dark:text-white mb-3 text-base">How to Play:</h2>
             <ul className="space-y-2 text-slate-600 dark:text-slate-300">
               <li className="flex items-center gap-2">
                 <span className="w-6 h-6 bg-blue-100 dark:bg-blue-900/50 rounded-full flex items-center justify-center text-blue-600 dark:text-blue-400 text-sm font-bold">1</span>

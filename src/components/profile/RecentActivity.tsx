@@ -29,7 +29,7 @@ export function RecentActivity({ scores }: RecentActivityProps) {
                   <p className="font-semibold text-slate-900 dark:text-white">
                     {GAMES[score.gameId as keyof typeof GAMES] || score.gameId}
                   </p>
-                  <div className="flex items-center gap-1 text-sm text-slate-500 dark:text-slate-400">
+                  <div className="flex items-center gap-1 text-sm text-slate-600 dark:text-slate-300">
                     <Clock className="w-3 h-3" />
                     <span>
                       {score.timestamp.toLocaleDateString("en-US", {
@@ -43,7 +43,7 @@ export function RecentActivity({ scores }: RecentActivityProps) {
                   </div>
                 </div>
               </div>
-              <span className="text-xl font-bold text-emerald-600 dark:text-emerald-400">
+              <span className="text-xl font-bold text-emerald-700 dark:text-emerald-300">
                 {score.score.toLocaleString("en-US")}
               </span>
             </div>
@@ -54,7 +54,7 @@ export function RecentActivity({ scores }: RecentActivityProps) {
           <div className="w-16 h-16 bg-slate-100 dark:bg-slate-800 rounded-2xl flex items-center justify-center mx-auto mb-4">
             <Trophy className="w-8 h-8 text-slate-400" />
           </div>
-          <p className="text-slate-500 dark:text-slate-400">
+          <p className="text-slate-600 dark:text-slate-300">
             No games played yet. Start playing to see your activity!
           </p>
         </div>

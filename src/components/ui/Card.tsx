@@ -51,7 +51,7 @@ const CardTitle = forwardRef<
   HTMLHeadingElement,
   HTMLAttributes<HTMLHeadingElement>
 >(({ className, children, ...props }, ref) => (
-  <h3
+  <h2
     ref={ref}
     className={cn(
       "text-xl font-bold text-slate-900 dark:text-white",
@@ -60,7 +60,7 @@ const CardTitle = forwardRef<
     {...props}
   >
     {children ?? <span className="sr-only">Card</span>}
-  </h3>
+  </h2>
 ));
 CardTitle.displayName = "CardTitle";
 

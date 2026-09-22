@@ -43,7 +43,7 @@ export function ProfileClient() {
               <h1 className="text-3xl font-bold text-slate-900 dark:text-white">
                 {user?.displayName || "Player"}
               </h1>
-              <div className="flex flex-col md:flex-row gap-4 mt-3 text-slate-500 dark:text-slate-400">
+              <div className="flex flex-col md:flex-row gap-4 mt-3 text-slate-600 dark:text-slate-300">
                 {user?.email && (
                   <span className="flex items-center gap-2">
                     <Mail className="w-4 h-4" />

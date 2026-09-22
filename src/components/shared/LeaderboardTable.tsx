@@ -41,7 +41,7 @@ export function LeaderboardTable({ gameId }: LeaderboardTableProps) {
         <div className="w-16 h-16 bg-slate-100 dark:bg-slate-700 rounded-2xl flex items-center justify-center mx-auto mb-4">
           <Trophy className="w-8 h-8 text-slate-400 dark:text-slate-500" />
         </div>
-        <p className="text-slate-500 dark:text-slate-400">No scores yet. Be the first to play!</p>
+        <p className="text-slate-600 dark:text-slate-300">No scores yet. Be the first to play!</p>
       </div>
     );
   }
@@ -97,7 +97,7 @@ export function LeaderboardTable({ gameId }: LeaderboardTableProps) {
               </td>
               <td className="py-3 px-4">
                 <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 rounded-full bg-emerald-100 dark:bg-emerald-900/50 flex items-center justify-center text-emerald-600 dark:text-emerald-400 font-bold text-sm">
+                  <div className="w-8 h-8 rounded-full bg-emerald-100 dark:bg-emerald-900/50 flex items-center justify-center text-emerald-800 dark:text-emerald-300 font-bold text-sm">
                     {score.userId.slice(0, 2).toUpperCase()}
                   </div>
                   <span className="text-slate-900 dark:text-white font-medium">
@@ -110,7 +110,7 @@ export function LeaderboardTable({ gameId }: LeaderboardTableProps) {
                   {score.score.toLocaleString("en-US")}
                 </span>
               </td>
-              <td className="py-3 px-4 text-slate-500 dark:text-slate-400">
+              <td className="py-3 px-4 text-slate-600 dark:text-slate-300">
                 {formatScoreDate(score.timestamp)}
               </td>
             </tr>

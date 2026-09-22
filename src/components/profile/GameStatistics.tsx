@@ -41,7 +41,7 @@ export function GameStatistics({ scores }: GameStatisticsProps) {
 
               <div className="space-y-3">
                 <div className="flex justify-between items-center">
-                  <span className="text-sm text-slate-500 dark:text-slate-400">Best Score</span>
+                  <span className="text-sm text-slate-600 dark:text-slate-300">Best Score</span>
                   <div className="flex items-center gap-1">
                     <Trophy className="w-4 h-4 text-amber-500" />
                     <span className="font-bold text-slate-900 dark:text-white">
@@ -50,7 +50,7 @@ export function GameStatistics({ scores }: GameStatisticsProps) {
                   </div>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-sm text-slate-500 dark:text-slate-400">Games Played</span>
+                  <span className="text-sm text-slate-600 dark:text-slate-300">Games Played</span>
                   <span className="font-medium text-slate-700 dark:text-slate-300">
                     {gamesPlayed[game.id] || 0}
                   </span>

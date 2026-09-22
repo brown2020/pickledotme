@@ -1,7 +1,7 @@
 export function GameRules() {
   return (
     <div className="mt-8 p-6 bg-slate-50 rounded-2xl">
-      <h3 className="font-bold text-slate-900 mb-3">How to Play:</h3>
+      <h2 className="font-bold text-slate-900 mb-3 text-base">How to Play:</h2>
       <ul className="space-y-2 text-slate-600">
         <li className="flex items-center gap-2">
           <span className="w-6 h-6 bg-violet-100 rounded-full flex items-center justify-center text-violet-600 text-sm font-bold">1</span>

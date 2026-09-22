@@ -41,7 +41,7 @@ export function Footer() {
 
           {/* Links */}
           <div>
-            <h4 className="text-white font-semibold mb-4">Product</h4>
+            <h2 className="text-white font-semibold mb-4 text-base">Product</h2>
             <nav aria-label="Product" className="flex flex-col gap-2">
               <Link
                 href="/pickle"
@@ -66,7 +66,7 @@ export function Footer() {
 
           {/* Legal */}
           <div>
-            <h4 className="text-white font-semibold mb-4">Legal</h4>
+            <h2 className="text-white font-semibold mb-4 text-base">Legal</h2>
             <nav aria-label="Legal" className="flex flex-col gap-2">
               <Link
                 href="/privacy"
