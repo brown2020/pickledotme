@@ -88,7 +88,7 @@ export function AdviceForm({ onSubmit, isLoading }: AdviceFormProps) {
           <select
             value={tone}
             onChange={(e) => setTone(e.target.value as AdviceTone)}
-            className="w-full px-4 py-3 rounded-xl border-2 transition-all duration-200 bg-white text-slate-900 dark:bg-slate-800 dark:text-slate-100 border-slate-200 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 dark:focus:border-emerald-400"
+            className="w-full px-4 py-3 rounded-xl border-2 transition-[color,background-color,box-shadow,transform,opacity] duration-200 bg-white text-slate-900 dark:bg-slate-800 dark:text-slate-100 border-slate-200 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 dark:focus:border-emerald-400"
           >
             <option value="balanced">Balanced</option>
             <option value="gentle">Gentle</option>
@@ -105,7 +105,7 @@ export function AdviceForm({ onSubmit, isLoading }: AdviceFormProps) {
           <select
             value={modelName}
             onChange={(e) => setModelName(e.target.value)}
-            className="w-full px-4 py-3 rounded-xl border-2 transition-all duration-200 bg-white text-slate-900 dark:bg-slate-800 dark:text-slate-100 border-slate-200 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 dark:focus:border-emerald-400 disabled:opacity-60 disabled:cursor-not-allowed"
+            className="w-full px-4 py-3 rounded-xl border-2 transition-[color,background-color,box-shadow,transform,opacity] duration-200 bg-white text-slate-900 dark:bg-slate-800 dark:text-slate-100 border-slate-200 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 dark:focus:border-emerald-400 disabled:opacity-60 disabled:cursor-not-allowed"
           >
             <option value="gpt-5.2-chat-latest">OpenAI: GPT‑5.2 (chat)</option>
             <option value="claude-sonnet-4-5">Anthropic: Sonnet 4.5</option>
@@ -130,7 +130,7 @@ export function AdviceForm({ onSubmit, isLoading }: AdviceFormProps) {
             <select
               value={tone}
               onChange={(e) => setTone(e.target.value as AdviceTone)}
-              className="w-full px-4 py-3 rounded-xl border-2 transition-all duration-200 bg-white text-slate-900 dark:bg-slate-800 dark:text-slate-100 border-slate-200 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 dark:focus:border-emerald-400"
+              className="w-full px-4 py-3 rounded-xl border-2 transition-[color,background-color,box-shadow,transform,opacity] duration-200 bg-white text-slate-900 dark:bg-slate-800 dark:text-slate-100 border-slate-200 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 dark:focus:border-emerald-400"
             >
               <option value="balanced">Balanced</option>
               <option value="gentle">Gentle</option>
@@ -147,7 +147,7 @@ export function AdviceForm({ onSubmit, isLoading }: AdviceFormProps) {
             <select
               value={modelName}
               onChange={(e) => setModelName(e.target.value)}
-              className="w-full px-4 py-3 rounded-xl border-2 transition-all duration-200 bg-white text-slate-900 dark:bg-slate-800 dark:text-slate-100 border-slate-200 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 dark:focus:border-emerald-400 disabled:opacity-60 disabled:cursor-not-allowed"
+              className="w-full px-4 py-3 rounded-xl border-2 transition-[color,background-color,box-shadow,transform,opacity] duration-200 bg-white text-slate-900 dark:bg-slate-800 dark:text-slate-100 border-slate-200 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 dark:focus:border-emerald-400 disabled:opacity-60 disabled:cursor-not-allowed"
             >
               <option value="gpt-5.2-chat-latest">
                 OpenAI: GPT‑5.2 (chat)

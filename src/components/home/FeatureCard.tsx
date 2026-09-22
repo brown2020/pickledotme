@@ -17,7 +17,7 @@ export function FeatureCard({
   gradient,
 }: FeatureCardProps) {
   return (
-    <div className="group relative bg-white dark:bg-slate-800 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden">
+    <div className="group relative bg-white dark:bg-slate-800 rounded-2xl shadow-lg hover:shadow-xl transition-[color,background-color,box-shadow,transform,opacity] duration-300 overflow-hidden">
       {/* Gradient accent */}
       <div
         className={`absolute inset-x-0 top-0 h-1 bg-gradient-to-r ${gradient}`}
@@ -37,7 +37,7 @@ export function FeatureCard({
 
         <Link
           href={link}
-          className={`inline-flex items-center font-semibold bg-linear-to-r ${gradient} bg-clip-text text-transparent group-hover:gap-2 transition-all`}
+          className={`inline-flex items-center font-semibold bg-linear-to-r ${gradient} bg-clip-text text-transparent group-hover:gap-2 transition-[color,background-color,box-shadow,transform,opacity]`}
         >
           Try it out
           <ArrowRight className="ml-1 w-4 h-4 text-current opacity-0 group-hover:opacity-100 transition-opacity" />

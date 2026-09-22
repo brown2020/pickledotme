@@ -394,3 +394,7 @@ This project is licensed under the GNU Affero General Public License v3.0 (AGPL-
 [Report Bug](https://github.com/brown2020/pickledotme/issues) • [Request Feature](https://github.com/brown2020/pickledotme/issues)
 
 </div>
+
+## Operations
+
+See [docs/OPERATIONS.md](docs/OPERATIONS.md) for quality gates, failure drills, and rollback.

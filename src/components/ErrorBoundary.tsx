@@ -61,7 +61,7 @@ export class ErrorBoundary extends Component<Props, State> {
               </Button>
               <Link
                 href="/"
-                className="inline-flex items-center justify-center font-semibold rounded-xl transition-all duration-200 px-5 py-2.5 text-base border-2 border-emerald-600 text-emerald-600 hover:bg-emerald-50 dark:border-emerald-400 dark:text-emerald-400 dark:hover:bg-emerald-950 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2"
+                className="inline-flex items-center justify-center font-semibold rounded-xl transition-[color,background-color,box-shadow,transform,opacity] duration-200 px-5 py-2.5 text-base border-2 border-emerald-600 text-emerald-600 hover:bg-emerald-50 dark:border-emerald-400 dark:text-emerald-400 dark:hover:bg-emerald-950 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2"
               >
                 Go Home
               </Link>

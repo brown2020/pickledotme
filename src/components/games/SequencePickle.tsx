@@ -60,7 +60,7 @@ export function SequencePickle() {
               aria-label={`${color.id} color`}
               className={`
                 relative h-28 md:h-32 rounded-2xl transform
-                transition-all duration-200 ease-out
+                transition-[color,background-color,box-shadow,transform,opacity] duration-200 ease-out
                 ${!isPlaying ? color.base : color.bg}
                 ${!isPlaying || isShowingSequence ? "" : color.hover}
                 ${

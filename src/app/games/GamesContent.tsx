@@ -32,7 +32,7 @@ export function GamesContent() {
                 <Link href={`/games/${game.id}`} className="group block">
                   <Card
                     variant="elevated"
-                    className="h-full transition-all duration-300 hover:shadow-2xl hover:-translate-y-1 dark:bg-slate-800 dark:border-slate-700"
+                    className="h-full transition-[color,background-color,box-shadow,transform,opacity] duration-300 hover:shadow-2xl hover:-translate-y-1 dark:bg-slate-800 dark:border-slate-700"
                   >
                     {/* Gradient top accent */}
                     <div className={`h-2 bg-linear-to-r ${game.gradient}`} />

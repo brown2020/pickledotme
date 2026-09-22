@@ -15,8 +15,15 @@ export function MatchingCard({ card, onClick, disabled }: MatchingCardProps) {
       type="button"
       onClick={onClick}
       disabled={disabled}
+      aria-label={
+        card.isMatched
+          ? "Matched card"
+          : card.isFlipped
+            ? "Flipped card"
+            : "Hidden matching card"
+      }
       className={cn(
-        "relative h-20 md:h-24 rounded-xl transition-all transform duration-300",
+        "relative h-20 md:h-24 rounded-xl transition-transform transform duration-300",
         "flex items-center justify-center shadow-md",
         "disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2",
         card.isMatched
@@ -28,7 +35,7 @@ export function MatchingCard({ card, onClick, disabled }: MatchingCardProps) {
     >
       <div
         className={cn(
-          "transition-all duration-300",
+          "transition-transform duration-300",
           card.isFlipped || card.isMatched
             ? "scale-100 opacity-100"
             : "scale-0 opacity-0"

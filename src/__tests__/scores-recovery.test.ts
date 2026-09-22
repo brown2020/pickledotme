@@ -17,6 +17,8 @@ vi.mock("@/lib/authSession", () => ({
 const create = vi.fn();
 const set = vi.fn();
 let bestScore = 10;
+let transactionDelayMs = 0;
+let failNextCreate = false;
 
 vi.mock("@/lib/firebaseAdmin", () => ({
   getFirebaseAdminFirestore: vi.fn(() => ({
@@ -33,6 +35,9 @@ vi.mock("@/lib/firebaseAdmin", () => ({
           set: typeof set;
         }) => Promise<{ isNewBest: boolean }>
       ) => {
+        if (transactionDelayMs > 0) {
+          await new Promise((r) => setTimeout(r, transactionDelayMs));
+        }
         const tx = {
           get: async () => ({
             data: () => ({
@@ -41,7 +46,13 @@ vi.mock("@/lib/firebaseAdmin", () => ({
               gameId: "sequence-pickle",
             }),
           }),
-          create,
+          create: ((ref: unknown, data: unknown) => {
+            if (failNextCreate) {
+              failNextCreate = false;
+              throw new Error("simulated interrupt");
+            }
+            return create(ref, data);
+          }) as typeof create,
           set: ((ref: unknown, data: { score: number }) => {
             bestScore = data.score;
             return set(ref, data);
@@ -63,6 +74,8 @@ describe("saveGameResult recovery", () => {
     create.mockReset();
     set.mockReset();
     bestScore = 10;
+    transactionDelayMs = 0;
+    failNextCreate = false;
     vi.resetModules();
   });
 
@@ -76,5 +89,30 @@ describe("saveGameResult recovery", () => {
     expect(first.isNewBest).toBe(true);
     expect(second.isNewBest).toBe(false);
     expect(create).toHaveBeenCalledTimes(2);
+  });
+
+  it("keeps durable best score coherent under concurrent higher submits", async () => {
+    transactionDelayMs = 40;
+    const { saveGameResult } = await import("@/actions/scores");
+    const [a, b] = await Promise.all([
+      saveGameResult({ gameId: "sequence-pickle", score: 15 }),
+      saveGameResult({ gameId: "sequence-pickle", score: 18 }),
+    ]);
+    expect([a.isNewBest, b.isNewBest].filter(Boolean).length).toBeGreaterThanOrEqual(1);
+    expect(create).toHaveBeenCalledTimes(2);
+    expect(bestScore).toBeGreaterThanOrEqual(15);
+  });
+
+  it("allows a retry after an interrupted write without corrupting best score", async () => {
+    failNextCreate = true;
+    const { saveGameResult } = await import("@/actions/scores");
+    await expect(
+      saveGameResult({ gameId: "sequence-pickle", score: 20 })
+    ).rejects.toThrow(/interrupt/);
+    expect(bestScore).toBe(10);
+    const retry = await saveGameResult({ gameId: "sequence-pickle", score: 20 });
+    expect(retry.isNewBest).toBe(true);
+    expect(bestScore).toBe(20);
+    expect(create).toHaveBeenCalledTimes(1);
   });
 });

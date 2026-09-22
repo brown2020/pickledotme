@@ -13,7 +13,14 @@ const outfit = Outfit({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || "https://pickle.me"),
+  metadataBase: (() => {
+    const raw = process.env.NEXT_PUBLIC_APP_URL || "https://pickle.me";
+    try {
+      return new URL(raw);
+    } catch {
+      return new URL("https://pickle.me");
+    }
+  })(),
   title: {
     default: "Pickle.me - AI Advice & Memory Games",
     template: "%s | Pickle.me",

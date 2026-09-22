@@ -12,7 +12,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
         <input
           ref={ref}
           className={cn(
-            "w-full px-4 py-3 rounded-xl border-2 transition-all duration-200",
+            "w-full px-4 py-3 rounded-xl border-2 transition-[color,background-color,box-shadow,transform,opacity] duration-200",
             "bg-white text-slate-900 placeholder:text-slate-400",
             "dark:bg-slate-800 dark:text-slate-100 dark:placeholder:text-slate-500",
             "focus:outline-none focus:ring-2 focus:ring-emerald-500/20",
@@ -43,7 +43,7 @@ const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
         <textarea
           ref={ref}
           className={cn(
-            "w-full px-4 py-3 rounded-xl border-2 transition-all duration-200 resize-none",
+            "w-full px-4 py-3 rounded-xl border-2 transition-[color,background-color,box-shadow,transform,opacity] duration-200 resize-none",
             "bg-white text-slate-900 placeholder:text-slate-400",
             "dark:bg-slate-800 dark:text-slate-100 dark:placeholder:text-slate-500",
             "focus:outline-none focus:ring-2 focus:ring-emerald-500/20",

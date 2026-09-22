@@ -42,7 +42,7 @@ export function Footer() {
           {/* Links */}
           <div>
             <h4 className="text-white font-semibold mb-4">Product</h4>
-            <nav className="flex flex-col gap-2">
+            <nav aria-label="Product" className="flex flex-col gap-2">
               <Link
                 href="/pickle"
                 className="text-sm hover:text-emerald-400 transition-colors"
@@ -67,7 +67,7 @@ export function Footer() {
           {/* Legal */}
           <div>
             <h4 className="text-white font-semibold mb-4">Legal</h4>
-            <nav className="flex flex-col gap-2">
+            <nav aria-label="Legal" className="flex flex-col gap-2">
               <Link
                 href="/privacy"
                 className="text-sm hover:text-emerald-400 transition-colors"

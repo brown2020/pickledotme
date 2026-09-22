@@ -9,6 +9,7 @@ export interface AuthContextType {
   isAuthenticated: boolean;
   authError: string | null;
   signInWithGoogle: () => Promise<void>;
+  signInWithEmail: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
   clearAuthError: () => void;
 }

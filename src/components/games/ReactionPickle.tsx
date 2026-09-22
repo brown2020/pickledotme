@@ -6,7 +6,10 @@ import { ScoreDisplay } from "./common/ScoreDisplay";
 import { Card, CardContent, CardHeader, Button } from "@/components/ui";
 import { Gauge, Zap, AlertTriangle, CheckCircle, XCircle } from "lucide-react";
 
-function getPhaseColor(phase: string) {
+type Phase = ReturnType<typeof useReactionGame>["phase"];
+type RoundResult = ReturnType<typeof useReactionGame>["results"][number];
+
+function getPhaseColor(phase: Phase) {
   switch (phase) {
     case "ready":
       return "from-rose-500 to-red-600";
@@ -21,7 +24,7 @@ function getPhaseColor(phase: string) {
   }
 }
 
-function getPhaseText(phase: string, currentReactionTime: number | null) {
+function getPhaseText(phase: Phase, currentReactionTime: number | null) {
   switch (phase) {
     case "waiting":
       return "Click Start to Begin";
@@ -47,6 +50,173 @@ function getReactionRating(time: number) {
   if (time <= 400) return { text: "Good", color: "text-cyan-500" };
   if (time <= 500) return { text: "Average", color: "text-amber-500" };
   return { text: "Keep practicing!", color: "text-rose-500" };
+}
+
+function ReactionSurface({
+  phase,
+  currentReactionTime,
+  onClick,
+}: {
+  phase: Phase;
+  currentReactionTime: number | null;
+  onClick: () => void;
+}) {
+  const rating =
+    phase === "result" && currentReactionTime
+      ? getReactionRating(currentReactionTime)
+      : null;
+
+  return (
+    <m.button
+      type="button"
+      onClick={onClick}
+      disabled={phase === "waiting" || phase === "finished"}
+      aria-label={getPhaseText(phase, currentReactionTime) || "Reaction pad"}
+      className={`
+            w-full aspect-[2/1] rounded-3xl mb-6
+            bg-gradient-to-br ${getPhaseColor(phase)}
+            flex flex-col items-center justify-center
+            text-white font-bold
+            transition-[transform,opacity] duration-200
+            disabled:cursor-not-allowed
+            ${phase === "go" || phase === "ready" ? "cursor-pointer" : ""}
+          `}
+      whileTap={phase === "go" || phase === "ready" ? { scale: 0.98 } : {}}
+    >
+      {phase === "go" ? (
+        <m.div
+          initial={{ scale: 0.8, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          className="mb-2"
+        >
+          <Zap className="w-16 h-16" />
+        </m.div>
+      ) : null}
+      {phase === "too-early" ? (
+        <m.div
+          initial={{ scale: 0.8, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          className="mb-2"
+        >
+          <AlertTriangle className="w-16 h-16" />
+        </m.div>
+      ) : null}
+      {phase === "result" && currentReactionTime ? (
+        <m.div
+          initial={{ scale: 0.8, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          className="mb-2"
+        >
+          {currentReactionTime <= 300 ? (
+            <CheckCircle className="w-16 h-16" />
+          ) : (
+            <Gauge className="w-16 h-16" />
+          )}
+        </m.div>
+      ) : null}
+      <span className="text-3xl md:text-4xl">
+        {getPhaseText(phase, currentReactionTime)}
+      </span>
+      {rating ? (
+        <span className={`text-lg mt-2 ${rating.color}`}>{rating.text}</span>
+      ) : null}
+    </m.button>
+  );
+}
+
+function ResultsPanel({
+  results,
+  phase,
+  averageTime,
+}: {
+  results: RoundResult[];
+  phase: Phase;
+  averageTime: number | null;
+}) {
+  if (results.length === 0) return null;
+  const finishedRating =
+    phase === "finished" && averageTime
+      ? getReactionRating(averageTime)
+      : null;
+
+  return (
+    <div className="mb-6 p-4 bg-slate-50 dark:bg-slate-700/50 rounded-2xl">
+      <h4 className="font-semibold text-slate-900 dark:text-white mb-3">
+        Results:
+      </h4>
+      <div className="grid grid-cols-5 gap-2">
+        {results.map((result) => (
+          <div
+            key={result.round}
+            className={`text-center p-2 rounded-xl ${
+              result.tooEarly
+                ? "bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400"
+                : "bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400"
+            }`}
+          >
+            <div className="text-xs opacity-70">R{result.round}</div>
+            <div className="font-bold text-sm">
+              {result.tooEarly ? (
+                <XCircle className="w-4 h-4 mx-auto" />
+              ) : (
+                `${result.reactionTime}ms`
+              )}
+            </div>
+          </div>
+        ))}
+      </div>
+      {finishedRating && averageTime ? (
+        <div className="mt-4 pt-4 border-t border-slate-200 dark:border-slate-600 text-center">
+          <p className="text-slate-600 dark:text-slate-400">Average Time</p>
+          <p className={`text-3xl font-bold ${finishedRating.color}`}>
+            {averageTime}ms
+          </p>
+          <p className={`text-lg ${finishedRating.color}`}>
+            {finishedRating.text}
+          </p>
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+function HowToPlayPanel() {
+  return (
+    <div className="mt-8 p-6 bg-slate-50 dark:bg-slate-700/50 rounded-2xl">
+      <h3 className="font-bold text-slate-900 dark:text-white mb-3">
+        How to Play:
+      </h3>
+      <ul className="space-y-2 text-slate-600 dark:text-slate-400">
+        <li className="flex items-center gap-2">
+          <span className="w-6 h-6 bg-cyan-100 rounded-full flex items-center justify-center text-cyan-600 text-sm font-bold">
+            1
+          </span>
+          Wait for the box to turn{" "}
+          <span className="text-emerald-500 font-bold">GREEN</span>
+        </li>
+        <li className="flex items-center gap-2">
+          <span className="w-6 h-6 bg-cyan-100 rounded-full flex items-center justify-center text-cyan-600 text-sm font-bold">
+            2
+          </span>
+          Click as fast as you can when it changes!
+        </li>
+        <li className="flex items-center gap-2">
+          <span className="w-6 h-6 bg-cyan-100 rounded-full flex items-center justify-center text-cyan-600 text-sm font-bold">
+            3
+          </span>
+          Don&apos;t click while it&apos;s{" "}
+          <span className="text-rose-500 font-bold">RED</span> - that&apos;s a
+          penalty!
+        </li>
+        <li className="flex items-center gap-2">
+          <span className="w-6 h-6 bg-cyan-100 rounded-full flex items-center justify-center text-cyan-600 text-sm font-bold">
+            4
+          </span>
+          Complete 5 rounds to see your average
+        </li>
+      </ul>
+    </div>
+  );
 }
 
 export function ReactionPickle() {
@@ -77,11 +247,11 @@ export function ReactionPickle() {
               <h1 className="text-2xl font-bold text-slate-900 dark:text-white">
                 Reaction Pickle
               </h1>
-              {isPlaying && (
+              {isPlaying ? (
                 <p className="text-sm text-slate-600 dark:text-slate-400">
                   Round {currentRound + 1} of {totalRounds}
                 </p>
-              )}
+              ) : null}
             </div>
           </div>
           <ScoreDisplay currentScore={score} bestScore={bestScore} />
@@ -89,108 +259,16 @@ export function ReactionPickle() {
       </CardHeader>
 
       <CardContent className="p-6">
-        {/* Main reaction area */}
-        <m.button
-          type="button"
+        <ReactionSurface
+          phase={phase}
+          currentReactionTime={currentReactionTime}
           onClick={handleClick}
-          disabled={phase === "waiting" || phase === "finished"}
-          className={`
-            w-full aspect-[2/1] rounded-3xl mb-6
-            bg-gradient-to-br ${getPhaseColor(phase)}
-            flex flex-col items-center justify-center
-            text-white font-bold
-            transition-all duration-200
-            disabled:cursor-not-allowed
-            ${phase === "go" ? "cursor-pointer" : ""}
-            ${phase === "ready" ? "cursor-pointer" : ""}
-          `}
-          whileTap={phase === "go" || phase === "ready" ? { scale: 0.98 } : {}}
-        >
-          {phase === "go" && (
-            <m.div
-              initial={{ scale: 0.8, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              className="mb-2"
-            >
-              <Zap className="w-16 h-16" />
-            </m.div>
-          )}
-          {phase === "too-early" && (
-            <m.div
-              initial={{ scale: 0.8, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              className="mb-2"
-            >
-              <AlertTriangle className="w-16 h-16" />
-            </m.div>
-          )}
-          {phase === "result" && currentReactionTime && (
-            <m.div
-              initial={{ scale: 0.8, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              className="mb-2"
-            >
-              {currentReactionTime <= 300 ? (
-                <CheckCircle className="w-16 h-16" />
-              ) : (
-                <Gauge className="w-16 h-16" />
-              )}
-            </m.div>
-          )}
-          
-          <span className="text-3xl md:text-4xl">
-            {getPhaseText(phase, currentReactionTime)}
-          </span>
-          
-          {phase === "result" && currentReactionTime && (
-            <span className={`text-lg mt-2 ${getReactionRating(currentReactionTime).color}`}>
-              {getReactionRating(currentReactionTime).text}
-            </span>
-          )}
-        </m.button>
-
-        {/* Round results */}
-        {results.length > 0 && (
-          <div className="mb-6 p-4 bg-slate-50 dark:bg-slate-700/50 rounded-2xl">
-            <h4 className="font-semibold text-slate-900 dark:text-white mb-3">
-              Results:
-            </h4>
-            <div className="grid grid-cols-5 gap-2">
-              {results.map((result) => (
-                <div
-                  key={result.round}
-                  className={`text-center p-2 rounded-xl ${
-                    result.tooEarly
-                      ? "bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400"
-                      : "bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400"
-                  }`}
-                >
-                  <div className="text-xs opacity-70">R{result.round}</div>
-                  <div className="font-bold text-sm">
-                    {result.tooEarly ? (
-                      <XCircle className="w-4 h-4 mx-auto" />
-                    ) : (
-                      `${result.reactionTime}ms`
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
-            {phase === "finished" && averageTime && (
-              <div className="mt-4 pt-4 border-t border-slate-200 dark:border-slate-600 text-center">
-                <p className="text-slate-600 dark:text-slate-400">Average Time</p>
-                <p className={`text-3xl font-bold ${getReactionRating(averageTime).color}`}>
-                  {averageTime}ms
-                </p>
-                <p className={`text-lg ${getReactionRating(averageTime).color}`}>
-                  {getReactionRating(averageTime).text}
-                </p>
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* Controls */}
+        />
+        <ResultsPanel
+          results={results}
+          phase={phase}
+          averageTime={averageTime}
+        />
         <div className="flex justify-center gap-4">
           {!isPlaying ? (
             <Button onClick={startGame} size="lg">
@@ -202,33 +280,7 @@ export function ReactionPickle() {
             </Button>
           )}
         </div>
-
-        {/* Instructions */}
-        {phase === "waiting" && (
-          <div className="mt-8 p-6 bg-slate-50 dark:bg-slate-700/50 rounded-2xl">
-            <h3 className="font-bold text-slate-900 dark:text-white mb-3">
-              How to Play:
-            </h3>
-            <ul className="space-y-2 text-slate-600 dark:text-slate-400">
-              <li className="flex items-center gap-2">
-                <span className="w-6 h-6 bg-cyan-100 rounded-full flex items-center justify-center text-cyan-600 text-sm font-bold">1</span>
-                Wait for the box to turn <span className="text-emerald-500 font-bold">GREEN</span>
-              </li>
-              <li className="flex items-center gap-2">
-                <span className="w-6 h-6 bg-cyan-100 rounded-full flex items-center justify-center text-cyan-600 text-sm font-bold">2</span>
-                Click as fast as you can when it changes!
-              </li>
-              <li className="flex items-center gap-2">
-                <span className="w-6 h-6 bg-cyan-100 rounded-full flex items-center justify-center text-cyan-600 text-sm font-bold">3</span>
-                Don&apos;t click while it&apos;s <span className="text-rose-500 font-bold">RED</span> - that&apos;s a penalty!
-              </li>
-              <li className="flex items-center gap-2">
-                <span className="w-6 h-6 bg-cyan-100 rounded-full flex items-center justify-center text-cyan-600 text-sm font-bold">4</span>
-                Complete 5 rounds to see your average
-              </li>
-            </ul>
-          </div>
-        )}
+        {phase === "waiting" ? <HowToPlayPanel /> : null}
       </CardContent>
     </Card>
   );

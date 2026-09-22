@@ -68,7 +68,7 @@ export function SpeedPickle() {
               disabled={!isPlaying}
               aria-label={pickle.isTarget ? "Target pickle" : "Regular pickle"}
               className={`
-                aspect-square rounded-xl transition-all duration-200
+                aspect-square rounded-xl transition-[color,background-color,box-shadow,transform,opacity] duration-200
                 hover:scale-95 active:scale-90
                 disabled:opacity-50 disabled:cursor-not-allowed
                 shadow-md hover:shadow-lg
