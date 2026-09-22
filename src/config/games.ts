@@ -3,12 +3,12 @@ import { Zap, Grid3X3, Timer, Target, Gauge, Type, LucideIcon } from "lucide-rea
 /**
  * Game difficulty levels
  */
-export type GameDifficulty = "easy" | "medium" | "hard";
+type GameDifficulty = "easy" | "medium" | "hard";
 
 /**
  * Complete game configuration
  */
-export interface GameConfig {
+interface GameConfig {
   id: GameId;
   name: string;
   description: string;

@@ -1,7 +1,7 @@
-import { forwardRef, HTMLAttributes } from "react";
+import { forwardRef, type HTMLAttributes } from "react";
 import { cn } from "@/lib/cn";
 
-export interface CardProps extends HTMLAttributes<HTMLDivElement> {
+interface CardProps extends HTMLAttributes<HTMLDivElement> {
   variant?: "default" | "glass" | "elevated";
 }
 
@@ -50,7 +50,7 @@ CardHeader.displayName = "CardHeader";
 const CardTitle = forwardRef<
   HTMLHeadingElement,
   HTMLAttributes<HTMLHeadingElement>
->(({ className, ...props }, ref) => (
+>(({ className, children, ...props }, ref) => (
   <h3
     ref={ref}
     className={cn(
@@ -58,21 +58,11 @@ const CardTitle = forwardRef<
       className
     )}
     {...props}
-  />
+  >
+    {children ?? <span className="sr-only">Card</span>}
+  </h3>
 ));
 CardTitle.displayName = "CardTitle";
-
-const CardDescription = forwardRef<
-  HTMLParagraphElement,
-  HTMLAttributes<HTMLParagraphElement>
->(({ className, ...props }, ref) => (
-  <p
-    ref={ref}
-    className={cn("text-sm text-slate-600 dark:text-slate-400 mt-1", className)}
-    {...props}
-  />
-));
-CardDescription.displayName = "CardDescription";
 
 const CardContent = forwardRef<HTMLDivElement, HTMLAttributes<HTMLDivElement>>(
   ({ className, ...props }, ref) => (
@@ -81,25 +71,4 @@ const CardContent = forwardRef<HTMLDivElement, HTMLAttributes<HTMLDivElement>>(
 );
 CardContent.displayName = "CardContent";
 
-const CardFooter = forwardRef<HTMLDivElement, HTMLAttributes<HTMLDivElement>>(
-  ({ className, ...props }, ref) => (
-    <div
-      ref={ref}
-      className={cn(
-        "px-6 py-4 border-t border-slate-100 bg-slate-50/50 dark:border-slate-700 dark:bg-slate-800/50",
-        className
-      )}
-      {...props}
-    />
-  )
-);
-CardFooter.displayName = "CardFooter";
-
-export {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-  CardContent,
-  CardFooter,
-};
+export { Card, CardHeader, CardTitle, CardContent };

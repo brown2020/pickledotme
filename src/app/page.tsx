@@ -1,4 +1,12 @@
 import { Suspense } from "react";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Home",
+  description:
+    "Get AI-powered advice for sticky situations and train your brain with pickle-themed memory games.",
+};
+
 import { HeroSection } from "@/components/home/HeroSection";
 import { FeatureGrid } from "@/components/home/FeatureGrid";
 import { HowItWorksSection } from "@/components/home/HowItWorksSection";

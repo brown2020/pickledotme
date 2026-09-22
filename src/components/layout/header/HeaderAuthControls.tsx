@@ -1,28 +1,28 @@
 "use client";
 
-import { useCallback, useEffect } from "react";
+import { useCallback } from "react";
 import { Button } from "@/components/ui";
 import { useAuth } from "@/providers/authContext";
 import { cn } from "@/lib/cn";
 
 export function HeaderAuthControls({ className }: { className?: string }) {
-  const { user, isLoading, logout, signInWithGoogle, authError, clearAuthError } = useAuth();
+  const {
+    user,
+    isLoading,
+    logout,
+    signInWithGoogle,
+    authError,
+    clearAuthError,
+  } = useAuth();
 
   const handleAuth = useCallback(async () => {
+    clearAuthError();
     if (user) {
       await logout();
     } else {
       await signInWithGoogle();
     }
-  }, [logout, signInWithGoogle, user]);
-
-  // Clear error after 5 seconds
-  useEffect(() => {
-    if (authError) {
-      const timer = setTimeout(clearAuthError, 5000);
-      return () => clearTimeout(timer);
-    }
-  }, [authError, clearAuthError]);
+  }, [clearAuthError, logout, signInWithGoogle, user]);
 
   if (isLoading) {
     return (
@@ -55,16 +55,19 @@ export function HeaderAuthControls({ className }: { className?: string }) {
 
   return (
     <div className={cn("flex flex-col items-end gap-1", className)}>
-      <Button
-        onClick={handleAuth}
-        variant="primary"
-        size="sm"
-      >
+      <Button onClick={handleAuth} variant="primary" size="sm">
         Sign In
       </Button>
       {authError && (
         <p className="text-xs text-rose-500 dark:text-rose-400 max-w-[200px] text-right">
-          {authError}
+          {authError}{" "}
+          <button
+            type="button"
+            className="underline"
+            onClick={clearAuthError}
+          >
+            Dismiss
+          </button>
         </p>
       )}
     </div>

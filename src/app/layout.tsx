@@ -1,9 +1,9 @@
 import { Outfit } from "next/font/google";
 import { Metadata, Viewport } from "next";
+import Script from "next/script";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { Providers } from "@/providers";
-import { THEME_STORAGE_KEY } from "@/lib/theme";
 import "./globals.css";
 
 const outfit = Outfit({
@@ -94,23 +94,8 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className={outfit.variable} suppressHydrationWarning>
-      <head>
-        {/* Prevent flash of unstyled content for dark mode */}
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `
-              try {
-                const theme = localStorage.getItem('${THEME_STORAGE_KEY}');
-                const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-                if (theme === 'dark' || (theme === 'system' && systemDark) || (!theme && systemDark)) {
-                  document.documentElement.classList.add('dark');
-                }
-              } catch (e) {}
-            `,
-          }}
-        />
-      </head>
       <body className="font-sans antialiased bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 transition-colors">
+        <Script id="theme-init" strategy="beforeInteractive">{`try{var t=localStorage.getItem("pickle-theme");var d=window.matchMedia("(prefers-color-scheme: dark)").matches;if(t==="dark"||(t==="system"&&d)||(!t&&d))document.documentElement.classList.add("dark")}catch(e){}`}</Script>
         <Providers>
           <div className="flex flex-col min-h-screen">
             <Header />

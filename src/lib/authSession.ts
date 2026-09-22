@@ -20,7 +20,7 @@ export function isInsecureDevAuthEnabled() {
   );
 }
 
-export function isDevSessionCookie(value: string | undefined) {
+function isDevSessionCookie(value: string | undefined) {
   return isInsecureDevAuthEnabled() && value === DEV_SESSION_COOKIE_VALUE;
 }
 

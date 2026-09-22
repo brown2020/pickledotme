@@ -1,5 +1,5 @@
 import { cn } from "@/lib/cn";
-import { HTMLAttributes } from "react";
+import type { HTMLAttributes } from "react";
 
 type SkeletonProps = HTMLAttributes<HTMLDivElement>;
 
@@ -15,18 +15,8 @@ function Skeleton({ className, ...props }: SkeletonProps) {
   );
 }
 
-function GameCardSkeleton() {
-  return (
-    <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 space-y-4 shadow-lg">
-      <Skeleton className="h-7 w-3/4" />
-      <Skeleton className="h-4 w-full" />
-      <Skeleton className="h-4 w-2/3" />
-      <Skeleton className="h-8 w-28 rounded-full" />
-    </div>
-  );
-}
-
 function ProfileSkeleton() {
+  const statSlots = ["played", "best", "streak"] as const;
   return (
     <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 space-y-6 shadow-lg">
       <div className="flex items-center gap-4">
@@ -37,8 +27,8 @@ function ProfileSkeleton() {
         </div>
       </div>
       <div className="grid grid-cols-3 gap-4">
-        {[1, 2, 3].map((i) => (
-          <Skeleton key={i} className="h-24" />
+        {statSlots.map((slot) => (
+          <Skeleton key={slot} className="h-24" />
         ))}
       </div>
     </div>
@@ -46,10 +36,11 @@ function ProfileSkeleton() {
 }
 
 function LeaderboardSkeleton() {
+  const rowSlots = ["r1", "r2", "r3", "r4", "r5"] as const;
   return (
     <div className="space-y-3">
-      {[1, 2, 3, 4, 5].map((i) => (
-        <div key={i} className="flex items-center gap-4 p-3">
+      {rowSlots.map((slot) => (
+        <div key={slot} className="flex items-center gap-4 p-3">
           <Skeleton className="h-8 w-8 rounded-full" />
           <Skeleton className="h-4 flex-1" />
           <Skeleton className="h-6 w-16" />
@@ -59,4 +50,4 @@ function LeaderboardSkeleton() {
   );
 }
 
-export { Skeleton, GameCardSkeleton, ProfileSkeleton, LeaderboardSkeleton };
+export { Skeleton, ProfileSkeleton, LeaderboardSkeleton };

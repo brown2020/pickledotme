@@ -7,7 +7,7 @@ const MIN_WAIT_TIME = 1500; // ms
 const MAX_WAIT_TIME = 5000; // ms
 const TOO_EARLY_PENALTY = 500; // ms added to average
 
-export type GamePhase =
+type GamePhase =
   | "waiting"
   | "ready"
   | "go"
@@ -15,7 +15,7 @@ export type GamePhase =
   | "finished"
   | "too-early";
 
-export interface RoundResult {
+interface RoundResult {
   round: number;
   reactionTime: number;
   tooEarly: boolean;

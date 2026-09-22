@@ -13,7 +13,7 @@ const modelNameSchema = z
   ])
   .default("gpt-5.2-chat-latest");
 
-export const adviceToneSchema = z
+const adviceToneSchema = z
   .enum(["balanced", "gentle", "blunt", "coach", "funny"])
   .default("balanced");
 
@@ -30,7 +30,7 @@ export const adviceRequestSchema = z.object({
 /**
  * Advice chat request validation (supports follow-ups)
  */
-export const adviceChatMessageSchema = z.object({
+const adviceChatMessageSchema = z.object({
   role: z.enum(["user", "assistant"]),
   content: z.string().min(1).max(5000).trim(),
 });

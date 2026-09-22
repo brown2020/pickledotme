@@ -207,17 +207,19 @@ export function PickleContent() {
         threadId: selectedThreadId,
         content: trimmed,
       });
-      await refetchThread();
-      const final = await streamAdvice({
-        messages: [
-          ...chatMessagesForModel,
-          { role: "user", content: trimmed },
-        ]
-          .filter((modelMessage) => modelMessage.content.trim())
-          .slice(-10),
-        modelName: "gpt-5.2-chat-latest",
-        tone: "balanced",
-      });
+      const [, final] = await Promise.all([
+        refetchThread(),
+        streamAdvice({
+          messages: [
+            ...chatMessagesForModel,
+            { role: "user", content: trimmed },
+          ]
+            .filter((modelMessage) => modelMessage.content.trim())
+            .slice(-10),
+          modelName: "gpt-5.2-chat-latest",
+          tone: "balanced",
+        }),
+      ]);
       if (final) {
         await saveAssistantMessage({
           threadId: selectedThreadId,

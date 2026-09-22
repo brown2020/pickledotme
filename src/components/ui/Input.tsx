@@ -1,7 +1,7 @@
 import { forwardRef, InputHTMLAttributes, TextareaHTMLAttributes } from "react";
 import { cn } from "@/lib/cn";
 
-export interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
+interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
   error?: string;
 }
 
@@ -31,7 +31,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
 );
 Input.displayName = "Input";
 
-export interface TextareaProps
+interface TextareaProps
   extends TextareaHTMLAttributes<HTMLTextAreaElement> {
   error?: string;
 }

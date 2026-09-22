@@ -13,24 +13,33 @@ function AdviceMarkdown({ advice }: { advice: string }) {
     <div className="prose prose-slate dark:prose-invert max-w-none prose-headings:text-slate-900 dark:prose-headings:text-white prose-p:text-slate-700 dark:prose-p:text-slate-200 prose-li:text-slate-700 dark:prose-li:text-slate-200">
       <ReactMarkdown
         components={{
-          h1: ({ ...props }) => (
-            <h1
-              className="text-2xl font-bold mb-4 text-slate-900 dark:text-white"
-              {...props}
-            />
-          ),
-          h2: ({ ...props }) => (
-            <h2
-              className="text-xl font-semibold mb-3 text-slate-900 dark:text-white"
-              {...props}
-            />
-          ),
-          h3: ({ ...props }) => (
-            <h3
-              className="text-lg font-semibold mb-2 text-slate-900 dark:text-white"
-              {...props}
-            />
-          ),
+          h1: ({ children, ...props }) =>
+            children ? (
+              <h1
+                className="text-2xl font-bold mb-4 text-slate-900 dark:text-white"
+                {...props}
+              >
+                {children}
+              </h1>
+            ) : null,
+          h2: ({ children, ...props }) =>
+            children ? (
+              <h2
+                className="text-xl font-semibold mb-3 text-slate-900 dark:text-white"
+                {...props}
+              >
+                {children}
+              </h2>
+            ) : null,
+          h3: ({ children, ...props }) =>
+            children ? (
+              <h3
+                className="text-lg font-semibold mb-2 text-slate-900 dark:text-white"
+                {...props}
+              >
+                {children}
+              </h3>
+            ) : null,
           p: ({ ...props }) => (
             <p
               className="mb-4 text-slate-700 dark:text-slate-200 leading-relaxed"
