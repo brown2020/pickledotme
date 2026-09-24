@@ -1,400 +1,144 @@
-# Pickle.me 🥒
+# Pickle.me (`pickledotme`)
 
-<div align="center">
+AI advice for sticky situations plus pickle-themed brain-training games. Sign in with Google, play six mini-games with Firestore-backed scores, and chat with selectable AI models and tones. Live site: [pickle.me](https://pickle.me/).
 
-[![Live Demo](https://img.shields.io/badge/demo-live-green.svg)](https://pickledotme.vercel.app/)
-[![License: AGPL-3.0](https://img.shields.io/badge/License-AGPL--3.0-blue.svg)](LICENSE.md)
-[![Next.js](https://img.shields.io/badge/Next.js-16-black)](https://nextjs.org/)
-[![React](https://img.shields.io/badge/React-19-blue)](https://react.dev/)
-[![TypeScript](https://img.shields.io/badge/TypeScript-6-blue)](https://www.typescriptlang.org/)
-[![Tailwind CSS](https://img.shields.io/badge/Tailwind-4-38bdf8)](https://tailwindcss.com/)
+## Features
 
-**AI-powered advice meets brain-training games**
+Verified from the current codebase:
 
-[Live Demo](https://pickledotme.vercel.app/) • [Getting Started](#-getting-started) • [Features](#-features) • [Contributing](#-contributing)
+- Public marketing pages: home, about, privacy, terms
+- Auth: Firebase Google sign-in; httpOnly session via `POST /api/auth/session`; route gate in `src/proxy.ts`
+- Protected areas: `/games`, `/pickle` (AI advice), `/profile`
+- Six games (`src/config/games.ts`): Sequence, Reaction, Matching, Pickle Pop, Speed, Word
+- Score history and best scores written through authenticated server actions (`src/actions/scores.ts`) with Firestore Admin
+- AI advice streaming (`src/actions/getAdvice.ts`) via Vercel AI SDK — models include `gpt-5.2`, `claude-sonnet-4-5`, `gemini-2.5-flash`, `mistral-large-latest`; tones: balanced, gentle, blunt, coach
+- Advice thread persistence (`src/actions/adviceThreads.ts`)
+- Dark/light/system theme; Framer Motion page transitions; SWR for score reads; Zustand settings store
 
-</div>
+## Tech stack
 
----
+| Area | Choice | Version (package.json) |
+| --- | --- | --- |
+| Framework | Next.js (App Router) | ^16.3.5 |
+| UI | React | ^19.3.0 |
+| Language | TypeScript | ^6.0.3 |
+| Styling | Tailwind CSS | ^4.3.3 |
+| Motion | Framer Motion | ^12.43.0 |
+| State | Zustand + SWR + React context | — |
+| Auth / data | Firebase client + firebase-admin | ^12.19.0 / ^14.4.0 |
+| AI | `ai` v7 + OpenAI / Anthropic / Google / Mistral providers + `@ai-sdk/rsc` | ai ^7.0.109 |
+| Markdown | react-markdown | ^10.1.0 |
+| Tests | Vitest | ^4.1.11 |
 
-## 📖 About
+No Stripe in this repo.
 
-Pickle.me is a Next.js 16 application that combines AI-powered advice with engaging brain-training games. Whether you're stuck in a pickle and need guidance, or want to sharpen your cognitive skills with fun challenges, Pickle.me has you covered.
+## Project structure
 
-### Why Pickle.me?
+```
+src/
+  app/
+    page.tsx, about/, privacy/, terms/
+    login/, signup/, forgot-password/
+    games/, games/[gameId]/
+    pickle/                  # AI advice UI
+    profile/
+    api/auth/session/
+  actions/                   # getAdvice, adviceThreads, scores
+  components/                # home, games, pickle, auth, layout, ui
+  hooks/                     # per-game hooks, scores, advice, sound
+  lib/                       # firebaseConfig, firebaseAdmin, requireAuth, …
+  providers/ stores/ types/ config/
+  proxy.ts
+firestore.rules
+storage.rules
+.env.example
+docs/ARCHITECTURE.md
+docs/OPERATIONS.md
+.github/workflows/ci.yml
+```
 
-- **🤖 Multi-Model AI** - Choose from 4 leading AI providers for personalized advice
-- **🎮 6 Brain Games** - Train memory, reflexes, and problem-solving skills
-- **🌙 Dark Mode** - Full dark mode support for comfortable viewing
-- **📱 Responsive** - Works beautifully on desktop, tablet, and mobile
-- **🔒 Secure** - Firebase authentication with server-side route protection
-
----
-
-## ✨ Features
-
-### AI Advice Engine
-
-Get thoughtful, actionable advice for any dilemma using your choice of AI model:
-
-| Provider  | Model                  |
-| --------- | ---------------------- |
-| OpenAI    | GPT-5.2 Chat Latest    |
-| Google    | Gemini 2.5 Flash       |
-| Anthropic | Claude Sonnet 4.5      |
-| Mistral   | Mistral Large (latest) |
-
-- Real-time streaming responses
-- Markdown-formatted output
-- Conversation context awareness
-
-### Brain Training Games
-
-Six pickle-themed games to challenge your mind:
-
-| Game                 | Difficulty | Description                                     |
-| -------------------- | ---------- | ----------------------------------------------- |
-| **Sequence Pickle**  | 🟢 Easy    | Simon Says-style pattern memorization           |
-| **Reaction Pickle**  | 🟢 Easy    | Test your reflexes - click when it turns green  |
-| **Matching Pickles** | 🟡 Medium  | Classic memory card matching game               |
-| **Pickle Pop**       | 🟡 Medium  | Whack-a-mole style - pop pickles as they appear |
-| **Speed Pickle**     | 🔴 Hard    | Spot the different shade quickly                |
-| **Word Pickle**      | 🔴 Hard    | Unscramble pickle-themed words                  |
-
-Features:
-
-- Score tracking and personal bests
-- Progressive difficulty levels
-- Sound effects (toggleable)
-- Combo multipliers
-
-### User System
-
-- Google OAuth authentication
-- Personal game statistics
-- Score history tracking
-- User profiles
-
----
-
-## 🛠️ Tech Stack
-
-### Core
-
-| Technology                                | Version | Purpose                         |
-| ----------------------------------------- | ------- | ------------------------------- |
-| [Next.js](https://nextjs.org/)            | 16.3.5 | React framework with App Router |
-| [React](https://react.dev/)               | 19.2.7  | UI library                      |
-| [TypeScript](https://typescriptlang.org/) | 6.0.3   | Type safety                     |
-| [Tailwind CSS](https://tailwindcss.com/)  | 4.3.2   | Utility-first styling           |
-
-### AI & Backend
-
-| Technology                                                                              | Version | Purpose                    |
-| --------------------------------------------------------------------------------------- | ------- | -------------------------- |
-| [Vercel AI SDK](https://sdk.vercel.ai/)                                                 | 7.0.29  | AI streaming & integration |
-| [@ai-sdk/openai](https://sdk.vercel.ai/providers/ai-sdk-providers/openai)               | 4.0.15  | OpenAI provider            |
-| [@ai-sdk/google](https://sdk.vercel.ai/providers/ai-sdk-providers/google-generative-ai) | 4.0.17  | Google AI provider         |
-| [@ai-sdk/anthropic](https://sdk.vercel.ai/providers/ai-sdk-providers/anthropic)         | 4.0.15  | Anthropic provider         |
-| [@ai-sdk/mistral](https://sdk.vercel.ai/providers/ai-sdk-providers/mistral)             | 4.0.12  | Mistral provider           |
-| [Firebase](https://firebase.google.com/)                                                | 12.16.0 | Auth & Firestore database  |
-| [Firebase Admin](https://firebase.google.com/docs/admin/setup)                          | 14.1.0  | Server session validation  |
-
-### UI & Animation
-
-| Technology                                                   | Version | Purpose                 |
-| ------------------------------------------------------------ | ------- | ----------------------- |
-| [Framer Motion](https://www.framer.com/motion/)              | 12.42.2 | Animations              |
-| [Lucide React](https://lucide.dev/)                          | 1.24.0  | Icons                   |
-| [SWR](https://swr.vercel.app/)                               | 2.4.2   | Data fetching & caching |
-| [react-markdown](https://github.com/remarkjs/react-markdown) | 10.1.0  | Markdown rendering      |
-
-### Utilities
-
-| Technology                                                  | Version | Purpose                |
-| ----------------------------------------------------------- | ------- | ---------------------- |
-| [Zod](https://zod.dev/)                                     | 4.4.3   | Schema validation      |
-| [clsx](https://github.com/lukeed/clsx)                      | 2.1.1   | Class name utilities   |
-| [tailwind-merge](https://github.com/dcastil/tailwind-merge) | 3.6.0   | Tailwind class merging |
-
----
-
-## 🚀 Getting Started
+## Getting started
 
 ### Prerequisites
 
-- **Node.js** 22 or later
-- **npm** (the committed lockfile is npm-managed)
-- **Firebase** project with Firestore and Authentication enabled
-- **API Keys** from at least one AI provider (OpenAI, Google, Anthropic, or Mistral)
+- Node.js 22 (matches CI) or a current LTS
+- npm
+- Firebase project + Admin service account
+- At least one AI provider API key for `/pickle`
 
-### Installation
-
-1. **Clone the repository**
+### Clone and install
 
 ```bash
 git clone https://github.com/brown2020/pickledotme.git
 cd pickledotme
-```
-
-2. **Install dependencies**
-
-```bash
 npm install
 ```
 
-3. **Set up environment variables**
+### Environment variables
 
-Create a `.env.local` file in the root directory:
+Never commit real values. Start from `.env.example`.
 
-```env
-# AI Provider Keys (at least one required)
-OPENAI_API_KEY=sk-...
-GOOGLE_API_KEY=...
-ANTHROPIC_API_KEY=sk-ant-...
-MISTRAL_API_KEY=...
-# Firebase Configuration (required)
-NEXT_PUBLIC_FIREBASE_API_KEY=...
-NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=your-project.firebaseapp.com
-NEXT_PUBLIC_FIREBASE_PROJECT_ID=your-project-id
-NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=your-project.appspot.com
-NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=...
-NEXT_PUBLIC_FIREBASE_APP_ID=...
+| Name | Purpose | Where to get it |
+| --- | --- | --- |
+| `NEXT_PUBLIC_FIREBASE_API_KEY` | Firebase web API key | Firebase Console → Your apps |
+| `NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN` | Auth domain | Same |
+| `NEXT_PUBLIC_FIREBASE_PROJECT_ID` | Project id | Same |
+| `NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET` | Storage bucket | Same |
+| `NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID` | Messaging sender id | Same |
+| `NEXT_PUBLIC_FIREBASE_APP_ID` | App id | Same |
+| `FIREBASE_ADMIN_PROJECT_ID` | Admin SDK project id | Service account JSON |
+| `FIREBASE_ADMIN_CLIENT_EMAIL` | Admin client email | Same |
+| `FIREBASE_ADMIN_PRIVATE_KEY` | Admin private key (`\n` escaped) | Same |
+| `OPENAI_API_KEY` | OpenAI models (listed in `.env.example`) | [OpenAI API keys](https://platform.openai.com/api-keys) |
+| `ANTHROPIC_API_KEY` | Claude models (when selected) | Anthropic console |
+| `GOOGLE_GENERATIVE_AI_API_KEY` | Gemini models (when selected) | Google AI Studio |
+| `MISTRAL_API_KEY` | Mistral models (when selected) | Mistral console |
+| `NEXT_PUBLIC_APP_URL` | Canonical site URL for metadata (defaults to `https://pickle.me`) | Your deployed origin |
+| `ALLOW_INSECURE_DEV_AUTH` | Local-only: `true` allows session flow without Admin creds (never in production) | Set only on your machine |
 
-# Firebase Admin configuration (required for sessions and persisted app data)
-FIREBASE_ADMIN_PROJECT_ID=your-project-id
-FIREBASE_ADMIN_CLIENT_EMAIL=firebase-adminsdk-...@your-project.iam.gserviceaccount.com
-FIREBASE_ADMIN_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----\n"
+Provider keys beyond OpenAI are not in `.env.example` but are required by the corresponding `@ai-sdk/*` packages when those models are chosen.
 
-# App URL (optional, for metadata)
-NEXT_PUBLIC_APP_URL=https://pickle.me
-```
+### Firebase setup
 
-4. **Set up Firebase**
+1. Enable Google Auth; authorize your domains.
+2. Deploy `firestore.rules` and `storage.rules` (client writes to scores are denied; Admin actions write).
+3. Set Admin env vars for session verification and mutations.
 
-   - Create a [Firebase project](https://console.firebase.google.com/)
-   - Enable **Authentication** with Google provider
-   - Create a **Firestore** database
-   - Add your web app and copy the config values
-
-5. **Run the development server**
+### Run locally
 
 ```bash
 npm run dev
 ```
 
-Visit [http://localhost:3000](http://localhost:3000) to see the app.
+Open [http://localhost:3000](http://localhost:3000).
 
----
+## Scripts
 
-## 📁 Project Structure
+| Script | Description |
+| --- | --- |
+| `npm run dev` | Next.js development server |
+| `npm run build` | Production build |
+| `npm start` | Serve the production build |
+| `npm run lint` | ESLint |
+| `npm run typecheck` | `tsc --noEmit` |
+| `npm test` | Vitest |
 
-```
-src/
-├── actions/              # Server actions
-│   ├── adviceThreads.ts  # Session-owned advice persistence
-│   ├── authSession.ts    # Session-cookie synchronization
-│   ├── getAdvice.ts      # AI advice generation
-│   └── scores.ts         # Transactional score persistence and reads
-├── app/                  # Next.js App Router
-│   ├── games/            # Games routes
-│   │   ├── [gameId]/     # Dynamic game pages
-│   │   ├── layout.tsx    # Games layout with auth
-│   │   └── page.tsx      # Games list
-│   ├── pickle/           # AI advice interface
-│   ├── profile/          # User profile & stats
-│   ├── layout.tsx        # Root layout
-│   └── page.tsx          # Home page
-├── components/
-│   ├── games/            # Game components
-│   │   ├── common/       # Shared game UI
-│   │   ├── MatchingPickles.tsx
-│   │   ├── PicklePop.tsx
-│   │   ├── ReactionPickle.tsx
-│   │   ├── SequencePickle.tsx
-│   │   ├── SpeedPickle.tsx
-│   │   └── WordPickle.tsx
-│   ├── home/             # Landing page
-│   ├── layout/           # Header, Footer
-│   ├── pickle/           # Advice UI
-│   ├── profile/          # Profile UI
-│   └── ui/               # Base components
-├── config/
-│   └── games.ts          # Game configurations
-├── constants/
-│   └── colors.ts         # Color constants
-├── hooks/                # Custom React hooks
-│   ├── useGameBase.ts    # Base game logic
-│   ├── useGameTimer.ts   # Shared timer hook
-│   ├── useMatchingGame.ts
-│   ├── usePicklePopGame.ts
-│   ├── useReactionGame.ts
-│   ├── useScores.ts      # Score fetching (SWR)
-│   ├── useSequenceGame.ts
-│   ├── useSound.ts       # Audio effects
-│   ├── useSpeedPickleGame.ts
-│   └── useWordGame.ts
-├── lib/
-│   ├── cn.ts             # Class name utility
-│   ├── firebaseConfig.ts # Firebase setup
-│   └── validations.ts    # Zod schemas
-├── providers/
-│   ├── AuthProvider.tsx  # Firebase auth context
-│   ├── ThemeProvider.tsx # Dark mode
-│   └── index.tsx         # Provider composition
-├── proxy.ts              # Route protection (Next.js 16)
-└── types/
-    ├── advice.ts         # Advice records
-    ├── matching-game.ts  # Matching game types
-    └── score.ts          # Score records
-```
+## Testing and CI
 
----
+- Vitest covers advice/score recovery, leaderboard auth, and Firebase auth error mapping under `src/__tests__/`.
+- CI: lint → typecheck → test → build on `dev`/`main` and PRs (Node 22). Public `NEXT_PUBLIC_FIREBASE_*` come from Actions secrets. Provider keys are not required for the build.
 
-## 🔧 Development
+## Deployment
 
-### Available Scripts
+Demo/production: [pickle.me](https://pickle.me/). Configure Firebase public + Admin env vars and AI provider secrets on the host. See `docs/OPERATIONS.md` for failure drills and env matrix.
 
-```bash
-# Development server with Turbopack
-npm run dev
+## Contributing
 
-# Production build
-npm run build
+1. Branch from `dev`.
+2. Treat proxy as a UI gate only — mutations must keep `requireAuthenticatedSessionUid` checks.
+3. Run lint, typecheck, and tests before opening a PR.
+4. Never commit secrets; do not enable `ALLOW_INSECURE_DEV_AUTH` outside local dev.
 
-# Start production server
-npm start
+## License
 
-# Run ESLint
-npm run lint
-
-# Run the strict TypeScript gate
-npx tsc --noEmit
-```
-
-### Architecture Decisions
-
-#### Route Protection (Next.js 16)
-
-Uses `proxy.ts` (replacing middleware.ts) for server-side route protection:
-
-```typescript
-// Protected routes redirect to home if unauthenticated
-const PROTECTED_ROUTES = ["/games", "/pickle", "/profile"];
-```
-
-Auth state is synced via cookies between client (Firebase) and server (proxy).
-
-#### Game State Management
-
-Games use custom hooks built on `useGameBase`:
-
-- Saves scores through a session-verified server action
-- Manages play/pause/reset states
-- Tracks best scores
-
-Timer logic is shared via `useGameTimer` for consistency.
-
-#### Data Fetching
-
-- **SWR** for client-side data with caching
-- **Server Actions** for AI streaming and session-owned data access
-- **Firestore Admin SDK** for persistent storage; browser Firestore writes are denied
-
----
-
-## 🚢 Deployment
-
-### Vercel (Recommended)
-
-1. Push your code to GitHub
-2. Import the repository in [Vercel](https://vercel.com)
-3. Add environment variables in the Vercel dashboard
-4. Deploy
-
-### Other Platforms
-
-The app can be deployed on any platform supporting Next.js 16:
-
-```bash
-npm run build
-npm start
-```
-
----
-
-## 🤝 Contributing
-
-Contributions are welcome! Here's how to get started:
-
-### Development Workflow
-
-1. **Fork** the repository
-2. **Clone** your fork
-3. **Create** a feature branch
-
-```bash
-git checkout -b feature/amazing-feature
-```
-
-4. **Make** your changes
-5. **Test** locally with `npm run dev`
-6. **Verify** with `npm run lint`, `npx tsc --noEmit`, and `npm run build`
-7. **Commit** with a descriptive message
-
-```bash
-git commit -m "feat: add amazing feature"
-```
-
-8. **Push** to your fork
-9. **Open** a Pull Request
-
-### Commit Convention
-
-We follow [Conventional Commits](https://www.conventionalcommits.org/):
-
-- `feat:` New features
-- `fix:` Bug fixes
-- `docs:` Documentation changes
-- `style:` Code style changes (formatting, etc.)
-- `refactor:` Code refactoring
-- `test:` Adding tests
-- `chore:` Maintenance tasks
-
-### Adding a New Game
-
-1. Create the hook in `src/hooks/use[GameName]Game.ts`
-2. Create the component in `src/components/games/[GameName].tsx`
-3. Add config to `src/config/games.ts`
-4. Register in `src/app/games/[gameId]/GameContent.tsx`
-
----
-
-## 📄 License
-
-This project is licensed under the GNU Affero General Public License v3.0 (AGPL-3.0) - see the [LICENSE](LICENSE.md) file for details.
-
----
-
-## 🙏 Acknowledgments
-
-- [Next.js](https://nextjs.org/) - The React Framework
-- [Vercel AI SDK](https://sdk.vercel.ai/) - AI integration made easy
-- [Firebase](https://firebase.google.com/) - Backend infrastructure
-- [Tailwind CSS](https://tailwindcss.com/) - Utility-first CSS
-- [Framer Motion](https://www.framer.com/motion/) - Beautiful animations
-- [Lucide](https://lucide.dev/) - Beautiful icons
-
----
-
-<div align="center">
-
-**Built with 🥒 by the Pickle.me Team**
-
-[Report Bug](https://github.com/brown2020/pickledotme/issues) • [Request Feature](https://github.com/brown2020/pickledotme/issues)
-
-</div>
-
-## Operations
-
-See [docs/OPERATIONS.md](docs/OPERATIONS.md) for quality gates, failure drills, and rollback.
+[GNU Affero General Public License v3.0](LICENSE.md) (AGPL-3.0).
