@@ -1,5 +1,6 @@
 import { Outfit } from "next/font/google";
 import { Metadata, Viewport } from "next";
+import { headers } from "next/headers";
 import Script from "next/script";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
@@ -94,15 +95,19 @@ export const viewport: Viewport = {
   maximumScale: 5,
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  // Reading the request nonce opts every page into dynamic rendering so
+  // production CSP nonces match the scripts Next injects for this request.
+  const nonce = (await headers()).get("x-nonce") ?? undefined;
+
   return (
     <html lang="en" className={outfit.variable} suppressHydrationWarning>
       <body className="font-sans antialiased bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 transition-colors">
-        <Script id="theme-init" strategy="beforeInteractive">{`try{var t=localStorage.getItem("pickle-theme");var d=window.matchMedia("(prefers-color-scheme: dark)").matches;if(t==="dark"||(t==="system"&&d)||(!t&&d))document.documentElement.classList.add("dark")}catch(e){}`}</Script>
+        <Script id="theme-init" nonce={nonce} strategy="beforeInteractive">{`try{var t=localStorage.getItem("pickle-theme");var d=window.matchMedia("(prefers-color-scheme: dark)").matches;if(t==="dark"||(t==="system"&&d)||(!t&&d))document.documentElement.classList.add("dark")}catch(e){}`}</Script>
         <Providers>
           <div className="flex flex-col min-h-screen">
             <a

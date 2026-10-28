@@ -10,9 +10,11 @@ import {
   isInsecureDevAuthEnabled,
   isSecureSessionRequest,
   sessionCookieNameForRequest,
-  SESSION_COOKIE_NAME_INSECURE,
-  SESSION_COOKIE_NAME_SECURE,
 } from "@/lib/authSession";
+import {
+  sessionCookieClearAttributes,
+  sessionCookieNames,
+} from "@/lib/sessionPolicy";
 
 export const runtime = "nodejs";
 
@@ -26,14 +28,8 @@ function clearBothSessionCookies(
   response: NextResponse,
   secure: boolean
 ) {
-  for (const name of [SESSION_COOKIE_NAME_SECURE, SESSION_COOKIE_NAME_INSECURE]) {
-    response.cookies.set(name, "", {
-      httpOnly: true,
-      secure: name === SESSION_COOKIE_NAME_SECURE ? true : secure,
-      sameSite: "strict",
-      path: "/",
-      maxAge: 0,
-    });
+  for (const name of sessionCookieNames()) {
+    response.cookies.set(name, "", sessionCookieClearAttributes(name, secure));
   }
 }
 

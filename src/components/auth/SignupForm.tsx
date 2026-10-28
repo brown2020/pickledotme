@@ -5,15 +5,9 @@ import Link from "next/link";
 import { Eye, EyeOff } from "lucide-react";
 import { Button, Input } from "@/components/ui";
 import { useAuth } from "@/providers/authContext";
+import { withSafeRedirect } from "@/lib/safeRedirect";
 import { AuthDivider } from "./AuthDivider";
 import { GoogleAuthButton } from "./GoogleAuthButton";
-
-function withRedirect(base: string, redirect: string | null | undefined) {
-  if (redirect?.startsWith("/") && !redirect.startsWith("//")) {
-    return `${base}?redirect=${encodeURIComponent(redirect)}`;
-  }
-  return base;
-}
 
 type SignupState = {
   email: string;
@@ -69,7 +63,7 @@ type SignupFormProps = {
 
 export function SignupForm({ redirectTo = null }: SignupFormProps) {
   const { signUpWithEmail, authError, clearAuthError } = useAuth();
-  const loginLink = withRedirect("/login", redirectTo);
+  const loginLink = withSafeRedirect("/login", redirectTo);
   const [state, dispatch] = useReducer(signupReducer, initialState);
   const errorId = useId();
 

@@ -12,6 +12,7 @@ export interface AuthContextType {
   signInWithEmail: (email: string, password: string) => Promise<void>;
   signUpWithEmail: (email: string, password: string) => Promise<void>;
   sendPasswordReset: (email: string) => Promise<boolean>;
+  sendVerificationEmail: () => Promise<boolean>;
   logout: () => Promise<void>;
   clearAuthError: () => void;
 }

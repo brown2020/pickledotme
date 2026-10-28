@@ -15,11 +15,13 @@ import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
   sendPasswordResetEmail,
+  sendEmailVerification,
   signOut,
   GoogleAuthProvider,
 } from "firebase/auth";
 import { auth } from "@/lib/firebaseConfig";
 import { mapFirebaseAuthError } from "@/lib/firebaseAuthErrors";
+import { safeInternalPath } from "@/lib/safeRedirect";
 import { AuthContext, type AuthContextType } from "./authContext";
 
 const googleProvider = new GoogleAuthProvider();
@@ -72,13 +74,14 @@ async function syncSessionCookie(user: User | null) {
 
 function readSafeRedirectPath(): string | null {
   if (typeof window === "undefined") return null;
-  const redirectPath = new URLSearchParams(window.location.search).get(
-    "redirect"
+  return safeInternalPath(
+    new URLSearchParams(window.location.search).get("redirect")
   );
-  if (!redirectPath?.startsWith("/") || redirectPath.startsWith("//")) {
-    return null;
-  }
-  return redirectPath;
+}
+
+function navigateAfterSession(path: string) {
+  // Full page load so the proxy observes the new httpOnly session cookie.
+  window.location.assign(path);
 }
 
 function dispatchMappedError(
@@ -99,13 +102,44 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     authError: null,
   });
 
-  // Observe Firebase auth only — do not fetch in this effect (react-doctor/no-fetch-in-effect).
-  // Session cookies are written in sign-in / sign-out handlers below.
+  // Refresh the server session whenever Firebase restores a user. The cookie
+  // lasts 7 days; the Firebase user lasts longer, so a visit must mint a new cookie.
   useEffect(() => {
+    let active = true;
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-      dispatch({ type: "sync-success", user: currentUser });
+      void (async () => {
+        if (!currentUser) {
+          if (active) dispatch({ type: "sync-success", user: null });
+          return;
+        }
+        try {
+          await syncSessionCookie(currentUser);
+          if (!active) return;
+          dispatch({ type: "sync-success", user: currentUser });
+          const path = window.location.pathname;
+          if (
+            path === "/login" ||
+            path === "/signup" ||
+            path === "/forgot-password"
+          ) {
+            navigateAfterSession(readSafeRedirectPath() ?? "/");
+          }
+        } catch (error) {
+          if (!active) return;
+          dispatch({
+            type: "sync-failure",
+            message: mapFirebaseAuthError(
+              error,
+              "Failed to refresh your session. Please sign in again."
+            ),
+          });
+        }
+      })();
     });
-    return unsubscribe;
+    return () => {
+      active = false;
+      unsubscribe();
+    };
   }, []);
 
   const clearAuthError = useCallback(() => {
@@ -117,8 +151,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     dispatch({ type: "sync-success", user });
     const redirectPath = readSafeRedirectPath();
     if (redirectPath) {
-      // Full navigation after auth — avoids useEffect client redirects.
-      window.location.assign(redirectPath);
+      navigateAfterSession(redirectPath);
       return;
     }
     // Leave dedicated auth pages after a successful sign-in / sign-up.
@@ -128,7 +161,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       path === "/signup" ||
       path === "/forgot-password"
     ) {
-      window.location.assign("/");
+      navigateAfterSession("/");
     }
   }, []);
 
@@ -177,6 +210,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           email.trim(),
           password
         );
+        try {
+          await sendEmailVerification(credential.user);
+        } catch (verificationError) {
+          console.error("Failed to send verification email:", verificationError);
+        }
         await finishAuthenticatedSession(credential.user);
       } catch (error) {
         dispatchMappedError(
@@ -199,6 +237,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         dispatch,
         error,
         "Could not send reset email. Check the address and try again."
+      );
+      return false;
+    }
+  }, []);
+
+  const sendVerificationEmail = useCallback(async () => {
+    const current = auth.currentUser;
+    if (!current) return false;
+    try {
+      dispatch({ type: "set-error", message: null });
+      await sendEmailVerification(current);
+      return true;
+    } catch (error) {
+      dispatchMappedError(
+        dispatch,
+        error,
+        "Could not send verification email. Try again."
       );
       return false;
     }
@@ -228,6 +283,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       signInWithEmail,
       signUpWithEmail,
       sendPasswordReset,
+      sendVerificationEmail,
       logout,
       clearAuthError,
     }),
@@ -239,6 +295,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       signInWithEmail,
       signUpWithEmail,
       sendPasswordReset,
+      sendVerificationEmail,
       logout,
       clearAuthError,
     ]

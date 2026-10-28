@@ -1,16 +1,18 @@
 import "server-only";
 
 import { getFirebaseAdminAuth } from "@/lib/firebaseAdmin";
+import { classifySessionVerificationError } from "@/lib/sessionPolicy";
+import {
+  DEV_SESSION_COOKIE_VALUE,
+  SESSION_COOKIE_NAME_INSECURE,
+  SESSION_COOKIE_NAME_SECURE,
+} from "@/lib/sessionCookieNames";
 
-/** Prefer Host-prefixed cookie on HTTPS; plain name on HTTP (local next start). */
-export const SESSION_COOKIE_NAME_SECURE = "__Host-pickle-session";
-export const SESSION_COOKIE_NAME_INSECURE = "pickle-session";
-
-/**
- * Dev-only cookie value used when Firebase Admin isn't configured locally.
- * This is intentionally not secure and MUST NOT be used in production.
- */
-export const DEV_SESSION_COOKIE_VALUE = "dev";
+export {
+  DEV_SESSION_COOKIE_VALUE,
+  SESSION_COOKIE_NAME_INSECURE,
+  SESSION_COOKIE_NAME_SECURE,
+} from "@/lib/sessionCookieNames";
 
 export function isInsecureDevAuthEnabled() {
   return (
@@ -40,19 +42,51 @@ function isDevSessionCookie(value: string | undefined) {
   return isInsecureDevAuthEnabled() && value === DEV_SESSION_COOKIE_VALUE;
 }
 
-export async function getVerifiedSessionUid(
+export type SessionInspection =
+  | { status: "missing" }
+  | { status: "valid"; uid: string; emailVerified: boolean }
+  | { status: "invalid" }
+  | { status: "unavailable" };
+
+export async function inspectSessionCookie(
   sessionCookie: string | undefined
-): Promise<string | null> {
-  if (!sessionCookie) return null;
-  if (isDevSessionCookie(sessionCookie)) return DEV_SESSION_COOKIE_VALUE;
+): Promise<SessionInspection> {
+  if (!sessionCookie) return { status: "missing" };
+  if (isDevSessionCookie(sessionCookie)) {
+    return {
+      status: "valid",
+      uid: DEV_SESSION_COOKIE_VALUE,
+      emailVerified: true,
+    };
+  }
 
   try {
     const decodedToken = await getFirebaseAdminAuth().verifySessionCookie(
       sessionCookie,
       true
     );
-    return decodedToken.uid;
-  } catch {
-    return null;
+    return {
+      status: "valid",
+      uid: decodedToken.uid,
+      emailVerified: decodedToken.email_verified === true,
+    };
+  } catch (error) {
+    const status = classifySessionVerificationError(error);
+    return { status };
   }
+}
+
+export async function getVerifiedSessionUid(
+  sessionCookie: string | undefined
+): Promise<string | null> {
+  const inspection = await inspectSessionCookie(sessionCookie);
+  return inspection.status === "valid" ? inspection.uid : null;
+}
+
+export async function getVerifiedAdviceSession(
+  sessionCookie: string | undefined
+): Promise<{ uid: string; emailVerified: boolean } | null> {
+  const inspection = await inspectSessionCookie(sessionCookie);
+  if (inspection.status !== "valid") return null;
+  return { uid: inspection.uid, emailVerified: inspection.emailVerified };
 }
