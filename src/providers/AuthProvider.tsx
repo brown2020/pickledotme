@@ -5,6 +5,7 @@ import {
   useCallback,
   useMemo,
   useReducer,
+  useRef,
   type Dispatch,
   type ReactNode,
 } from "react";
@@ -19,6 +20,11 @@ import {
   signOut,
   GoogleAuthProvider,
 } from "firebase/auth";
+import {
+  shouldLeaveAuthPage,
+  shouldPreserveAuthError,
+  type AuthFlow,
+} from "@/lib/authFlow";
 import { auth } from "@/lib/firebaseConfig";
 import { mapFirebaseAuthError } from "@/lib/firebaseAuthErrors";
 import { safeInternalPath } from "@/lib/safeRedirect";
@@ -34,7 +40,7 @@ type AuthState = {
 
 type AuthAction =
   | { type: "sync-start"; user: User | null }
-  | { type: "sync-success"; user: User | null }
+  | { type: "sync-success"; user: User | null; preserveError?: boolean }
   | { type: "sync-failure"; message: string }
   | { type: "set-error"; message: string | null };
 
@@ -43,7 +49,11 @@ function authReducer(state: AuthState, action: AuthAction): AuthState {
     case "sync-start":
       return { user: action.user, isLoading: true, authError: null };
     case "sync-success":
-      return { user: action.user, isLoading: false, authError: null };
+      return {
+        user: action.user,
+        isLoading: false,
+        authError: action.preserveError ? state.authError : null,
+      };
     case "sync-failure":
       return { ...state, isLoading: false, authError: action.message };
     case "set-error":
@@ -101,6 +111,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     isLoading: true,
     authError: null,
   });
+  // Failed Google (and email) attempts must not be treated as a restored
+  // session. The auth listener otherwise mints a cookie and leaves /login,
+  // which unloads the error before it can be read.
+  const authFlowRef = useRef<AuthFlow>("idle");
 
   // Refresh the server session whenever Firebase restores a user. The cookie
   // lasts 7 days; the Firebase user lasts longer, so a visit must mint a new cookie.
@@ -108,20 +122,33 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     let active = true;
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       void (async () => {
+        if (!active) return;
+        if (shouldPreserveAuthError(authFlowRef.current)) {
+          dispatch({
+            type: "sync-success",
+            user: currentUser,
+            preserveError: true,
+          });
+          return;
+        }
         if (!currentUser) {
-          if (active) dispatch({ type: "sync-success", user: null });
+          dispatch({ type: "sync-success", user: null });
           return;
         }
         try {
           await syncSessionCookie(currentUser);
           if (!active) return;
+          const flow = authFlowRef.current;
+          if (shouldPreserveAuthError(flow)) {
+            dispatch({
+              type: "sync-success",
+              user: currentUser,
+              preserveError: true,
+            });
+            return;
+          }
           dispatch({ type: "sync-success", user: currentUser });
-          const path = window.location.pathname;
-          if (
-            path === "/login" ||
-            path === "/signup" ||
-            path === "/forgot-password"
-          ) {
+          if (shouldLeaveAuthPage(window.location.pathname, flow, true)) {
             navigateAfterSession(readSafeRedirectPath() ?? "/");
           }
         } catch (error) {
@@ -166,12 +193,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const signInWithGoogle = useCallback(async () => {
+    authFlowRef.current = "pending";
     try {
       dispatch({ type: "set-error", message: null });
       const credential = await signInWithPopup(auth, googleProvider);
       await finishAuthenticatedSession(credential.user);
+      authFlowRef.current = "idle";
     } catch (error) {
-      // Handled via authError — do not rethrow (avoids Next.js FirebaseError overlay).
+      // Stay on /login. Handled via authError — do not rethrow
+      // (avoids the Next.js FirebaseError overlay).
+      authFlowRef.current = "failed";
       dispatchMappedError(
         dispatch,
         error,
@@ -182,6 +213,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signInWithEmail = useCallback(
     async (email: string, password: string) => {
+      authFlowRef.current = "pending";
       try {
         dispatch({ type: "set-error", message: null });
         const credential = await signInWithEmailAndPassword(
@@ -190,7 +222,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           password
         );
         await finishAuthenticatedSession(credential.user);
+        authFlowRef.current = "idle";
       } catch (error) {
+        authFlowRef.current = "failed";
         dispatchMappedError(
           dispatch,
           error,
@@ -203,6 +237,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signUpWithEmail = useCallback(
     async (email: string, password: string) => {
+      authFlowRef.current = "pending";
       try {
         dispatch({ type: "set-error", message: null });
         const credential = await createUserWithEmailAndPassword(
@@ -216,7 +251,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           console.error("Failed to send verification email:", verificationError);
         }
         await finishAuthenticatedSession(credential.user);
+        authFlowRef.current = "idle";
       } catch (error) {
+        authFlowRef.current = "failed";
         dispatchMappedError(
           dispatch,
           error,

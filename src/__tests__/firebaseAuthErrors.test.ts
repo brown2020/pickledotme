@@ -26,6 +26,15 @@ describe("mapFirebaseAuthError", () => {
     );
   });
 
+  it("maps a closed Google popup to a visible cancellation message", () => {
+    expect(mapFirebaseAuthError({ code: "auth/popup-closed-by-user" })).toMatch(
+      /cancelled/i
+    );
+    expect(mapFirebaseAuthError({ code: "auth/popup-blocked" })).toMatch(
+      /pop-up blocked/i
+    );
+  });
+
   it("extracts code from Error.message when code is missing", () => {
     const error = new Error("Firebase: Error (auth/too-many-requests).");
     expect(mapFirebaseAuthError(error)).toMatch(/Too many attempts/i);
