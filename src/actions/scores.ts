@@ -1,8 +1,9 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { FieldValue, Timestamp } from "firebase-admin/firestore";
+import { FieldValue, Timestamp, type Query } from "firebase-admin/firestore";
 import { getFirebaseAdminFirestore } from "@/lib/firebaseAdmin";
+import { consumeRateLimit } from "@/lib/rateLimit";
 import { requireAuthenticatedSessionUid } from "@/lib/requireAuth";
 import {
   gameIdSchema,
@@ -21,6 +22,12 @@ const COLLECTIONS = {
 /** Cap for equality-only fetches before in-memory top-N sort (avoids composite indexes). */
 const LEADERBOARD_FETCH_CAP = 500;
 const LEADERBOARD_LIMIT = 10;
+
+/** Client games are not server-authoritative. Persist that explicitly. */
+const CLIENT_SCORE_META = {
+  verified: false,
+  source: "client",
+} as const;
 
 function scoreFromData(data: Record<string, unknown> | undefined): number | null {
   if (!data) return null;
@@ -95,6 +102,7 @@ export async function saveGameResult(
 ): Promise<{ isNewBest: boolean }> {
   const uid = await requireAuthenticatedSessionUid();
   const { gameId, score } = validateOrThrow(scoreSubmissionSchema, input);
+  await consumeRateLimit(uid, "score");
   const db = getFirebaseAdminFirestore();
   const bestDocId = `${gameId}-best-${uid}`;
   const bestRef = db.collection(COLLECTIONS.best).doc(bestDocId);
@@ -113,6 +121,7 @@ export async function saveGameResult(
       userId: uid,
       gameId,
       score,
+      ...CLIENT_SCORE_META,
       timestamp: FieldValue.serverTimestamp(),
     });
 
@@ -122,6 +131,7 @@ export async function saveGameResult(
         userId: uid,
         gameId,
         score,
+        ...CLIENT_SCORE_META,
         timestamp: FieldValue.serverTimestamp(),
       });
     }
@@ -141,37 +151,52 @@ export async function getUserBestScore(input: unknown): Promise<number> {
   return readBestScore(uid, gameId);
 }
 
+async function readRankedScores(
+  query: Query,
+  label: string
+): Promise<DisplayScore[]> {
+  try {
+    const ordered = await query
+      .orderBy("score", "desc")
+      .limit(LEADERBOARD_LIMIT)
+      .get();
+    return topScoresByScore(ordered.docs, LEADERBOARD_LIMIT);
+  } catch (error) {
+    // Missing composite indexes should not take the leaderboard down before deploy.
+    console.error(`Ordered leaderboard query failed for ${label}:`, error);
+    try {
+      const fallback = await query.limit(LEADERBOARD_FETCH_CAP).get();
+      return topScoresByScore(fallback.docs, LEADERBOARD_LIMIT);
+    } catch (fallbackError) {
+      console.error(`Leaderboard fallback failed for ${label}:`, fallbackError);
+      return [];
+    }
+  }
+}
+
 /**
- * Top scores for a game. Uses equality-only queries + in-memory sort so the
- * leaderboard works without composite Firestore indexes (orderBy + where
- * previously threw FAILED_PRECONDITION → "Failed to load leaderboard").
+ * Top scores for a game. Prefers `orderBy(score desc)` so Firestore returns the
+ * real top rows (indexes in firestore.indexes.json). Falls back to a capped
+ * in-memory sort only when that ordered query is unavailable.
  */
 export async function getHighScores(input: unknown): Promise<DisplayScore[]> {
   await requireAuthenticatedSessionUid();
   const gameId = validateOrThrow(gameIdSchema, input);
   const db = getFirebaseAdminFirestore();
 
-  const bestSnapshot = await db
-    .collection(COLLECTIONS.best)
-    .where("gameId", "==", gameId)
-    .limit(LEADERBOARD_FETCH_CAP)
-    .get();
-  const bestScores = topScoresByScore(bestSnapshot.docs, LEADERBOARD_LIMIT);
+  const bestScores = await readRankedScores(
+    db.collection(COLLECTIONS.best).where("gameId", "==", gameId),
+    COLLECTIONS.best
+  );
   if (bestScores.length > 0) return bestScores;
 
-  // Legacy fallback is best-effort: missing indexes / empty legacy must not
-  // surface as a leaderboard error when bestScores simply has no rows yet.
-  try {
-    const legacySnapshot = await db
+  return readRankedScores(
+    db
       .collection(COLLECTIONS.legacy)
       .where("gameId", "==", gameId)
-      .where("kind", "==", "best")
-      .limit(LEADERBOARD_FETCH_CAP)
-      .get();
-    return topScoresByScore(legacySnapshot.docs, LEADERBOARD_LIMIT);
-  } catch {
-    return [];
-  }
+      .where("kind", "==", "best"),
+    COLLECTIONS.legacy
+  );
 }
 
 export async function getUserGameScores(): Promise<DisplayScore[]> {

@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useReducer } from "react";
+import { useEffect, useMemo, useReducer, useRef, useState } from "react";
 import { readStreamableValue } from "@ai-sdk/rsc";
 import Image from "next/image";
 import { User } from "lucide-react";
@@ -11,6 +11,11 @@ import {
   saveAssistantMessage,
   saveUserMessage,
 } from "@/actions/adviceThreads";
+import { EMAIL_VERIFICATION_REQUIRED } from "@/lib/adviceAccess";
+import {
+  coerceAdviceModel,
+  coerceAdviceTone,
+} from "@/lib/validations";
 import { useAuth } from "@/providers/authContext";
 import { AdviceConversation } from "@/components/pickle/AdviceConversation";
 import { AdviceForm } from "@/components/pickle/AdviceForm";
@@ -99,8 +104,25 @@ function mergeStreamChunk(current: string, incoming: string): string {
   return current + incoming;
 }
 
+function userFacingAdviceError(error: unknown, fallback: string): string {
+  if (!(error instanceof Error)) return fallback;
+  if (
+    error.message === EMAIL_VERIFICATION_REQUIRED ||
+    /too many requests/i.test(error.message) ||
+    /advice service is unavailable/i.test(error.message)
+  ) {
+    return error.message;
+  }
+  return fallback;
+}
+
 export function PickleContent() {
-  const { user } = useAuth();
+  const { user, sendVerificationEmail } = useAuth();
+  const threadPrefsRef = useRef<{ modelName: string; tone: AdviceTone }>({
+    modelName: "gpt-5.2",
+    tone: "balanced",
+  });
+  const [verificationSent, setVerificationSent] = useState(false);
   const { threads, refetch: refetchThreads } = useAdviceThreads();
   const [ui, dispatch] = useReducer(adviceUiReducer, INITIAL_UI_STATE);
   const { selectedThreadId, advice, isLoading, error, followUp, draftThreadId } =
@@ -112,6 +134,14 @@ export function PickleContent() {
     () => threads.find((thread) => thread.id === selectedThreadId) ?? null,
     [threads, selectedThreadId]
   );
+
+  useEffect(() => {
+    if (!selectedThread) return;
+    threadPrefsRef.current = {
+      modelName: coerceAdviceModel(selectedThread.modelName),
+      tone: coerceAdviceTone(selectedThread.tone),
+    };
+  }, [selectedThread]);
   const sortedThreadMessages = useMemo(
     () =>
       [...threadMessages].sort((left, right) => {
@@ -166,6 +196,17 @@ export function PickleContent() {
     tone: AdviceTone;
   }) => {
     if (!user) return;
+    if (!user.emailVerified) {
+      dispatch({
+        type: "request-error",
+        message: EMAIL_VERIFICATION_REQUIRED,
+      });
+      return;
+    }
+    threadPrefsRef.current = {
+      modelName: params.modelName,
+      tone: params.tone,
+    };
     dispatch({ type: "request-start", draftThreadId: null });
 
     try {
@@ -185,7 +226,10 @@ export function PickleContent() {
       console.error("Error fetching advice:", caughtError);
       dispatch({
         type: "request-error",
-        message: "There was an error getting advice. Please try again.",
+        message: userFacingAdviceError(
+          caughtError,
+          "There was an error getting advice. Please try again."
+        ),
       });
     } finally {
       dispatch({ type: "request-finish" });
@@ -194,8 +238,16 @@ export function PickleContent() {
 
   const handleFollowUp = async (message: string) => {
     if (!user || !selectedThreadId) return;
+    if (!user.emailVerified) {
+      dispatch({
+        type: "request-error",
+        message: EMAIL_VERIFICATION_REQUIRED,
+      });
+      return;
+    }
     const trimmed = message.trim();
     if (!trimmed) return;
+    const prefs = threadPrefsRef.current;
     dispatch({
       type: "request-start",
       draftThreadId: selectedThreadId,
@@ -216,8 +268,8 @@ export function PickleContent() {
           ]
             .filter((modelMessage) => modelMessage.content.trim())
             .slice(-10),
-          modelName: "gpt-5.2",
-          tone: "balanced",
+          modelName: prefs.modelName,
+          tone: prefs.tone,
         }),
       ]);
       if (final) {
@@ -231,7 +283,10 @@ export function PickleContent() {
       console.error("Error fetching follow-up:", caughtError);
       dispatch({
         type: "request-error",
-        message: "There was an error getting a follow-up. Please try again.",
+        message: userFacingAdviceError(
+          caughtError,
+          "There was an error getting a follow-up. Please try again."
+        ),
       });
     } finally {
       dispatch({ type: "request-finish" });
@@ -293,6 +348,29 @@ export function PickleContent() {
               {user.displayName || "Player"}
             </p>
           </div>
+        </div>
+      ) : null}
+      {user && !user.emailVerified ? (
+        <div
+          role="status"
+          className="mb-6 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-200"
+        >
+          <p>
+            {EMAIL_VERIFICATION_REQUIRED} Check your inbox, then reload this page.
+          </p>
+          <button
+            type="button"
+            className="mt-3 font-semibold underline"
+            onClick={() => {
+              void sendVerificationEmail().then((sent) => {
+                if (sent) setVerificationSent(true);
+              });
+            }}
+          >
+            {verificationSent
+              ? "Verification email sent"
+              : "Resend verification email"}
+          </button>
         </div>
       ) : null}
 

@@ -1,21 +1,59 @@
 import { z } from "zod";
-import { GAME_IDS } from "@/config/games";
+import { GAME_IDS, type GameId } from "@/config/games";
+
+export const ADVICE_MODEL_NAMES = [
+  "gpt-5.2",
+  "claude-sonnet-4-5",
+  "gemini-2.5-flash",
+  "mistral-large-latest",
+] as const;
+
+export const ADVICE_TONES = [
+  "balanced",
+  "gentle",
+  "blunt",
+  "coach",
+  "funny",
+] as const;
+
+export type AdviceModelName = (typeof ADVICE_MODEL_NAMES)[number];
+export type AdviceToneName = (typeof ADVICE_TONES)[number];
+
+export function coerceAdviceModel(
+  value: string | null | undefined
+): AdviceModelName {
+  return (ADVICE_MODEL_NAMES as readonly string[]).includes(value ?? "")
+    ? (value as AdviceModelName)
+    : "gpt-5.2";
+}
+
+export function coerceAdviceTone(
+  value: string | null | undefined
+): AdviceToneName {
+  return (ADVICE_TONES as readonly string[]).includes(value ?? "")
+    ? (value as AdviceToneName)
+    : "balanced";
+}
+
+/**
+ * Client-reported ceilings. Reaction and matching match the game rules.
+ * The others are generous caps so a client cannot submit the old 1,000,000 ceiling.
+ */
+export const MAX_CLIENT_SCORE: Record<GameId, number> = {
+  "reaction-pickle": 1000,
+  "matching-pickles": 800,
+  "word-pickle": 50_000,
+  "sequence-pickle": 100_000,
+  "speed-pickle": 100_000,
+  "pickle-pop": 100_000,
+};
 
 /**
  * Advice request validation
  */
-const modelNameSchema = z
-  .enum([
-    "gpt-5.2",
-    "claude-sonnet-4-5",
-    "gemini-2.5-flash",
-    "mistral-large-latest",
-  ])
-  .default("gpt-5.2");
+const modelNameSchema = z.enum(ADVICE_MODEL_NAMES).default("gpt-5.2");
 
-const adviceToneSchema = z
-  .enum(["balanced", "gentle", "blunt", "coach", "funny"])
-  .default("balanced");
+const adviceToneSchema = z.enum(ADVICE_TONES).default("balanced");
 
 export const adviceRequestSchema = z.object({
   dilemma: z
@@ -49,10 +87,21 @@ export const assistantMessageRequestSchema = z.object({
 /**
  * Score submission validation
  */
-export const scoreSubmissionSchema = z.object({
-  gameId: z.enum(GAME_IDS),
-  score: z.number().int().min(0).max(1000000),
-});
+export const scoreSubmissionSchema = z
+  .object({
+    gameId: z.enum(GAME_IDS),
+    score: z.number().int().min(0).max(100_000),
+  })
+  .superRefine((value, ctx) => {
+    const max = MAX_CLIENT_SCORE[value.gameId];
+    if (value.score > max) {
+      ctx.addIssue({
+        code: "custom",
+        message: "Score is outside the allowed range for this game.",
+        path: ["score"],
+      });
+    }
+  });
 
 export const gameIdSchema = z.enum(GAME_IDS);
 

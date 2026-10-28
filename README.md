@@ -101,7 +101,7 @@ Provider keys beyond OpenAI are not in `.env.example` but are required by the co
 ### Firebase setup
 
 1. Enable Google Auth; authorize your domains.
-2. Deploy `firestore.rules` and `storage.rules` (client writes to scores are denied; Admin actions write).
+2. Deploy `firestore.rules`, `firestore.indexes.json`, and `storage.rules`. Client score writes stay denied. `scores` reads are owner-only, `bestScores` and `rateLimits` are server-only, and storage uploads are limited to images under 5 MB. Leaderboard queries need the `gameId` + `score` indexes in `firestore.indexes.json`.
 3. Set Admin env vars for session verification and mutations.
 
 ### Run locally

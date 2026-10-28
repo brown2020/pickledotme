@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { useAuth } from "@/providers/authContext";
 import { getUserBestScore, saveGameResult } from "@/actions/scores";
 import { GameId } from "@/config/games";
@@ -32,6 +32,9 @@ export function useGameBase(gameId: GameId): UseGameBaseReturn {
     bestScore: 0,
     level: 1,
   });
+  // Latest score, including updates that have not re-rendered yet.
+  // endGame reads this so a same-turn game over does not persist the previous score.
+  const scoreRef = useRef(0);
 
   useEffect(() => {
     let isCurrent = true;
@@ -89,6 +92,7 @@ export function useGameBase(gameId: GameId): UseGameBaseReturn {
   );
 
   const updateScore = useCallback((score: number) => {
+    scoreRef.current = score;
     setState((prev) => ({
       ...prev,
       score,
@@ -97,6 +101,7 @@ export function useGameBase(gameId: GameId): UseGameBaseReturn {
   }, []);
 
   const startGame = useCallback(() => {
+    scoreRef.current = 0;
     setState((prev) => ({
       ...prev,
       isPlaying: true,
@@ -105,21 +110,24 @@ export function useGameBase(gameId: GameId): UseGameBaseReturn {
     }));
   }, []);
 
-  const endGame = useCallback(async (finalScore = state.score) => {
+  const endGame = useCallback(async (finalScore?: number) => {
+    const score = finalScore ?? scoreRef.current;
+    scoreRef.current = score;
     setState((prev) => ({
       ...prev,
       isPlaying: false,
-      score: finalScore,
-      bestScore: Math.max(prev.bestScore, finalScore),
+      score,
+      bestScore: Math.max(prev.bestScore, score),
     }));
-    await saveScore(finalScore);
-  }, [saveScore, state.score]);
+    await saveScore(score);
+  }, [saveScore]);
 
   const setLevel = useCallback((level: number) => {
     setState((prev) => ({ ...prev, level }));
   }, []);
 
   const resetGame = useCallback(() => {
+    scoreRef.current = 0;
     setState((prev) => ({
       ...prev,
       isPlaying: false,

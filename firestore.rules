@@ -28,18 +28,21 @@ service cloud.firestore {
       allow create, update, delete: if false;
     }
 
-    // Best scores are readable by signed-in users for leaderboards.
+    // Leaderboard reads go through Admin server actions, not the client SDK.
     match /bestScores/{docId} {
-      allow read: if signedIn();
+      allow read, write: if false;
+    }
+
+    // Legacy mixed collection. Owner reads only; writes stay on the server.
+    match /scores/{docId} {
+      allow read: if signedIn() && resource.data.userId == request.auth.uid;
 
       allow create, update, delete: if false;
     }
 
-    // Legacy mixed collection (backwards compatibility).
-    match /scores/{docId} {
-      allow read: if signedIn();
-
-      allow create, update, delete: if false;
+    // Per-user advice and score quotas. Admin SDK only.
+    match /rateLimits/{uid} {
+      allow read, write: if false;
     }
 
     // Deny everything else by default.

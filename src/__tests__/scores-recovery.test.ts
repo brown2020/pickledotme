@@ -55,8 +55,10 @@ vi.mock("@/lib/firebaseAdmin", () => ({
             }
             return create(ref, data);
           }) as typeof create,
-          set: ((ref: unknown, data: { score: number }) => {
-            bestScore = data.score;
+          set: ((ref: unknown, data: { score?: number }) => {
+            if (typeof data.score === "number") {
+              bestScore = data.score;
+            }
             return set(ref, data);
           }) as typeof set,
         };
@@ -91,6 +93,15 @@ describe("saveGameResult recovery", () => {
     expect(first.isNewBest).toBe(true);
     expect(second.isNewBest).toBe(false);
     expect(create).toHaveBeenCalledTimes(2);
+    expect(create).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({
+        verified: false,
+        source: "client",
+        score: 12,
+        userId: "user-a",
+      })
+    );
   });
 
   it("keeps durable best score coherent under concurrent higher submits", async () => {

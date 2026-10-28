@@ -6,8 +6,13 @@ import { openai } from "@ai-sdk/openai";
 import { google } from "@ai-sdk/google";
 import { mistral } from "@ai-sdk/mistral";
 import { anthropic } from "@ai-sdk/anthropic";
+import {
+  ADVICE_UNAVAILABLE,
+  toPublicAdviceError,
+} from "@/lib/adviceAccess";
+import { consumeRateLimit } from "@/lib/rateLimit";
+import { requireVerifiedAdviceUid } from "@/lib/requireAuth";
 import { adviceChatRequestSchema, validateOrThrow } from "@/lib/validations";
-import { requireAuthenticatedSessionUid } from "@/lib/requireAuth";
 
 type ModelName =
   | "gpt-5.2"
@@ -51,7 +56,8 @@ async function generateResponse(
     instructions: systemPrompt,
     messages,
     onError: ({ error }) => {
-      stream.error(error);
+      console.error("Advice provider error:", error);
+      stream.error(new Error(ADVICE_UNAVAILABLE));
     },
   });
 
@@ -64,7 +70,8 @@ async function generateResponse(
       }
       stream.done(full);
     } catch (error) {
-      stream.error(error);
+      console.error("Advice stream error:", error);
+      stream.error(toPublicAdviceError(error));
     }
   })();
 
@@ -105,7 +112,15 @@ Output format:
  * Server action to generate streaming AI advice (supports follow-ups)
  */
 export async function getAdvice(input: unknown) {
-  await requireAuthenticatedSessionUid();
+  try {
+    const uid = await requireVerifiedAdviceUid();
+    await consumeRateLimit(uid, "advice");
+  } catch (error) {
+    console.error("Advice request rejected:", error);
+    const stream = createStreamableValue("");
+    stream.error(toPublicAdviceError(error));
+    return stream.value;
+  }
 
   const { messages, modelName, tone } = validateOrThrow(
     adviceChatRequestSchema,
