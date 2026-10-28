@@ -31,11 +31,10 @@ CI on `dev`/`main` runs the same lint → typecheck → test → build sequence
 (`.github/workflows/ci.yml`). See `docs/OPERATIONS.md` for failure drills and
 rollback. The verified local toolchain is Node.js 22.x with matching npm.
 
-TypeScript 6.0.3 and ESLint 9.39.5 are the newest versions supported by the
-current Next.js lint stack. TypeScript 7, ESLint 10, Framer Motion 13, and
-Vitest 5 are held major upgrades with review triggers (TS7 + eslint-typescript/
-next support; eslint-config-next ESLint 10; FM13 App Router smoke; Vitest 5
-migration notes) — treat them as compatibility migrations, not routine bumps.
+ESLint 10.13 and Vitest 5 are in use. TypeScript stays on 6.0.3:
+`typescript-eslint` 8.72 peers `typescript <6.1.0`, so TypeScript 7 is not
+installable with `eslint-config-next` yet. Keep the `jwks-rsa` → `jose@5.10.0`
+override while firebase-admin 14 and jwks-rsa 4 are installed.
 
 ## Architecture Notes
 
@@ -68,7 +67,7 @@ migration notes) — treat them as compatibility migrations, not routine bumps.
 
 <!-- BEGIN:nextjs-agent-rules -->
 
-# This is NOT the Next.js you know
+## This is NOT the Next.js you know
 
 This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` (resolved from this file's directory; in monorepos the `next` package may not be visible from the repo root) before writing any code. Heed deprecation notices.
 

@@ -1,34 +1,36 @@
 # Pickle.me (`pickledotme`)
 
-AI advice for sticky situations plus pickle-themed brain-training games. Sign in with Google, play six mini-games with Firestore-backed scores, and chat with selectable AI models and tones. Live site: [pickle.me](https://pickle.me/).
+AI advice for sticky situations plus pickle-themed brain-training games. Sign in with email or Google, play six mini-games with Firestore-backed scores, and chat with selectable AI models and tones. Live site: [pickle.me](https://pickle.me/).
 
 ## Features
 
-Verified from the current codebase:
-
-- Public marketing pages: home, about, privacy, terms
-- Auth: Firebase Google sign-in; httpOnly session via `POST /api/auth/session`; route gate in `src/proxy.ts`
+- Public pages: home, about, privacy, terms
+- Auth: email/password and Google popup sign-in, email verification, password reset. httpOnly session cookie from `POST /api/auth/session`. Route gate in `src/proxy.ts`
+- A failed Google sign-in stays on `/login` (or `/signup`) and shows the error
 - Protected areas: `/games`, `/pickle` (AI advice), `/profile`
-- Six games (`src/config/games.ts`): Sequence, Reaction, Matching, Pickle Pop, Speed, Word
-- Score history and best scores written through authenticated server actions (`src/actions/scores.ts`) with Firestore Admin
-- AI advice streaming (`src/actions/getAdvice.ts`) via Vercel AI SDK — models include `gpt-5.2`, `claude-sonnet-4-5`, `gemini-2.5-flash`, `mistral-large-latest`; tones: balanced, gentle, blunt, coach
-- Advice thread persistence (`src/actions/adviceThreads.ts`)
-- Dark/light/system theme; Framer Motion page transitions; SWR for score reads; Zustand settings store
+- Six games (`src/config/games.ts`): Sequence Pickle, Reaction Pickle, Matching Pickles, Pickle Pop, Speed Pickle, Word Pickle
+- Scores: authenticated server actions (`src/actions/scores.ts`). History and best scores are stored with `verified: false` and `source: "client"`, with per-game caps. Leaderboard reads go through the Admin SDK
+- Advice (`src/actions/getAdvice.ts`) streams from the Vercel AI SDK. Models: `gpt-5.2`, `claude-sonnet-4-5`, `gemini-2.5-flash`, `mistral-large-latest`. Tones: balanced, gentle, blunt, coach, funny. Advice requires a verified email. Threads persist via `src/actions/adviceThreads.ts`
+- Quotas in Firestore (`rateLimits`): 20 advice requests per hour, 40 score saves per hour
+- Dark/light/system theme, Framer Motion, SWR score reads, Zustand settings
 
 ## Tech stack
 
-| Area | Choice | Version (package.json) |
+| Area | Choice | package.json |
 | --- | --- | --- |
-| Framework | Next.js (App Router) | ^16.3.5 |
-| UI | React | ^19.3.0 |
+| Framework | Next.js (App Router) | ^16.4.3 |
+| UI | React | ^19.3.1 |
 | Language | TypeScript | ^6.0.3 |
 | Styling | Tailwind CSS | ^4.3.3 |
-| Motion | Framer Motion | ^12.43.0 |
-| State | Zustand + SWR + React context | — |
-| Auth / data | Firebase client + firebase-admin | ^12.19.0 / ^14.4.0 |
-| AI | `ai` v7 + OpenAI / Anthropic / Google / Mistral providers + `@ai-sdk/rsc` | ai ^7.0.109 |
+| Motion | Framer Motion | ^14.7.1 |
+| State | Zustand, SWR, React context | — |
+| Auth / data | Firebase client + firebase-admin | ^13.1.0 / ^14.5.0 |
+| AI | `ai` + OpenAI, Anthropic, Google, and Mistral providers + `@ai-sdk/rsc` | ai ^7.0.156 |
 | Markdown | react-markdown | ^10.1.0 |
-| Tests | Vitest | ^4.1.11 |
+| Lint | ESLint + eslint-config-next | ^10.13.0 / ^16.4.3 |
+| Tests | Vitest | ^5.0.5 |
+
+`firebase-admin` 14 pulls `jwks-rsa` 4, which needs the `overrides` pin `"jwks-rsa": { "jose": "5.10.0" }` so Node can `require` jose. Leave that pin in place.
 
 No Stripe in this repo.
 
@@ -46,10 +48,12 @@ src/
   actions/                   # getAdvice, adviceThreads, scores
   components/                # home, games, pickle, auth, layout, ui
   hooks/                     # per-game hooks, scores, advice, sound
-  lib/                       # firebaseConfig, firebaseAdmin, requireAuth, …
+  lib/                       # firebase, session, rate limit, redirect, CSP
   providers/ stores/ types/ config/
   proxy.ts
+firebase.json                # rules + indexes paths
 firestore.rules
+firestore.indexes.json
 storage.rules
 .env.example
 docs/ARCHITECTURE.md
@@ -61,12 +65,12 @@ docs/OPERATIONS.md
 
 ### Prerequisites
 
-- Node.js 22 (matches CI) or a current LTS
+- Node.js 22 (matches CI)
 - npm
-- Firebase project + Admin service account
-- At least one AI provider API key for `/pickle`
+- A Firebase project with Auth, Firestore, and Storage, plus an Admin service account
+- At least one AI provider key to use `/pickle`
 
-### Clone and install
+### Install
 
 ```bash
 git clone https://github.com/brown2020/pickledotme.git
@@ -76,35 +80,36 @@ npm install
 
 ### Environment variables
 
-Never commit real values. Start from `.env.example`.
+Copy `.env.example` to `.env.local`. Set names only in git; never commit real values.
 
-| Name | Purpose | Where to get it |
-| --- | --- | --- |
-| `NEXT_PUBLIC_FIREBASE_API_KEY` | Firebase web API key | Firebase Console → Your apps |
-| `NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN` | Auth domain | Same |
-| `NEXT_PUBLIC_FIREBASE_PROJECT_ID` | Project id | Same |
-| `NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET` | Storage bucket | Same |
-| `NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID` | Messaging sender id | Same |
-| `NEXT_PUBLIC_FIREBASE_APP_ID` | App id | Same |
-| `FIREBASE_ADMIN_PROJECT_ID` | Admin SDK project id | Service account JSON |
-| `FIREBASE_ADMIN_CLIENT_EMAIL` | Admin client email | Same |
-| `FIREBASE_ADMIN_PRIVATE_KEY` | Admin private key (`\n` escaped) | Same |
-| `OPENAI_API_KEY` | OpenAI models (listed in `.env.example`) | [OpenAI API keys](https://platform.openai.com/api-keys) |
-| `ANTHROPIC_API_KEY` | Claude models (when selected) | Anthropic console |
-| `GOOGLE_GENERATIVE_AI_API_KEY` | Gemini models (when selected) | Google AI Studio |
-| `MISTRAL_API_KEY` | Mistral models (when selected) | Mistral console |
-| `NEXT_PUBLIC_APP_URL` | Canonical site URL for metadata (defaults to `https://pickle.me`) | Your deployed origin |
-| `ALLOW_INSECURE_DEV_AUTH` | Local-only: `true` allows session flow without Admin creds (never in production) | Set only on your machine |
+| Name | Purpose |
+| --- | --- |
+| `NEXT_PUBLIC_FIREBASE_API_KEY` | Firebase web config |
+| `NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN` | Firebase web config |
+| `NEXT_PUBLIC_FIREBASE_PROJECT_ID` | Firebase web config |
+| `NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET` | Firebase web config |
+| `NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID` | Firebase web config |
+| `NEXT_PUBLIC_FIREBASE_APP_ID` | Firebase web config |
+| `FIREBASE_ADMIN_PROJECT_ID` | Admin SDK (session cookies, Firestore) |
+| `FIREBASE_ADMIN_CLIENT_EMAIL` | Admin SDK |
+| `FIREBASE_ADMIN_PRIVATE_KEY` | Admin SDK private key, with escaped newlines |
+| `OPENAI_API_KEY` | `gpt-5.2` |
+| `ANTHROPIC_API_KEY` | `claude-sonnet-4-5` |
+| `GOOGLE_GENERATIVE_AI_API_KEY` | `gemini-2.5-flash` |
+| `MISTRAL_API_KEY` | `mistral-large-latest` |
+| `NEXT_PUBLIC_APP_URL` | Canonical origin for metadata. Defaults to `https://pickle.me` |
+| `ALLOW_INSECURE_DEV_AUTH` | Local only. `true` accepts a dev session cookie when `NODE_ENV` is not production. Never set this on a deployed environment |
 
-Provider keys beyond OpenAI are not in `.env.example` but are required by the corresponding `@ai-sdk/*` packages when those models are chosen.
+CI supplies the `NEXT_PUBLIC_FIREBASE_*` names from Actions secrets. Provider keys are not required to build.
 
-### Firebase setup
+### Firebase
 
-1. Enable Google Auth; authorize your domains.
-2. Deploy `firestore.rules`, `firestore.indexes.json`, and `storage.rules`. Client score writes stay denied. `scores` reads are owner-only, `bestScores` and `rateLimits` are server-only, and storage uploads are limited to images under 5 MB. Leaderboard queries need the `gameId` + `score` indexes in `firestore.indexes.json`.
-3. Set Admin env vars for session verification and mutations.
+1. Enable Email/Password and Google sign-in. Authorize your domains.
+2. `firebase.json` points at `firestore.rules`, `firestore.indexes.json`, and `storage.rules`.
+3. Client writes to scores are denied. `scores` reads are owner-only. `bestScores` and `rateLimits` are server-only. Storage uploads are owner-only images under 5 MB.
+4. Set the Admin env vars before using session cookies or server actions.
 
-### Run locally
+### Run
 
 ```bash
 npm run dev
@@ -125,19 +130,21 @@ Open [http://localhost:3000](http://localhost:3000).
 
 ## Testing and CI
 
-- Vitest covers advice/score recovery, leaderboard auth, and Firebase auth error mapping under `src/__tests__/`.
-- CI: lint → typecheck → test → build on `dev`/`main` and PRs (Node 22). Public `NEXT_PUBLIC_FIREBASE_*` come from Actions secrets. Provider keys are not required for the build.
+Vitest covers auth error mapping, auth-page redirect policy, advice and score recovery, leaderboard auth, and security controls under `src/__tests__/`.
+
+GitHub Actions (`.github/workflows/ci.yml`) runs lint, typecheck, test, and build on `dev`, `main`, and pull requests, on Node 22.
 
 ## Deployment
 
-Demo/production: [pickle.me](https://pickle.me/). Configure Firebase public + Admin env vars and AI provider secrets on the host. See `docs/OPERATIONS.md` for failure drills and env matrix.
+Production: [pickle.me](https://pickle.me/). Set the Firebase public and Admin variables and the AI provider secrets on the host. See `docs/OPERATIONS.md` for the env matrix and failure drills.
 
 ## Contributing
 
 1. Branch from `dev`.
-2. Treat proxy as a UI gate only — mutations must keep `requireAuthenticatedSessionUid` checks.
+2. Treat `src/proxy.ts` as a UI gate. Mutations keep server-side session checks.
 3. Run lint, typecheck, and tests before opening a PR.
-4. Never commit secrets; do not enable `ALLOW_INSECURE_DEV_AUTH` outside local dev.
+4. Keep the `jwks-rsa` / `jose` 5.10.0 override while firebase-admin 14 and jwks-rsa 4 are installed.
+5. Do not commit secrets, and do not set `ALLOW_INSECURE_DEV_AUTH` outside local dev.
 
 ## License
 
